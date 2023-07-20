@@ -1,9 +1,367 @@
+<!DOCTYPE html>
 <html>
- 
-<body>
-  <h1>YOUR NAME</h1>
-  <p>Welcome to my website!</p>
-  <img src="https://content.codecademy.com/articles/github-pages-via-web-app/happy-ice-cream.gif" />
-</body>
- 
+    <head>
+        <meta charset="utf-8">
+        <title>Conway's game of life</title>
+        <style>
+            * {
+                box-sizing:border-box;
+            }
+            canvas{
+                background:#efefef;
+                cursor:pointer;
+            }
+            
+            textarea{
+                width:620px;
+                height:51px;
+                color:#000;
+                font-family:monospace;
+            }
+            textarea::placeholder{
+                color:#888;
+                font-style:italic;
+            }
+            canvas,i{
+                display:block;
+            }
+            #seperator{
+                display:block;
+                height:50px;
+            }
+            button, select, input{
+                border-radius:4px;
+                border:1px solid black;
+                cursor:pointer;
+            }
+            #next{
+                background:#aee;
+            }
+            #rand{
+                background:#e0f;
+            }
+            #clear{
+                background:#ff0;
+            }
+            #start{
+                background:#0cf600;
+            }
+            #stop{
+                background:#ff511c;
+            }
+            #apply{
+                background:#fa0;
+            }
+            #spacer{
+                height:70px;
+                visibility:hidden;
+            }
+        </style>
+    </head>
+    <body>
+    <canvas onclick="toggle(event, this)"></canvas>
+    
+    <button id="next">Next</button>
+    <button id="rand">Randomize</button>
+    <button id="clear">Clear</button>
+    <button id="start">Start</button>
+    <input id="speed" type="range" min="0" max="290" value="150">
+    <button id="apply">Apply</button>
+    <select id="pattern"></select>
+    <br>
+    <br>
+    <textarea id="eq" placeholder="Type a JavaScript expression..." spellcheck="false" autoCapitalize="false">var d = 4, corners = 1;/* Try different values of d */
+    /* I really like 46, 42, 40, 38, 36, 24, 20 */
+    /* I like 49, 44, 34, 29, 28, 27, 26, 25, 21, 19 */
+    /* My favorite is (d = 4, corners = 1) */
+x -= Math.floor(w/2); y -= Math.floor(h/2);
+return isIn(x, y, d-1) && (x + y == 0 || x == y) ||
+    corners && isIn(x, y, d) && !isIn(x, y, d-1) &&
+    (x < 0 && y <= 2-d && y > -d || x > 0 && y >= d-2 && y < d ||
+     y > 0 && x <= 2-d && x > -d || y < 0 && x >= d-2 && x < d);</textarea>
+    <i>The variables x, y, w, h, number, & live are available</i>
+    <div id="spacer"></div>
+    <script>
+/************************/
+/**/ var boxSize = 6; /**/
+/************************/
+/* variables */
+var buttons  = document.querySelectorAll("button");
+var nextB    = document.querySelector("#next"   );
+var randB    = document.querySelector("#rand"   );
+var clearB   = document.querySelector("#clear"  );
+var startB   = document.querySelector("#start"  );
+var applyB   = document.querySelector("#apply"  );
+var runSpeed = document.querySelector("#speed"  );
+var pattern  = document.querySelector("#pattern");
+var eq = document.querySelector("#eq");
+var canvas = document.querySelector("canvas");
+var c = canvas.getContext("2d");
+
+var boxes = [], newValues = [];
+var numW = 227, numH = 125, w, h;
+var xShift = 0, yShift = 0;
+var min = Math.min, max = Math.max, random = Math.random;
+
+canvas.setAttribute("width", (w = numW*boxSize+1) + "px");
+canvas.setAttribute("height", (h = numH*boxSize+1) + "px");
+
+for(var i = 0; i < numH; i++){
+    boxes[i] = Array(numW);
+    newValues[i] = Array(numW);
+    
+    for(var j = 0; j < numW; j++){
+        boxes[i][j] = random() < 0.5;
+        newValues[i][j] = 0;
+    }
+}
+
+function isIn(x, y, x2, y2, w, h){
+    switch(arguments.length){
+        case 3:
+            return x >= -x2 && y >= -x2 && x <= x2 && y <= x2;
+        case 4:
+            return x >= -x2 && y >= -y2 && x <= x2 && y <= y2;
+        case 5:
+            return x >= x2 && y >= y2 && x <= w + x2 && y <= w + y2;
+        case 6:
+            return x >= x2 && y >= y2 && x <= w + x2 && y <= h + y2;
+        default:
+            return false;
+    }
+}
+
+function drawBoxes(){
+    for(var i = 0; i < numH; i++){
+        for(var j = 0; j < numW; j++){
+            c.fillStyle = boxes[i+yShift][j+xShift]? "#308aff" : "#efefef";
+            c.fillRect(j*boxSize, i*boxSize, boxSize, boxSize);
+        }
+    }
+    
+    c.fillStyle = "#000";
+    for(var i = 0; i <= numH; i++){
+        c.fillRect(0, i*boxSize, w, 1);
+    }
+    for(var j = 0; j <= numW; j++){
+        c.fillRect(j*boxSize, 0, 1, h);
+    }
+}
+
+function checkBorders(){
+    var top = false, left = false
+    var right = false, bottom = false;
+    var vl = boxes.length-1, hl = boxes[0].length-1;
+    
+    for(var i = 0; i <= vl; i++){
+        left |= boxes[i][0];
+    }
+    for(var j = 0; j <= hl; j++){
+        top |= boxes[0][j];
+    }
+    for(var i = 0; i <= vl; i++){
+        right |= boxes[i][hl];
+    }
+    for(var j = 0; j <= hl; j++){
+        bottom |= boxes[vl][j];
+    }
+    
+    if(left){
+        for(var i = 0; i < boxes.length; i++){
+            boxes[i].unshift(false);
+            newValues[i].unshift(false);
+        }
+        xShift++;
+    }
+    if(top){
+        boxes.unshift(Array(boxes[0].length).fill(false));
+        newValues.unshift(Array(boxes[0].length).fill(false));
+        yShift++;
+    }
+    if(right){
+        for(var i = 0; i < boxes.length; i++){
+            boxes[i].push(false);
+            newValues[i].push(false);
+        }
+    }
+    if(bottom){
+        boxes.push(Array(boxes[0].length).fill(false));
+        newValues.push(Array(boxes[0].length).fill(false));
+    }
+};
+
+function toggle(event, canvas){
+    var rect = canvas.getBoundingClientRect();
+    var x = Math.round((event.clientX - rect.left) / boxSize - 0.5) + xShift;
+    var y = Math.round((event.clientY - rect.top ) / boxSize - 0.5) + yShift;
+    
+    boxes[y][x] = !boxes[y][x];
+    
+    checkBorders();
+    
+    drawBoxes();
+}
+
+var positions = [
+    {x: -1, y: -1},
+    {x: +0, y: -1},
+    {x: +1, y: -1},
+    {x: -1, y: +0},
+    {x: +1, y: +0},
+    {x: -1, y: +1},
+    {x: +0, y: +1},
+    {x: +1, y: +1}
+];
+
+function countLiveNeighbors(i, j){
+    var count = 0;
+    
+    function addPosition(pos){
+        var x = i+pos.x, y = j+pos.y;
+        
+        if(x in boxes && boxes[x][y]){
+            count++;
+        }
+    }
+    
+    positions.forEach(addPosition);
+    
+    return count;
+}
+
+function next(){
+    function forEachRow(row, i){
+        function forEachCell(cell, j){
+            var count = countLiveNeighbors(i, j);
+            
+            newValues[i][j] = cell? count >= 2 && count <= 3 : count === 3;
+        }
+        
+        row.forEach(forEachCell);
+    }
+    boxes.forEach(forEachRow);
+    
+    for(var i = 0; i < boxes.length; i++){
+        for(var j = 0; j < boxes[i].length; j++){
+            boxes[i][j] = newValues[i][j];
+        }
+    }
+    
+    checkBorders();
+    
+    drawBoxes();
+}
+
+function rand(){
+    boxes = [];
+    for(var i = 0; i < numH; i++){
+        boxes[i] = Array(numW);
+        
+        for(var j = 0; j < numW; j++){
+            boxes[i][j] = random() < 0.5;
+        }
+    }
+    
+    xShift = 0, yShift = 0;
+    
+    checkBorders();
+    
+    drawBoxes();
+}
+
+function clear(){
+    boxes = [];
+    for(var i = 0; i < numH; i++){
+        boxes[i] = Array(numW);
+        
+        for(var j = 0; j < numW; j++){
+            boxes[i][j] = false;
+        }
+    }
+    
+    xShift = 0, yShift = 0;
+    
+    checkBorders();
+    
+    drawBoxes();
+}
+
+var running = false;
+var curTimer = null;
+function run(){
+    if(running){
+        next();
+        curTimer = setTimeout(run, 300 - runSpeed.value);
+    }
+}
+
+function startRunning(){
+    running = true;
+    
+    startB.textContent = "Stop";
+    startB.id = "stop";
+    startB.onclick = stopRunning;
+    
+    run();
+}
+
+function stopRunning(){
+    clearTimeout(curTimer);
+    running = false;
+    
+    startB.textContent = "Start";
+    startB.id = "start";
+    startB.onclick = startRunning;
+}
+
+function apply(){
+    var str = String(eq.value);
+    str = str.indexOf("return") === -1? "return ("+str+");" : str;
+    
+    var func = Function("number, live, x, y, w, h", str);
+    
+    for(var num = 1, i = 0; i < boxes.length; i++){
+        for(var j = 0; j < boxes[i].length; j++, num++){
+            try{
+                boxes[i][j] = Boolean(func(num, boxes[i][j], j-xShift, i-yShift, numW-1, numH-1)) && isIn(j-xShift, i-yShift, 0, 0, numW-1, numH-1);
+            }catch(err){
+                console.log(err);
+            }
+        }
+    }
+    
+    checkBorders();
+    
+    drawBoxes();
+}
+
+document.addEventListener("keyup", function(event){
+    if(event.target !== eq){
+        var key = event.key.toLowerCase();
+        
+        for(var i = 0; i < buttons.length; i++){
+            if(buttons[i].id[0].toLowerCase() === key){
+                buttons[i].click();
+                break;
+            }
+        }
+        
+        if(key === "t"){
+            eq.focus();
+        }
+    }
+});
+
+
+nextB.addEventListener("click", next);
+randB.addEventListener("click", rand);
+clearB.addEventListener("click", clear);
+startB.onclick = startRunning;
+applyB.addEventListener("click", apply);
+
+checkBorders();
+
+drawBoxes();
+        </script>
+    </body>
 </html>
