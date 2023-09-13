@@ -65,7 +65,7 @@ input {
     border:2px solid rgba(0, 0, 0, 0);
     border-radius:3px;}
 input:invalid {
-    border:2px solid red;}
+    border:2px solid #ff0022;}
 input::placeholder {
     color:#777;
     font-style:italic;}
@@ -261,7 +261,7 @@ function checkBlocks() {
     }else if(gameIsOver){
         endText.textContent = "You lost.";
         endBox.setAttribute("data-show", "true");
-        endText.style.color = "#aa0000";
+        endText.style.color = "#ff0022";
     }
 }
 
