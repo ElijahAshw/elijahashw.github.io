@@ -88,7 +88,8 @@ input::placeholder {
     font-family:serif;
     font-weight:bold;
     z-index:1;
-    display:inline;}
+    display:inline;
+    background: #0008;}
 #end[data-show="false"] {
     display:none;}
 #end p {
@@ -256,11 +257,11 @@ function checkBlocks() {
     if(checkWin()){
         endText.textContent = "You won!";
         endBox.setAttribute("data-show", "true");
-        endText.style.color = "#00a";
+        endText.style.color = "#0000aa";
     }else if(gameIsOver){
         endText.textContent = "You lost.";
         endBox.setAttribute("data-show", "true");
-        endText.style.color = "#a00";
+        endText.style.color = "#f5cc00";
     }
 }
 
