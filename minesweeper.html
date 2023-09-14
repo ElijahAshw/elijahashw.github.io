@@ -310,8 +310,22 @@ var Block = (function(){
         clicked: false,
         flagged: false,
         textContent: " ",
-        onclick: function(event){
-            this.clickOn("first", event.metaKey || event.ctrlKey || event.altKey || flagMode);
+        timeout: undefined,
+        onmousedown: function(){
+            if(!this.timeout) {
+                var curThis = this;
+                this.timeout = setTimeout(function() {
+                    curThis.timeout = undefined;
+                    curThis.clickOn("first", true);
+                }, 400);
+            }
+        },
+        onmouseup: function(event){
+            if(this.timeout) {
+                clearTimeout(this.timeout);
+                this.timeout = undefined;
+                this.clickOn("first", event.metaKey || event.ctrlKey || event.altKey || flagMode);
+            }
         }
     };
     
@@ -371,8 +385,7 @@ var Block = (function(){
     
     Block.prototype.flag = function(){
         if(!this.clicked){
-            this.flagged = !this.flagged;
-            this.setAttribute("data-flagged", this.flagged);
+            this.setAttribute("data-flagged", this.flagged = !this.flagged);
             checkBlocks();
         }
     };
