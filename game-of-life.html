@@ -5,59 +5,76 @@
         <title>Conway's game of life</title>
         <style>
             * {
-                box-sizing:border-box;
+                box-sizing: border-box;
             }
-            canvas{
-                background:#efefef;
-                cursor:pointer;
+            canvas {
+                background: #efefef;
+                cursor: pointer;
             }
             
-            textarea{
-                width:620px;
-                height:51px;
-                color:#000;
-                font-family:monospace;
+            textarea {
+                width: 620px;
+                height: 51px;
+                color: #000;
+                font-family: monospace;
             }
-            textarea::placeholder{
-                color:#888;
-                font-style:italic;
+            textarea::placeholder {
+                color: #888;
+                font-style: italic;
             }
-            canvas,i{
-                display:block;
+            canvas, i {
+                display: block;
             }
-            #seperator{
-                display:block;
-                height:50px;
+            #seperator {
+                display: block;
+                height: 50px;
             }
-            button, select, input{
-                border-radius:4px;
-                border:1px solid black;
-                cursor:pointer;
+            .input-wrapper {
+                display: inline;
+                position: relative;
+            }
+            .input-wrapper > input + label {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            button, select, input {
+                border-radius: 4px;
+                border: 1px solid black;
+                cursor: pointer;
             }
             button::first-letter {
                 text-decoration: underline;
             }
-            #next{
-                background:#aee;
+            #counter {
+                display: inline;
+                font-family: sans-serif;
             }
-            #rand{
-                background:#e0f;
+            #next {
+                background: #aee;
             }
-            #clear{
-                background:#ff0;
+            #randomize {
+                background: #e0f;
             }
-            #start{
-                background:#0cf600;
+            #clear {
+                background: #ff0;
             }
-            #stop{
-                background:#ff511c;
+            #start {
+                background: #0cf600;
             }
-            #apply{
-                background:#fa0;
+            #stop {
+                background: #ff511c;
             }
-            #spacer{
-                height:70px;
-                visibility:hidden;
+            #apply {
+                background: #fa0;
+            }
+            #back {
+                background: #00ffa6;
+            }
+            #spacer {
+                height: 70px;
+                visibility: hidden;
             }
         </style>
     </head>
@@ -65,11 +82,16 @@
     <canvas onclick="toggle(event, this)"></canvas>
     
     <button id="next">Next</button>
-    <button id="rand">Randomize</button>
+    <button id="randomize">Randomize</button>
     <button id="clear">Clear</button>
     <button id="start">Start</button>
-    <input id="speed" type="range" min="0" max="290" value="150">
+    <div class="input-wrapper">
+        <input id="speed" type="range" min="0" max="290" value="150">
+        <label for="speed">Speed</label>
+    </div>
+    <p id="counter"></p>
     <button id="apply">Apply</button>
+    <button id="back">Back</button>
     <select id="pattern"></select>
     <br>
     <br>
@@ -80,42 +102,37 @@
 x -= Math.floor(w/2); y -= Math.floor(h/2);
 return isIn(x, y, d-1) && (x + y == 0 || x == y) ||
     corners && isIn(x, y, d) && !isIn(x, y, d-1) &&
-    (x < 0 && y <= 2-d && y > -d || x > 0 && y >= d-2 && y < d ||
-     y > 0 && x <= 2-d && x > -d || y < 0 && x >= d-2 && x < d);</textarea>
+    (x &lt; 0 && y &lt;= 2-d && y > -d || x > 0 && y >= d-2 && y &lt; d ||
+     y > 0 && x &lt;= 2-d && x > -d || y &lt; 0 && x >= d-2 && x &lt; d);</textarea>
      <i>The variables <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code>, <code>number</code>, <code>live</code> and <code>function&nbsp;isIn(testX,&nbsp;testY,&nbsp;rectStartX,&nbsp;rectStartY,&nbsp;rectWidth,&nbsp;rectHeight)</code> are available</i>
     <div id="spacer"></div>
     <script>
-/************************/
-/**/ let boxSize = 6; /**/
-/************************/
+let boxSize = 6;
 /* variables */
-let buttons  = document.querySelectorAll("button");
-let nextB    = document.querySelector("#next"   );
-let randB    = document.querySelector("#rand"   );
-let clearB   = document.querySelector("#clear"  );
-let startB   = document.querySelector("#start"  );
-let applyB   = document.querySelector("#apply"  );
-let runSpeed = document.querySelector("#speed"  );
-let pattern  = document.querySelector("#pattern");
+let buttons = document.querySelectorAll("button");
+let nextB = document.querySelector("#next");
+let randB = document.querySelector("#randomize");
+let clearB = document.querySelector("#clear");
+let startB = document.querySelector("#start");
+let applyB = document.querySelector("#apply");
+let backB = document.querySelector("#back");
+let genCounter = document.querySelector("#counter");
+let runSpeed = document.querySelector("#speed");
+let pattern = document.querySelector("#pattern");
 let eq = document.querySelector("#eq");
 let canvas = document.querySelector("canvas");
 let c = canvas.getContext("2d");
 
 let boxes = new Map(), newBoxes = new Map(), possibleNew = new Map();
+let savedBoard = new Map(), generations = 0;;
 let numW = 227, numH = 125, w, h;
 let min = Math.min, max = Math.max, random = Math.random;
 
 canvas.setAttribute("width", (w = numW*boxSize+1) + "px");
 canvas.setAttribute("height", (h = numH*boxSize+1) + "px");
 
-for(let x = 0; x < numW; x++){
-    for(let y = 0; y < numH; y++){
-        if (Math.random() < 0.5) { boxes.set(`${x} ${y}`, {x: x, y: y}); }
-    }
-}
-
-function isIn(x, y, x2, y2, w, h){
-    switch(arguments.length){
+function isIn(x, y, x2, y2, w, h) {
+    switch(arguments.length) {
         case 3:
             return x >= -x2 && y >= -x2 && x <= x2 && y <= x2;
         case 4:
@@ -129,24 +146,39 @@ function isIn(x, y, x2, y2, w, h){
     }
 }
 
-function drawBoxes(){
-    for(let x = 0; x < numW; x++){
-        for(let y = 0; y < numH; y++){
-            c.fillStyle = boxes.has(`${x} ${y}`)? "#308aff" : "#efefef";
-            c.fillRect(x*boxSize, y*boxSize, boxSize, boxSize);
+function drawBoard(board) {
+    for(let x = 0; x < numW; x++) {
+        for(let y = 0; y < numH; y++) {
+            c.fillStyle = board.has(`${x} ${y}`)? "#308aff" : "#efefef";
+            c.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
         }
     }
     
     c.fillStyle = "#000";
-    for(let y = 0; y <= numH; y++){
-        c.fillRect(0, y*boxSize, w, 1);
+    for(let y = 0; y <= numH; y++) {
+        c.fillRect(0, y * boxSize, w, boxSize/6);
     }
-    for(let x = 0; x <= numW; x++){
-        c.fillRect(x*boxSize, 0, 1, h);
+    for(let x = 0; x <= numW; x++) {
+        c.fillRect(x * boxSize, 0, boxSize/6, h);
     }
 }
 
-function toggle(event, canvas){
+function saveBoard(board, x, y, w, h) {
+    let argNum = arguments.length;
+    savedBoard.clear();
+    function saveCell(value, key) {
+        if (argNum < 5 || isIn(value.x, value.y, x, y, w, h)) {
+            savedBoard.set(key, {x: value.x, y: value.y});
+        }
+    }
+    board.forEach(saveCell);
+}
+
+function updateGenCounter() {
+    genCounter.textContent = `Generation ${generations}`;
+}
+
+function toggle(event, canvas) {
     let rect = canvas.getBoundingClientRect();
     let x = Math.floor((event.clientX - rect.left) / boxSize);
     let y = Math.floor((event.clientY - rect.top ) / boxSize);
@@ -157,7 +189,10 @@ function toggle(event, canvas){
         boxes.set(`${x} ${y}`, {x: x, y: y});
     }
     
-    drawBoxes();
+    generations = 0;
+    updateGenCounter();
+    saveBoard(boxes);
+    drawBoard(boxes);
 }
 
 let positions = [
@@ -171,13 +206,13 @@ let positions = [
     {x: +1, y: +1}
 ];
 
-function countLiveNeighbors(i, j){
+function countLiveNeighbors(i, j) {
     let count = 0;
     
-    function addPosition(pos){
+    function addPosition(pos) {
         let x = i+pos.x, y = j+pos.y;
         
-        if(x in boxes && boxes[x][y]){
+        if(x in boxes && boxes[x][y]) {
             count++;
         }
     }
@@ -187,7 +222,7 @@ function countLiveNeighbors(i, j){
     return count;
 }
 
-function next(){
+function next() {
     newBoxes.clear();
     possibleNew.clear();
 
@@ -220,39 +255,44 @@ function next(){
     possibleNew.forEach(forPossibleNewCells);
     
     [boxes, newBoxes] = [newBoxes, boxes];
-    
-    drawBoxes();
+    generations++;
+    updateGenCounter();
+    drawBoard(boxes);
 }
 
-function rand(){
+function randomize() {
     boxes.clear();
-
-    for(let x = 0; x < numW; x++){
-        for(let y = 0; y < numH; y++){
+    for(let x = 0; x < numW; x++) {
+        for(let y = 0; y < numH; y++) {
             if (Math.random() < 0.5) {
                 boxes.set(`${x} ${y}`, {x: x, y: y});
             }
         }
     }
-    
-    drawBoxes();
+    generations = 0;
+    updateGenCounter();
+    saveBoard(boxes);
+    drawBoard(boxes);
 }
 
-function clear(){
+function clear() {
     boxes.clear();
-    drawBoxes();
+    generations = 0;
+    updateGenCounter();
+    saveBoard(boxes);
+    drawBoard(boxes);
 }
 
 let running = false;
 let curTimer = null;
-function run(){
-    if(running){
+function run() {
+    if(running) {
         next();
         curTimer = setTimeout(run, 300 - runSpeed.value);
     }
 }
 
-function startRunning(){
+function startRunning() {
     running = true;
     
     startB.textContent = "Stop";
@@ -262,7 +302,7 @@ function startRunning(){
     run();
 }
 
-function stopRunning(){
+function stopRunning() {
     clearTimeout(curTimer);
     running = false;
     
@@ -271,18 +311,18 @@ function stopRunning(){
     startB.onclick = startRunning;
 }
 
-function apply(){
+function apply() {
     newBoxes.clear();
 
     let str = String(eq.value);
     str = str.includes("return")? str : `return (${str});`;
     
-    let func = Function("number, live, x, y, w, h", str);
+    let func = Function("number, live, x, y, w, h, isIn", str);
     
     for (let num = 1, y = 0; y < numH; y++) {
         for (let x = 0; x < numW; x++, num++) {
             try {
-                if (func(num, boxes.has(`${x} ${y}`), x, y, numW-1, numH-1) && isIn(x, y, 0, 0, numW-1, numH-1)) {
+                if (func(num, boxes.has(`${x} ${y}`), x, y, numW-1, numH-1, isIn) && isIn(x, y, 0, 0, numW-1, numH-1)) {
                     newBoxes.set(`${x} ${y}`, {x: x, y: y})
                 }
             } catch (err) {
@@ -292,37 +332,51 @@ function apply(){
     }
 
     [boxes, newBoxes] = [newBoxes, boxes];
-    
-    drawBoxes();
+    generations = 0;
+    updateGenCounter();
+    saveBoard(boxes);
+    drawBoard(boxes);
 }
 
-document.addEventListener("keyup", function(event){
-    if(event.target !== eq){
+function resetBoard() {
+    boxes.clear();
+    function setEachCell(value, key) {
+        boxes.set(key, {x: value.x, y: value.y});
+    }
+    savedBoard.forEach(setEachCell);
+    generations = 0;
+    updateGenCounter();
+    drawBoard(boxes);
+}
+
+document.addEventListener("keyup", function(event) {
+    if(event.target !== eq) {
         event.target.blur();
 
         let key = event.key.toLowerCase();
         
-        for(let i = 0; i < buttons.length; i++){
-            if(buttons[i].id[0].toLowerCase() === key){
+        for(let i = 0; i < buttons.length; i++) {
+            if(buttons[i].id[0].toLowerCase() === key) {
                 buttons[i].click();
                 break;
             }
         }
 
-        if(key === "t"){
+        if(key === "t") {
             eq.focus();
         }
     }
 });
 
-
 nextB.addEventListener("click", next);
-randB.addEventListener("click", rand);
+randB.addEventListener("click", randomize);
 clearB.addEventListener("click", clear);
 startB.onclick = startRunning;
 applyB.addEventListener("click", apply);
+backB.addEventListener("click", resetBoard);
 
-drawBoxes();
+randomize();
+drawBoard(boxes);
         </script>
     </body>
 </html>
