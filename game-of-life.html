@@ -73,7 +73,7 @@
     <select id="pattern"></select>
     <br>
     <br>
-    <textarea id="eq" placeholder="Type a JavaScript expression..." spellcheck="false" autoCapitalize="false">var d = 4, corners = 1;/* Try different values of d */
+    <textarea id="eq" placeholder="Type a JavaScript expression..." spellcheck="false" autoCapitalize="false">let d = 4, corners = 1;/* Try different values of d */
     /* I really like 46, 42, 40, 38, 36, 24, 20 */
     /* I like 49, 44, 34, 29, 28, 27, 26, 25, 21, 19 */
     /* My favorite is (d = 4, corners = 1) */
@@ -82,40 +82,35 @@ return isIn(x, y, d-1) && (x + y == 0 || x == y) ||
     corners && isIn(x, y, d) && !isIn(x, y, d-1) &&
     (x < 0 && y <= 2-d && y > -d || x > 0 && y >= d-2 && y < d ||
      y > 0 && x <= 2-d && x > -d || y < 0 && x >= d-2 && x < d);</textarea>
-    <i>The variables <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code>, <code>number</code>, <code>live</code> and <code>function&nbsp;isIn(testX,&nbsp;testY,&nbsp;rectStartX,&nbsp;rectStartY,&nbsp;rectWidth,&nbsp;rectHeight)</code> are available</i>
+     <i>The variables <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code>, <code>number</code>, <code>live</code> and <code>function&nbsp;isIn(testX,&nbsp;testY,&nbsp;rectStartX,&nbsp;rectStartY,&nbsp;rectWidth,&nbsp;rectHeight)</code> are available</i>
     <div id="spacer"></div>
     <script>
 /************************/
-/**/ var boxSize = 6; /**/
+/**/ let boxSize = 6; /**/
 /************************/
 /* variables */
-var buttons  = document.querySelectorAll("button");
-var nextB    = document.querySelector("#next"   );
-var randB    = document.querySelector("#rand"   );
-var clearB   = document.querySelector("#clear"  );
-var startB   = document.querySelector("#start"  );
-var applyB   = document.querySelector("#apply"  );
-var runSpeed = document.querySelector("#speed"  );
-var pattern  = document.querySelector("#pattern");
-var eq = document.querySelector("#eq");
-var canvas = document.querySelector("canvas");
-var c = canvas.getContext("2d");
+let buttons  = document.querySelectorAll("button");
+let nextB    = document.querySelector("#next"   );
+let randB    = document.querySelector("#rand"   );
+let clearB   = document.querySelector("#clear"  );
+let startB   = document.querySelector("#start"  );
+let applyB   = document.querySelector("#apply"  );
+let runSpeed = document.querySelector("#speed"  );
+let pattern  = document.querySelector("#pattern");
+let eq = document.querySelector("#eq");
+let canvas = document.querySelector("canvas");
+let c = canvas.getContext("2d");
 
-var boxes = [], newValues = [];
-var numW = 227, numH = 125, w, h;
-var xShift = 0, yShift = 0;
-var min = Math.min, max = Math.max, random = Math.random;
+let boxes = new Map(), newBoxes = new Map(), possibleNew = new Map();
+let numW = 227, numH = 125, w, h;
+let min = Math.min, max = Math.max, random = Math.random;
 
 canvas.setAttribute("width", (w = numW*boxSize+1) + "px");
 canvas.setAttribute("height", (h = numH*boxSize+1) + "px");
 
-for(var i = 0; i < numH; i++){
-    boxes[i] = Array(numW);
-    newValues[i] = Array(numW);
-    
-    for(var j = 0; j < numW; j++){
-        boxes[i][j] = random() < 0.5;
-        newValues[i][j] = 0;
+for(let x = 0; x < numW; x++){
+    for(let y = 0; y < numH; y++){
+        if (Math.random() < 0.5) { boxes.set(`${x} ${y}`, {x: x, y: y}); }
     }
 }
 
@@ -135,77 +130,37 @@ function isIn(x, y, x2, y2, w, h){
 }
 
 function drawBoxes(){
-    for(var i = 0; i < numH; i++){
-        for(var j = 0; j < numW; j++){
-            c.fillStyle = boxes[i+yShift][j+xShift]? "#308aff" : "#efefef";
-            c.fillRect(j*boxSize, i*boxSize, boxSize, boxSize);
+    for(let x = 0; x < numW; x++){
+        for(let y = 0; y < numH; y++){
+            c.fillStyle = boxes.has(`${x} ${y}`)? "#308aff" : "#efefef";
+            c.fillRect(x*boxSize, y*boxSize, boxSize, boxSize);
         }
     }
     
     c.fillStyle = "#000";
-    for(var i = 0; i <= numH; i++){
-        c.fillRect(0, i*boxSize, w, 1);
+    for(let y = 0; y <= numH; y++){
+        c.fillRect(0, y*boxSize, w, 1);
     }
-    for(var j = 0; j <= numW; j++){
-        c.fillRect(j*boxSize, 0, 1, h);
+    for(let x = 0; x <= numW; x++){
+        c.fillRect(x*boxSize, 0, 1, h);
     }
 }
 
-function checkBorders(){
-    var top = false, left = false
-    var right = false, bottom = false;
-    var vl = boxes.length-1, hl = boxes[0].length-1;
-    
-    for(var i = 0; i <= vl; i++){
-        left |= boxes[i][0];
-    }
-    for(var j = 0; j <= hl; j++){
-        top |= boxes[0][j];
-    }
-    for(var i = 0; i <= vl; i++){
-        right |= boxes[i][hl];
-    }
-    for(var j = 0; j <= hl; j++){
-        bottom |= boxes[vl][j];
-    }
-    
-    if(left){
-        for(var i = 0; i < boxes.length; i++){
-            boxes[i].unshift(false);
-            newValues[i].unshift(false);
-        }
-        xShift++;
-    }
-    if(top){
-        boxes.unshift(Array(boxes[0].length).fill(false));
-        newValues.unshift(Array(boxes[0].length).fill(false));
-        yShift++;
-    }
-    if(right){
-        for(var i = 0; i < boxes.length; i++){
-            boxes[i].push(false);
-            newValues[i].push(false);
-        }
-    }
-    if(bottom){
-        boxes.push(Array(boxes[0].length).fill(false));
-        newValues.push(Array(boxes[0].length).fill(false));
-    }
-};
-
 function toggle(event, canvas){
-    var rect = canvas.getBoundingClientRect();
-    var x = Math.round((event.clientX - rect.left) / boxSize - 0.5) + xShift;
-    var y = Math.round((event.clientY - rect.top ) / boxSize - 0.5) + yShift;
+    let rect = canvas.getBoundingClientRect();
+    let x = Math.floor((event.clientX - rect.left) / boxSize);
+    let y = Math.floor((event.clientY - rect.top ) / boxSize);
     
-    boxes[y][x] = !boxes[y][x];
-    
-    checkBorders();
+    if (boxes.has(`${x} ${y}`)) {
+        boxes.delete(`${x} ${y}`);
+    } else {
+        boxes.set(`${x} ${y}`, {x: x, y: y});
+    }
     
     drawBoxes();
 }
 
-var positions = [
+let positions = [
     {x: -1, y: -1},
     {x: +0, y: -1},
     {x: +1, y: -1},
@@ -217,10 +172,10 @@ var positions = [
 ];
 
 function countLiveNeighbors(i, j){
-    var count = 0;
+    let count = 0;
     
     function addPosition(pos){
-        var x = i+pos.x, y = j+pos.y;
+        let x = i+pos.x, y = j+pos.y;
         
         if(x in boxes && boxes[x][y]){
             count++;
@@ -233,64 +188,63 @@ function countLiveNeighbors(i, j){
 }
 
 function next(){
-    function forEachRow(row, i){
-        function forEachCell(cell, j){
-            var count = countLiveNeighbors(i, j);
+    newBoxes.clear();
+    possibleNew.clear();
+
+    function forEachCell(pos) {
+        let neighbors = 0;
+        for (let i = positions.length; i-- > 0;) {
+            let x = pos.x + positions[i].x;
+            let y = pos.y + positions[i].y;
             
-            newValues[i][j] = cell? count >= 2 && count <= 3 : count === 3;
+            if (boxes.has(`${x} ${y}`)) {
+                neighbors++;
+            } else if (possibleNew.has(`${x} ${y}`)) {
+                possibleNew.get(`${x} ${y}`).neighbors++;
+            } else {
+                possibleNew.set(`${x} ${y}`, {x: x, y: y, neighbors: 1});
+            }
         }
         
-        row.forEach(forEachCell);
-    }
-    boxes.forEach(forEachRow);
-    
-    for(var i = 0; i < boxes.length; i++){
-        for(var j = 0; j < boxes[i].length; j++){
-            boxes[i][j] = newValues[i][j];
+        if (neighbors >= 2 && neighbors <= 3) {
+            newBoxes.set(`${pos.x} ${pos.y}`, {x: pos.x, y: pos.y});
         }
     }
+    boxes.forEach(forEachCell);
+
+    function forPossibleNewCells(pos) {
+        if (pos.neighbors === 3) {
+            newBoxes.set(`${pos.x} ${pos.y}`, {x: pos.x, y: pos.y});
+        }
+    }
+    possibleNew.forEach(forPossibleNewCells);
     
-    checkBorders();
+    [boxes, newBoxes] = [newBoxes, boxes];
     
     drawBoxes();
 }
 
 function rand(){
-    boxes = [];
-    for(var i = 0; i < numH; i++){
-        boxes[i] = Array(numW);
-        
-        for(var j = 0; j < numW; j++){
-            boxes[i][j] = random() < 0.5;
+    boxes.clear();
+
+    for(let x = 0; x < numW; x++){
+        for(let y = 0; y < numH; y++){
+            if (Math.random() < 0.5) {
+                boxes.set(`${x} ${y}`, {x: x, y: y});
+            }
         }
     }
-    
-    xShift = 0, yShift = 0;
-    
-    checkBorders();
     
     drawBoxes();
 }
 
 function clear(){
-    boxes = [];
-    for(var i = 0; i < numH; i++){
-        boxes[i] = Array(numW);
-        
-        for(var j = 0; j < numW; j++){
-            boxes[i][j] = false;
-        }
-    }
-    
-    xShift = 0, yShift = 0;
-    
-    checkBorders();
-    
+    boxes.clear();
     drawBoxes();
 }
 
-var running = false;
-var curTimer = null;
+let running = false;
+let curTimer = null;
 function run(){
     if(running){
         next();
@@ -318,37 +272,43 @@ function stopRunning(){
 }
 
 function apply(){
-    var str = String(eq.value);
-    str = str.indexOf("return") === -1? "return ("+str+");" : str;
+    newBoxes.clear();
+
+    let str = String(eq.value);
+    str = str.includes("return")? str : `return (${str});`;
     
-    var func = Function("number, live, x, y, w, h", str);
+    let func = Function("number, live, x, y, w, h", str);
     
-    for(var num = 1, i = 0; i < boxes.length; i++){
-        for(var j = 0; j < boxes[i].length; j++, num++){
-            try{
-                boxes[i][j] = Boolean(func(num, boxes[i][j], j-xShift, i-yShift, numW-1, numH-1)) && isIn(j-xShift, i-yShift, 0, 0, numW-1, numH-1);
-            }catch(err){
-                console.log(err);
+    for (let num = 1, y = 0; y < numH; y++) {
+        for (let x = 0; x < numW; x++, num++) {
+            try {
+                if (func(num, boxes.has(`${x} ${y}`), x, y, numW-1, numH-1) && isIn(x, y, 0, 0, numW-1, numH-1)) {
+                    newBoxes.set(`${x} ${y}`, {x: x, y: y})
+                }
+            } catch (err) {
+                console.error(err);
             }
         }
     }
-    
-    checkBorders();
+
+    [boxes, newBoxes] = [newBoxes, boxes];
     
     drawBoxes();
 }
 
 document.addEventListener("keyup", function(event){
     if(event.target !== eq){
-        var key = event.key.toLowerCase();
+        event.target.blur();
+
+        let key = event.key.toLowerCase();
         
-        for(var i = 0; i < buttons.length; i++){
+        for(let i = 0; i < buttons.length; i++){
             if(buttons[i].id[0].toLowerCase() === key){
                 buttons[i].click();
                 break;
             }
         }
-        
+
         if(key === "t"){
             eq.focus();
         }
@@ -361,8 +321,6 @@ randB.addEventListener("click", rand);
 clearB.addEventListener("click", clear);
 startB.onclick = startRunning;
 applyB.addEventListener("click", apply);
-
-checkBorders();
 
 drawBoxes();
         </script>
