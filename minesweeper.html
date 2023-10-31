@@ -581,11 +581,9 @@ window.addEventListener("keyup", function(event){
 
 validateInputs();
 
-let curDifficulty = Number(localStorage.getItem("difficulty"));
-if (curDifficulty || curDifficulty === 0) {
-    difficulty.value = curDifficulty;
-    onDifficultyInput.call(difficulty);
-}
+let curDifficulty = Number(localStorage.getItem("difficulty") || "30");
+difficulty.value = curDifficulty;
+onDifficultyInput.call(difficulty);
 </script>
     </body>
 </html>
