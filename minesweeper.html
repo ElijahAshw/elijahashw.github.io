@@ -521,13 +521,11 @@ function start(level) {
         blocks.push(row);
     }
     
-    let flatBlocks = blocks.flat();
+    let safeBlocks = blocks.flat();
     for (let i = 0; i < numBlocksX * numBlocksY * difficulty.value / 100; i++) {
-        let ind = Math.floor(Math.random() * flatBlocks.length);
-        while (flatBlocks[ind].bomb) {
-            ind++;
-        }
-        flatBlocks[ind].setBomb(true);
+        let ind = Math.floor(Math.random() * safeBlocks.length);
+        safeBlocks[ind].setBomb(true);
+        safeBlocks.splice(ind, 1);
     }
 
     for (let i = 0; i < blocks.length; i++) {
