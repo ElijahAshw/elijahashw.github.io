@@ -2,11 +2,18 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Conway's game of life</title>
         <style>
+            body {
+                background: #111111;
+                color: #ccc;
+            }
+
             * {
                 box-sizing: border-box;
             }
+
             canvas {
                 background: #efefef;
                 cursor: pointer;
@@ -38,14 +45,28 @@
                 top: 50%;
                 left: 50%;
                 transform: translateX(-50%);
+                white-space: nowrap;
             }
             button, select, input {
                 border-radius: 4px;
                 border: 1px solid black;
                 cursor: pointer;
+                background-color: #777;
             }
-            button::first-letter {
+            select {
+                background-color: #333;
+                color: inherit;
+            }
+            button.underline::first-letter {
                 text-decoration: underline;
+            }
+            button {
+                margin-right: 2px;
+                box-shadow: 1px 1px 0px #888;
+            }
+            button:active {
+                box-shadow: 0px 0px 0px #888;
+                transform: translate(1px, 1px);
             }
             #counter {
                 display: inline;
@@ -66,70 +87,244 @@
             #stop {
                 background: #ff511c;
             }
-            #apply {
-                background: #fa0;
-            }
             #back {
                 background: #00ffa6;
+            }
+            #part-button-wrapper {
+                margin-left: 20px;
+                margin-top: 9px;
+                border-radius: 6px;
+                border: solid 1.5px #555;
+                padding: 1px 2px 3px 3px;
+                display: inline-block;
+                white-space: nowrap;
+            }
+            #part-button-wrapper button {
+                background: #80bbff;
+            }
+            #source {
+                margin-top: 20px;
             }
             #spacer {
                 height: 70px;
                 visibility: hidden;
+            }
+            :link {
+                color: #5a5aff;
+            }
+            :visited {
+                color: #a352ec;
+            }
+            :link:active, :visited:active {
+                color: #ff090d;
             }
         </style>
     </head>
     <body>
     <canvas onclick="toggle(event, this)"></canvas>
     
-    <button id="next">Next</button>
-    <button id="randomize">Randomize</button>
-    <button id="clear">Clear</button>
-    <button id="start">Start</button>
+    <button id="next" class="underline">Next</button>
+    <button id="randomize" class="underline">Randomize</button>
+    <button id="clear" class="underline">Clear</button>
+    <button id="start" class="underline">Start</button>
     <div class="input-wrapper">
-        <input id="speed" type="range" min="0" max="290" value="150">
-        <label for="speed">Speed</label>
+        <input id="speed" type="range" min="-100" max="100" value="0">
+        <label for="speed" id="speed-counter">Speed</label>
     </div>
     <p id="counter"></p>
-    <button id="apply">Apply</button>
-    <button id="back">Back</button>
-    <select id="pattern"></select>
+    <button id="back" class="underline">Back</button>
+    <div id="part-button-wrapper">
+        Library and part-screen tools:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <select id="pattern">
+            <option value="#!$#!$#$$$">Glider</option>
+            <option value="!!!$#%$%%!%%&#&$&%">LWSS</option>
+            <option value="!#!%#&$!$&%&&#&&'$'%'&">MWSS</option>
+            <option value="!#!%#&$!$&%!%&&&'#'&($(%(&">HWSS</option>
+            <option value="!!#!###$%$$%%%">Eater1</option>
+            <option value="'!&#(#'$%&&&'&(&)&!'$'*'¶'!(#(%()(+(¶(%)))%*)*&+'+(+&-'-(-%.).%/&/(/)/">Elijah's oscillator</option>
+            <option value="!%!&#%#'$!$#$%$'%!%%%'%(&%'!'%'''((!(#(%(')%)'*%*&">Elijah's on-off</option>
+            <option value="|I|K|L}I}J}L¤J¥D¥E¥I¥M¥N¥O¦D¦E¦H¦O§I§O¨J¨K¨M¨N±`±aµ`µaÀ]À^ÀdÀeÁ]Á^ÁdÁeÄhÅfÅgÅhÆeÇeÇf×pØoØqÙoÙqÚpÜkÜlÜtÜuÝjÝmÝsÝvÞkÞlÞtÞuàpáoáqâoâqãpëÁëÂìÁìÂïÄïÅðÄðÅòÁòÂóÁóÂü¦ü§ý§þ¤þ¥þ¦ÿ¤ĀËĀÌĀÍāÊāÍĂÊĂÍăÓăÔĄÊĄÔąÊąÎąÓĆËĆÍĆÓĆÔćÌĊÌĊÍċÌċÍ">Elijah's big oscillator</option>
+            <option value="!'!)!*#'#(#*)!)#)))**!*#*)**¶&¶'-&-'<B<C<E<F=A=G>A>H>K>L?A?B?C?G?K?L@FQEQFRFSCSDSETCXZYYY[ZYZ[[Z^U^V^_^`^i_T_W_^_a_g_h_i`U`V`_```fafagbZcYc[dYd[eZgtguhthukwkxlwlxntnuotoutdudvcvewdxdydzd{c{e|d|~|¡|¢}d}}}¢~}~¢¡¨¡©¢}¢©£}£££¨¤~¤¢¤¨¤©¥¡¨¡¨¢©¡©¢">Elijah's p2520 gun</option>
+            <option value="!'!)!*#'#(#*)!)#)))**!*#*)**¶&¶'-&-'<B<C<E<F=A=G>A>H>K>L?A?B?C?G?K?L@FQEQFRFSCSDSETCbecdcfdddfeeg`gagigjh_hbhhhki`iaiiijkeldlfmdmfneq|rzr{r|sytytzz©zª{©{ª~°~±¡°¡±£©£ª¤©¤ª©wªw¯v¯x°w±wµw¿wÀvÀxÁwÁÃÁÄÁÅÂwÂÂÂÅÃÂÃÅÄËÄÌÅÂÅÌÆÂÆÆÆËÇÃÇÅÇËÇÌÈÄËÄËÅÌÄÌÅ">Elijah's p4110 gun</option>
+            <option value="!&!'#&#'¶&¶'¶(-%-).$.*/$/*:';%;)<&<'<(='@$@%@&A$A%A&B#B'D!D#D'D(N$N%O$O%">P30 Gosper glider gun</option>
+            <option value="!!!##!##&%&&'%'&)!)#*!*#A¶A-A.B+B.C+C.D>D?E+E?F+F/F>G¶G.G>G?H-K-K.L-L.">P120 Simkin glider gun</option>
+            <option value="!<#<#=#>$?%>%?'A(@(B)?)C*@*A*B+>+?+C+D-!-#.#/#/%/-/.:$:%:+:.;*;<;=;>;?;@;A<*<;<B=*=<===B>+>.>@>A?-?.@BABC;C<D;D<D?D@DDDEJ?J@JDJEMBNBQ;QCR;R<RBRCS;S<S=SASBSCT=T>T@TAU=UAV:V;VCVDW:W;WCWDX>X@Y:Y=YAYDZ;Z<Z=ZAZBZC_;_<_B_C`;`<`B`C">P690 glider gun</option>
+            <option value="!+!¶!A!B#*#-#@#C$*$+$¶$/$:$;$<$=$>$A$B$C%-%.%?%@&¶&A'¶'-'/'>'@'A(;(</I/J:I;G;I<G<H=!=#=;>!>#>:><>K>L>T?/?:?<?=?K?L?R?S?T@QAQARD/D:D<D=E!E#E:E<F!F#F;NJNKOJPKPLPMQ;Q<QMR¶R-R/R>R@RAS¶SAT-T.T?T@U*U+U¶U/U:U;U<U=U>UAUBUCV*V-V@VCW+W¶WAWB">P44 Glider gun</option>
+            <option value="!>!A!D#>#?#@#A#B#C#D%>%?%@%A%B%C%D&>&A&D¶@¶C-@-C-F-G.-...@.C.F.G/-/.;!;#;%;&<#<%<¶<-<.=#=%>!>#>%>&>O>P>R>S?#?%?¶?-?.?P?R@#@%@G@H@I@P@RA!A#A%A&AOAPARASBPBRCGCHCICPCRDODPDRDSFGFHG.G/G<G?GGGHH.H/H<H?I<I?M/M:M;N/N:N;O:P:Q:R/R;U/U;V:W:X:Y/Y:Y;Z/Z:Z;">P45 Glider gun</option>
+            <option value="!!!#!)!*#!###)#*:!:#:):*;!;$;%;';(;*<#<%<'<)=#=%='=)>!>*B$B%B'B(C!C%C'C*D!D#D$D(D)D*E#E)G!G#H!H#I=I>J<K;K>K?KJKKL;L>LJLKM;M=N<N=P<P=Q;Q=R;R>RJRKS;S>S?SJSKT<U=U>">P46 edge shooter</option>
+            <option value="ZÄZÅ[Ä[ÅeÃeÄeÅfÂfÆgÁgÇhÁhÇiÄjÂjÆkÃkÄkÅlÄoÅoÆoÇpÅpÆpÇqÄqÈsÃsÄsÈsÉ}g}h}Æ}Ç~g~h~Æ~Ç£j¤i¤Â¤Ã¥i¥Â¥Ã¨e¨f¨j¨k©hªeªk¯f¯g¯i¯j°g°i±hµh¿¿¿À¿Ä¿ÅÁÀÁÄÂjÂÁÂÂÂÃÃiÃjÃkÃÁÃÂÃÃÄhÄlÅgÅiÅjÅkÅmÆhÆiÆjÆkÆlÆÀÇ¿ÇÀÇÁÈµÈÂÉÀÊ±ÊÃË±ËÃÌµÌÂÍ¿ÍÀÍÁÑiÑjÒiÒjÖÀÖÁ×À×Á">LWSS gun w/ gliders</option>
+            <option value="}d}e~d¡^¡_¡a¡b¡d¢]¢_¢a¢c£]£b£p¤[¤]¤n¤o¤p¥W¥X¥m¦X¦m¦n§X§Z¨Y¨Z©`©a©c©d©l©mª`ªdªlªm¯a¯b¯cµn¿l¿m¿nÀkÁkÁlÂoÃoÃpÃqÄrÅqÅrÇqÇrÈlÈpÈrÉkÉlÉmÉqÊkÊmÊrÊsÊtËtÒiÒjÓiÓjÓmÓnÔmÔoÕoÖoÖp">P46 Gliderless MWSS gun</option>
+            <option value="!##!#$$!$%%#%$'!'((#('())!)#)')**!*&*'**">Loafer ship</option>
+            <option value="!)!;!<!=!>#)#:#>$%$($?%#%%%&%(%)%*%:%;%?&!&#&%&&&-&.&?'!'#'%'&'-'.'?(#(%(&((()(*(:(;(?)%)()?*)*:*>+)+;+<+=+>">Fireship</option>
+            <option value="!%!&#&$$%$%%%&%'%(%A&)&A'&'''('?'A(%(?(@)%)&)')(*#*$*(*¶*-+!+%+&+'+¶+-¶!¶#¶%-%.%.&;-;.<.=+=¶=->+%B">Snark (Stable glider turner)</option>
+            <option value="!'!(#'#(&:&;'/';(:+'¶(¶¶¶--&-'-(-¶--.;.</;/=:=;$;%;=;><%=!=#=$=+=¶>!>+>¶">Semi-Snark (reflects every other glider)</option>
+            <option value="!¶!-#¶#-&¶&-&.'''('+'-'.('(((+(¶)+)¶-'.&.(/&/):!:#:$:':(;$<#=+=¶>+>-?-@-@.">P6 bumper</option>
+            <option value="!/#.#:$-$;%¶%:&+&/'*'.(+(-)¶*(+#+$+'+)¶!¶$¶'¶(-$-+-¶.+.-/&/'/-:&:':-:.">P8 bouncer</option>
+            <option value="!¶#'#(#)#+#¶#/#:$'$($)$*$/$:%+%¶)'*&*(+&+)¶!¶#¶$¶'¶(-$.#/+/¶:+:-;-<-<.">P8 bumper</option>
+            <option value="!/#.#/#:$'$($)%&%(%)&&&*&.&/&:'''*(.(:).):*'**+&+*+.+/+:¶&¶(¶)-'-(-).../.://;(<#<$<'<)=!=$='=(>$>+>¶?+?-@&@'@-A&A'A-A.">P15 bouncer</option>
+            <option value="!+!¶#$#*$#$'$($+%#%(%¶&$&&&*&-')'*'+'¶)))*)+)¶*$*&***-+#+(+¶¶#¶'¶(¶+-$-*.+.¶;'<&<(=&=)>!>#>$>'>(?$@#A+A¶B+B-C-D-D.">P7 bumper</option>
+            <option value="!'!(#'#(.%.&.*.+/'/(/):&:*;';)<(?*?+@*A!A#A$A+A¶A-B$B-C#">P30 buckaroo</option>
+            <option value="!#!&!'###$#'$!$#$$$%$&'!'#'$'%'&(#($(')#)&)'">P5 domino sparker</option>
+            <option value="¢W¢X£W£X§^¨]¨_©^©_ª^°j°k±j±lµl¿l¿mÂ`ÂaÃ_ÃbÄ`Äa">HF crazy catalyst</option>
+            <option value="GpGqGwHqHuHvHwIoItJoJpJtJuLoLpMnMpMsMtNnNoNsNtRsSjSrStTiTkTrTtUjUkUqUrUtUuVjVpVsWqWsXpXqXsXuXvYoYrYtYvZoZpZt[p[r[t]o]r]s^o^p">HF pusher catalyst</option>
+            <option value="isitjtktkvlulvlzmym{nzn{ozqsqtrsrtw£w¤xwxxx£x¥ywy|y}y¥zxz|z}z¥z¦{y|w|y|z|{|||}}v}x}}~v~x~{¡w¡{¡|">HF pusher + glider</option>
+            <option value="údúeúmûdûlûnüaübüdümünýaýdýeýfýmþbþcþgÿdÿeÿfÿgÿvÿwĀdĀvābādāfāgākālāpāqāwāxāyĂbĂcĂfĂlĂpĂyăfăhăjălănăpărĄgĄhĄjĄkĄmĄoĄqĄrąmąoĆmĆoćn">HF to beehive</option>
+            <option value="!N!O#N$L$N%L%M):*:*;*<+=+D+E+F¶<¶=¶F-E-F-G.N.O/N/O<!<#=#>#>%?$?%D#D$E#E$FJFKGJGKK¶L+L-M+M¶YDYEZDZE">Block keeper (Hershel input)</option>
+            <option value="!&!>#$#&#<#=#>$%$&$;%;%<&!&#'#(#(%)$)%):*(*)*/*;+'+*+/+;¶(¶)¶:¶?¶@-$-%-?-A.#.%.A/#///A/B:!:#:.:/;.;:@-@.A-A.K+K¶K-L-M-M.">Syringe (G to H)</option>
+            <option value="!_#]#^#_$'$)$*$[%'%(%*%S%T%[%]&S&U'T*(*a*b+!+#+'+++¶+-+X+Y+a+b¶!¶#¶&¶-¶X¶Y-'--.(.).+.¶.O.P/O/P;_;`<_<a=G=H=a>G>H>a>b>i?g?h?i@D@E@K@L@fADAEAKALAfAgBVBWCWDWDYEXEYEeFdFfGdGfHeHjHkIXIYIjIlJPJQJWJYJlJvKPKWKlKmKuKwLNLPLVLWLtLxMNMOMsMwNrNvO?O@OqOuP?P@PrPtQsRHRIRbRcRoSHSISPSQSbScSnSpTPTQTnToUrUsVrVtWDWmWnWtXCXEXmXnXtXuYCYDYKYLZK[L[M[N[U]N]U]V]W^G^H^X_H_W_X`H`JaIaJajakbjbkeGeHfHgHgJhIhJmHmInHnIofogpfpgtQuPuRvPvQ¤`¤a¥`¥a">Constant block keeper</option>
+            <option value="!;!=#>$>%;%>&<&=&>())()**'*(***++#+$+*++¶#¶$¶%¶*¶+-!-$-%-*-+-¶.!.#.$/#;+<)<*<+<¶=#=%=(=¶=;==>!>(>+>:?!?)?*?+?:@!@%@:@=A!A#A$A:A;A<">Frontrake</option>
+            <option value="!'!)#&#)$%$&%$&#&$&%&&'!''(!(%(+(¶(-)!)%)+*#*+*-+$+%+&+'+)¶%¶)¶¶-&-:-;.&.'.(.).*...=/-:&:':(:):*:-:=;&;-;.;/;:;;;<<%<)=$=%=&='=)>#>+?!?%?+@!@%@+@¶@.A!A'A.B#B$B%B&C$D%D&E&E)F'F)">Backrake</option>
+            <option value="YÆYÇZqZrZÆZÇ[p[q[r[s^o^p^q^r^s^t^Æ_p_q_r_s_Å_Ç_Í_Î`Ä`È`ÍaoapasataÄaÎbmbnbpbsbubvbÍbÎcpcscÄcÇdÄdÇeÅeÆeÇfqfrgqgrinipisiujmjpjsjvkmkvlmlvmmmnmumvnonpnqnrnsntr¯r°s¯s°uµu¿vµv¿y¯y°z¯z°¤°¤±¥°¥±¨©¨ª©©©ª©Ã©ÄªÃ¯°¯±¯Ä°°°±°Ã°ÄÀ¡À¢À£Â¡Â£Ã¤Ä~Ä¤Æ~Æ£Æ¤Ì¡Ì¢ÍUÍVÍ¡Í¢ÎTÎVÏTÏ¤Ï¥ÐSÐTÐ¤Ð¥Ó¡Ó¢ÔTÔUÔ¡Ô¢ÕTÕUØQØRØ{Ø|ÙQÙRÙ{Ù|ÛTÛUÜTÜUÜ~Ü¡Ý~Ý¡ß{ß|à{à|ãRãSåRåSæzæ}æ~çSçUèTèzè~éTé~ê{ê}ìBìCìIìJì{ì|ì}íBíIíJîCïBïCïLïMðLðMð¨ð©ð¿ðÀñ¨ñ©ñÀò¿óIóJó¥ó¦ó¿óÀôIôJô¥ô¦÷¨÷©ø¨ø©ùIùJúIúJýLýMþBþCþLþMÿCĀBĀIĀJāBāCāIāJąSąTąUćSćUĈRĉRĉVċRċSċVđTđUđkđlđmĒTĒUĒjĒmēmĔQĔRĔmĕQĕRĕjĕlĘTĘUęTęUę¡ę¢Ě¡Ě¢ĝXĝYĝ¤ĝ¥ĞXĞYĞ¤Ğ¥Ġ¡Ġ¢ġUġVġ¡ġ¢ĢUĢVĤXĤYĥXĥYĨ£Ĩ¤Ī£Ī¤īVīWīZĬ¡Ĭ£ĭVĭZĭ¢ĮVĮ¢įWįYıWıXıYı°ı±ıÃıÄĲ°Ĳ±ĲÄĳÃĴ©ĴªĴÃĴÄĵFĵGĵMĵNĵ©ĵªĶFĶMĶNķGĸFĸGĸPĸQĸ°ĸ±ĹPĹQĹ°Ĺ±ļMļNĽMĽN">Elijah's sawtooth</option>
+            <option value="@¢@£A¢A£X¨YzY{Y|Y§Y¨Y©ZzZ}Z¦Z§Z©[z[¦[§[¨]z]~]¦]§]¨^z^§^¨_{_}bycxcyczdwdxdzewexeyfwfxfygxgyo¤o¥o¦p£p¦q¦r¢r¦s¦t£t¥¢r¢s¢t¢~£q£t£}£~£¡¤t¤|¤}¤¡¥p¥t¥|¥}¥~¦t¦|¦}¦~§q§s§}§~¯¡¯¢¯£°~°£±£µ}µ£¿£À~À¢ÇvÈuÈvÈwÉuÉwÉxÊvÊwÊxËvËwËxÌvÌwÙ¨ÚzÚ{Ú|Ú§Ú¨Ú©ÛzÛ}Û¦Û§Û©ÜzÜ¦Ü§Ü¨ÝzÝ~Ý¦Ý§Ý¨ÞzÞ§Þ¨ß{ß}âyãxãyãzäwäxäzåwåxåyæwæxæyçxçyï¤ï¥ï¦ð£ð¦ñ¦ò¢ò¦ó¦ô£ô¥ĀrĀsĀtĀ~āqātā}ā~ā¡ĂtĂ|Ă}Ă¡ăpătă|ă}ă~ĄtĄ|Ą}Ą~ąqąsą}ą~ĉ¡ĉ¢ĉ£Ċ~Ċ£ċ£Č}Č£č£Ď~Ď¢ĕvĖuĖvĖwėuėwėxĘvĘwĘxęvęwęxĚvĚw">Non-destructive MWSS block pull</option>
+        </select>
+        <button id="add">Add</button>
+        <button id="save">Save</button>
+        <button id="import">Import</button>
+        <button id="edit">Edit</button>
+        <button id="clearpart">Clear</button>
+        <button id="copy">Copy</button>
+        <button id="move">Move</button>
+        <button id="tile">Tile</button>
+    </div>
     <br>
-    <br>
-    <textarea id="eq" placeholder="Type a JavaScript expression..." spellcheck="false" autoCapitalize="false">let d = 4, corners = 1;/* Try different values of d */
-    /* I really like 46, 42, 40, 38, 36, 24, 20 */
-    /* I like 49, 44, 34, 29, 28, 27, 26, 25, 21, 19 */
-    /* My favorite is (d = 4, corners = 1) */
-x -= Math.floor(w/2); y -= Math.floor(h/2);
-return isIn(x, y, d-1) && (x + y == 0 || x == y) ||
-    corners && isIn(x, y, d) && !isIn(x, y, d-1) &&
-    (x &lt; 0 && y &lt;= 2-d && y > -d || x > 0 && y >= d-2 && y &lt; d ||
-     y > 0 && x &lt;= 2-d && x > -d || y &lt; 0 && x >= d-2 && x &lt; d);</textarea>
-     <i>The variables <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code>, <code>number</code>, <code>live</code> and <code>function&nbsp;isIn(testX,&nbsp;testY,&nbsp;rectStartX,&nbsp;rectStartY,&nbsp;rectWidth,&nbsp;rectHeight)</code> are available</i>
+    <details id="source">
+        <summary>Source & licence</summary>
+        Many of the library items are from or derived from <a href="https://playgameoflife.com/lexicon" target="_blank">this game of life website</a> and are licenced under <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank">Creative Commons Attribution-ShareAlike 3.0 Unported</a> licence.
+    </details>
     <div id="spacer"></div>
     <script>
 let boxSize = 6;
-/* variables */
-let buttons = document.querySelectorAll("button");
-let nextB = document.querySelector("#next");
-let randB = document.querySelector("#randomize");
-let clearB = document.querySelector("#clear");
-let startB = document.querySelector("#start");
-let applyB = document.querySelector("#apply");
-let backB = document.querySelector("#back");
+/* Variables */
+let buttons    = document.querySelectorAll("button");
+let nextB      = document.querySelector("#next");
+let randB      = document.querySelector("#randomize");
+let clearB     = document.querySelector("#clear");
+let startB     = document.querySelector("#start");
+let backB      = document.querySelector("#back");
+let addB       = document.querySelector("#add");
+let saveB      = document.querySelector("#save");
+let importB    = document.querySelector("#import");
+let editB      = document.querySelector("#edit");
+let clearPartB = document.querySelector("#clearpart");
+let copyB      = document.querySelector("#copy");
+let moveB      = document.querySelector("#move");
+let tileB      = document.querySelector("#tile");
+let speedCount = document.querySelector("#speed-counter");
 let genCounter = document.querySelector("#counter");
-let runSpeed = document.querySelector("#speed");
-let pattern = document.querySelector("#pattern");
-let eq = document.querySelector("#eq");
-let canvas = document.querySelector("canvas");
+let runSpeed   = document.querySelector("#speed");
+let pattern    = document.querySelector("#pattern");
+let canvas     = document.querySelector("canvas");
 let c = canvas.getContext("2d");
 
 let boxes = new Map(), newBoxes = new Map(), possibleNew = new Map();
-let savedBoard = new Map(), generations = 0;;
-let numW = 227, numH = 125, w, h;
-let min = Math.min, max = Math.max, random = Math.random;
+let savedBoard = new Map(), placingBoard = null, generations = 0;
+let [minX, minY, maxX, maxY, xOff, yOff] = [Infinity, Infinity, -Infinity, -Infinity, 0, 0];
+let chooseStage = null, numW = 227, numH = 125, w, h;
+
 
 canvas.setAttribute("width", (w = numW*boxSize+1) + "px");
 canvas.setAttribute("height", (h = numH*boxSize+1) + "px");
+
+let MapCompressor = (function() {
+    const chars = "!#$%&'()*+¶-./:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª¯°±µ¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯʰʱʲʳʴʵʶʷʸʹʺʻʼʽˀˁ˂˃˄˅˪˫˭ˮ˵˶˸˹˺˻˼˽˾ͱͲͳʹ͵ͶͷͻͼͽͿ΄΅Ά·ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяѐёђѓєѕіїјљњћќѝўџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱѲѳѴѵѶѷѸѹѺѻѼѽѾѿҀҁ҂ҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӁӂӃӄӅӆӇӈӉӊӋӌӍӎӏӐӑӒӓӔӕӖӗӘәӚӛӜӝӞӟӠӡӢӣӤӥӦӧӨөӪӫӬӭӮӯӰӱӲӳӴӵӶӷӸӹӺӻӼӽӾӿԀԁԂԃԄԅԆԇԈԉԊԋԌԍԎԏԐԑԒԓ";
+    const RLErow = /[\dob$]{0,69}[ob$!]/gi;
+    const startRLE = /^x ?= ?\d+, ?y ?= ?\d+, ?rule ?= ?b3\/s23 *\n?\r?/i;
+    const extras = /x ?= ?\d+, ?y ?= ?\d+, ?rule ?= ?b3\/s23\n?\r?|\n\r?| |!/gi;
+    const RLEpiece = /(\d*)([ob])/gi;
+
+    function compressMap(mapToCompress) {
+        let result = "";
+        mapToCompress.forEach(({x, y}) => {
+            result += chars[x] + chars[y];
+        });
+        return result; 
+    }
+
+    function replaceRLEpiece(piece, count, letter) {
+        return letter.repeat(Number(count || 1));
+    }
+    
+    function decompressMap(str) {
+        let result = new Map();
+        
+        if (startRLE.test(str)) {
+            let RLE = str.replace(extras, "").toLowerCase().split("$");
+            for (let y = 0; y < RLE.length; y++) {
+                let row = RLE[y].replace(RLEpiece, replaceRLEpiece);
+                for (let x = 0; x < row.length; x++) {
+                    if (row[x] === "o") {
+                        result.set(`${x} ${y}`, {x, y}); 
+                    }
+                }
+            }
+        } else {
+            for (let i = 0; i < str.length;) {
+                let x = chars.indexOf(str[i++]);
+                let y = chars.indexOf(str[i++]);
+                result.set(`${x} ${y}`, {x, y}); 
+            }
+        }
+
+        return result;
+    }
+
+
+    function mapToRLE(mapToConvert) {
+        // Get bounds
+        let minX = Infinity, minY = Infinity;
+        let maxX = -Infinity, maxY = -Infinity;
+        if (mapToConvert.size > 0) {
+            mapToConvert.forEach(({x, y}) => {
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
+            });
+        } else {
+            minX = maxX = minY = maxY = 0;
+        }
+        
+        // Convert
+        let result = "";
+        let curCount = 0;
+        let curCountingChar = "";
+        for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
+                let nextChar = mapToConvert.has(`${x} ${y}`)? "o" : "b";
+                if (nextChar === curCountingChar) {
+                    curCount++;
+                } else {
+                    if (curCount === 1) {
+                        result += curCountingChar;
+                    } else if (curCount) {
+                        result += "" + curCount + curCountingChar;
+                    }
+                    curCount = 1;
+                    curCountingChar = nextChar;
+                }
+            }
+            if (curCount === 1) {
+                result += curCountingChar;
+            } else if (curCount) {
+                result += "" + curCount + curCountingChar;
+            }
+            curCount = 0;
+            curCountingChar = "";
+            result += y < maxY? "$" : "";
+        }
+        result += "!";
+
+        // Create the header line
+        let headerLine = "x = " + (maxX - minX) +  ", y = " + (maxX - minX) + ", rule = B3/S23";
+        
+        // Split into lines of no longer than 70 chars
+        result = result.replace(RLErow, "\n$&");
+
+        return headerLine + result;
+    }
+    
+    return {compress: compressMap, decompress: decompressMap, toRLE: mapToRLE}; 
+})();
 
 function isIn(x, y, x2, y2, w, h) {
     switch(arguments.length) {
@@ -147,52 +342,87 @@ function isIn(x, y, x2, y2, w, h) {
 }
 
 function drawBoard(board) {
+    c.fillStyle = "#111111";
+    c.fillRect(0, 0, numW * boxSize, numH * boxSize);
+
     for(let x = 0; x < numW; x++) {
         for(let y = 0; y < numH; y++) {
-            c.fillStyle = board.has(`${x} ${y}`)? "#308aff" : "#efefef";
-            c.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+            let [newX, newY] = [x + xOff, y + yOff];
+            let drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
+            if (drawPlacingBoard? placingBoard.has(`${newX} ${newY}`) : board.has(`${x} ${y}`)) {
+                c.fillStyle = "#308aff";
+                c.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+            }
         }
     }
     
-    c.fillStyle = "#000";
+    c.fillStyle = "#333";
     for(let y = 0; y <= numH; y++) {
         c.fillRect(0, y * boxSize, w, boxSize/6);
     }
     for(let x = 0; x <= numW; x++) {
         c.fillRect(x * boxSize, 0, boxSize/6, h);
     }
+
+    c.fillStyle = "#f02";
+    let lineSize = boxSize/3;
+    if (chooseStage === 1) {
+        c.fillRect(minX * boxSize - lineSize/2, 0, lineSize, h);
+        c.fillRect(0, minY * boxSize - lineSize/2, w, lineSize);
+    } else if (chooseStage === 2) {
+        let x1 = minX * boxSize, x2 = maxX * boxSize;
+        let y1 = minY * boxSize, y2 = maxY * boxSize;
+        c.fillRect(x1, y1, x2-x1, lineSize);
+        c.fillRect(x1, y1, lineSize, y2-y1);
+        c.fillRect(x1, y2, x2-x1+lineSize, lineSize);
+        c.fillRect(x2, y1, lineSize, y2-y1+lineSize);
+    }
 }
 
-function saveBoard(board, x, y, w, h) {
+function saveBoard(board, zoneX, zoneY, zoneW, zoneH) {
     let argNum = arguments.length;
     savedBoard.clear();
-    function saveCell(value, key) {
-        if (argNum < 5 || isIn(value.x, value.y, x, y, w, h)) {
-            savedBoard.set(key, {x: value.x, y: value.y});
+    board.forEach(({x, y}, key) => {
+        if (argNum < 5 || isIn(x, y, zoneX, zoneY, zoneW, zoneH)) {
+            savedBoard.set(key, {x, y});
         }
-    }
-    board.forEach(saveCell);
+    });
+}
+
+function updateSpeedCounter() {
+    let speed = runSpeed.value, perSecond = Math.round(200 / -speed);
+    speedCount.textContent = `Speed: ${speed < 0? `${perSecond}/s` : `x${Math.max(speed, 1)}`}`;
 }
 
 function updateGenCounter() {
     genCounter.textContent = `Generation ${generations}`;
 }
 
-function toggle(event, canvas) {
+function updateAfterChange() {
+    generations = 0;
+    updateGenCounter();
+    saveBoard(boxes);
+    drawBoard(boxes);
+}
+
+function mouseCellLocation(event, canvas, round) {
+    let func = round? "round" : "floor";
     let rect = canvas.getBoundingClientRect();
-    let x = Math.floor((event.clientX - rect.left) / boxSize);
-    let y = Math.floor((event.clientY - rect.top ) / boxSize);
+    let x = Math[func]((event.clientX - rect.left) / boxSize);
+    let y = Math[func]((event.clientY - rect.top ) / boxSize);
+    return {x, y};
+}
+
+function toggle(event, canvas) {
+    if (placingBoard || chooseStage) { return; }
+    let {x, y} = mouseCellLocation(event, canvas);
     
     if (boxes.has(`${x} ${y}`)) {
         boxes.delete(`${x} ${y}`);
     } else {
         boxes.set(`${x} ${y}`, {x: x, y: y});
     }
-    
-    generations = 0;
-    updateGenCounter();
-    saveBoard(boxes);
-    drawBoard(boxes);
+    updateAfterChange();
 }
 
 let positions = [
@@ -208,16 +438,14 @@ let positions = [
 
 function countLiveNeighbors(i, j) {
     let count = 0;
-    
-    function addPosition(pos) {
+
+    positions.forEach(pos => {
         let x = i+pos.x, y = j+pos.y;
         
         if(x in boxes && boxes[x][y]) {
             count++;
         }
-    }
-    
-    positions.forEach(addPosition);
+    });
     
     return count;
 }
@@ -226,7 +454,7 @@ function next() {
     newBoxes.clear();
     possibleNew.clear();
 
-    function forEachCell(pos) {
+    boxes.forEach(pos => {
         let neighbors = 0;
         for (let i = positions.length; i-- > 0;) {
             let x = pos.x + positions[i].x;
@@ -244,15 +472,13 @@ function next() {
         if (neighbors >= 2 && neighbors <= 3) {
             newBoxes.set(`${pos.x} ${pos.y}`, {x: pos.x, y: pos.y});
         }
-    }
-    boxes.forEach(forEachCell);
+    });
 
-    function forPossibleNewCells(pos) {
+    possibleNew.forEach(pos => {
         if (pos.neighbors === 3) {
             newBoxes.set(`${pos.x} ${pos.y}`, {x: pos.x, y: pos.y});
         }
-    }
-    possibleNew.forEach(forPossibleNewCells);
+    });
     
     [boxes, newBoxes] = [newBoxes, boxes];
     generations++;
@@ -269,26 +495,27 @@ function randomize() {
             }
         }
     }
-    generations = 0;
-    updateGenCounter();
-    saveBoard(boxes);
-    drawBoard(boxes);
+    updateAfterChange();
 }
 
 function clear() {
     boxes.clear();
-    generations = 0;
-    updateGenCounter();
-    saveBoard(boxes);
-    drawBoard(boxes);
+    updateAfterChange();
 }
 
 let running = false;
 let curTimer = null;
 function run() {
     if(running) {
-        next();
-        curTimer = setTimeout(run, 300 - runSpeed.value);
+        let times = Math.max(runSpeed.value, 1);
+        for (let i = 0; i < times; i++) {
+            next();
+        }
+        if (runSpeed.value > 0) {
+            curTimer = setTimeout(run, 0);
+        } else {
+            curTimer = setTimeout(run, -runSpeed.value * 5);
+        }
     }
 }
 
@@ -311,33 +538,6 @@ function stopRunning() {
     startB.onclick = startRunning;
 }
 
-function apply() {
-    newBoxes.clear();
-
-    let str = String(eq.value);
-    str = str.includes("return")? str : `return (${str});`;
-    
-    let func = Function("number, live, x, y, w, h, isIn", str);
-    
-    for (let num = 1, y = 0; y < numH; y++) {
-        for (let x = 0; x < numW; x++, num++) {
-            try {
-                if (func(num, boxes.has(`${x} ${y}`), x, y, numW-1, numH-1, isIn) && isIn(x, y, 0, 0, numW-1, numH-1)) {
-                    newBoxes.set(`${x} ${y}`, {x: x, y: y})
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-    }
-
-    [boxes, newBoxes] = [newBoxes, boxes];
-    generations = 0;
-    updateGenCounter();
-    saveBoard(boxes);
-    drawBoard(boxes);
-}
-
 function resetBoard() {
     boxes.clear();
     function setEachCell(value, key) {
@@ -349,32 +549,302 @@ function resetBoard() {
     drawBoard(boxes);
 }
 
-document.addEventListener("keyup", function(event) {
-    if(event.target !== eq) {
-        event.target.blur();
+function chooseBoard() {
+    placingBoard = null;
+    chooseStage = 1;
 
-        let key = event.key.toLowerCase();
-        
-        for(let i = 0; i < buttons.length; i++) {
-            if(buttons[i].id[0].toLowerCase() === key) {
-                buttons[i].click();
-                break;
+    return new Promise((resolve, reject) => {
+        function check() {
+            if (!chooseStage) {
+                canvas.removeEventListener("mousemove", handleMove);
+                canvas.removeEventListener("click", handleClick);
+                reject("Stopped.");
             }
         }
+        function updateCoords(event) {
+            let {x, y} = mouseCellLocation(event, canvas, true);
+            if (chooseStage === 1) {
+                minX = x;
+                minY = y;
+            } else if (chooseStage === 2) {
+                maxX = x;
+                maxY = y;
+            }
+        }
+        function handleMove(event) {
+            check();
+            updateCoords(event);
+            drawBoard(boxes);
+        };
+        function handleClick(event) {
+            check();
+            if (chooseStage === 1) {
+                updateCoords(event);
+                chooseStage = 2;
+            } else if (chooseStage === 2) {
+                updateCoords(event);
+                [minX, minY, maxX, maxY] = [Math.min(minX, maxX), 
+                    Math.min(minY, maxY), Math.max(minX, maxX), Math.max(minY, maxY)];
+                maxX--; maxY--;
+                let board = new Map();
+                for (let x = minX; x <= maxX; x++) {
+                    for (let y = minY; y <= maxY; y++) {
+                        if (boxes.has(`${x} ${y}`)) {
+                            board.set(`${x} ${y}`, {x, y});
+                        }
+                    }
+                }
+                chooseStage = null;
+                drawBoard(boxes);
+                canvas.removeEventListener("mousemove", handleMove);
+                canvas.removeEventListener("click", handleClick);
+                resolve(board);
+            }
+        };
+        canvas.addEventListener("mousemove", handleMove);
+        canvas.addEventListener("click", handleClick);
+    });
+}
 
-        if(key === "t") {
-            eq.focus();
+function placeBoard(board, setMinMax = true) {
+    if (setMinMax) {
+        minX = minY = Infinity;
+        maxX = maxY = -Infinity;
+        if (board.size > 0) {
+            board.forEach(({x, y}) => {
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
+            });
+        } else {
+            minX = maxX = minY = maxY = 0;
         }
     }
+    placingBoard = board;
+    chooseStage = null;
+    xOff = 0; yOff = 0;
+    drawBoard(boxes);
+
+    return new Promise((resolve, reject) => {
+        function check() {
+            if (!placingBoard) {
+                canvas.removeEventListener("mousemove", handleMove);
+                canvas.removeEventListener("click", handleClick);
+                window.removeEventListener("keydown", handleKey);
+                reject("Stopped.");
+            }
+        }
+        function updateCoords(event) {
+            let {x, y} = mouseCellLocation(event, canvas);
+            xOff = maxX - x;
+            yOff = maxY - y;
+        }
+        function handleKey(event) {
+            check();
+            if (event.key === 'ArrowRight') {
+                let newBoard = new Map();
+                let cx = Math.ceil((maxX - minX) / 2), cy = Math.ceil((maxY - minY) / 2);
+                [maxX, maxY] = [maxY - minY + minX, maxX - minX + minY];
+                placingBoard.forEach(({x, y}) => {
+                    [x, y] = [cx + cy - y, cy - cx + x];
+                    newBoard.set(`${x} ${y}`, {x, y});
+                });
+                let curMinX = Infinity, curMinY = Infinity;
+                newBoard.forEach(({x, y}) => {
+                    curMinX = Math.min(curMinX, x);
+                    curMinY = Math.min(curMinY, y);
+                });
+                placingBoard.clear();
+                newBoard.forEach(({x, y}) => {
+                    let newX = x + minX - curMinX, newY = y + minY - curMinY;
+                    placingBoard.set(`${newX} ${newY}`, {x: newX, y: newY});
+                });
+                event.preventDefault();
+            } else if (event.key === 'ArrowLeft') {
+                let newBoard = new Map();
+                let cx = Math.ceil((maxX - minX) / 2), cy = Math.ceil((maxY - minY) / 2);
+                [maxX, maxY] = [maxY - minY + minX, maxX - minX + minY];
+                placingBoard.forEach(({x, y}) => {
+                    [x, y] = [cx - cy + y, cy + cx - x];
+                    newBoard.set(`${x} ${y}`, {x, y});
+                });
+                let curMinX = Infinity, curMinY = Infinity;
+                newBoard.forEach(({x, y}) => {
+                    curMinX = Math.min(curMinX, x);
+                    curMinY = Math.min(curMinY, y);
+                });
+                placingBoard.clear();
+                newBoard.forEach(({x, y}) => {
+                    let newX = x + minX - curMinX, newY = y + minY - curMinY;
+                    placingBoard.set(`${newX} ${newY}`, {x: newX, y: newY});
+                });
+                event.preventDefault();
+            } else if (event.key === 'ArrowUp') {
+                let newBoard = new Map();
+                placingBoard.forEach(({x, y}) => {
+                    y = minY + maxY - y;
+                    newBoard.set(`${x} ${y}`, {x, y});
+                });
+                placingBoard = newBoard;
+                event.preventDefault();
+            } else if (event.key === 'ArrowDown') {
+                let newBoard = new Map();
+                placingBoard.forEach(({x, y}) => {
+                    x = minX + maxX - x;
+                    newBoard.set(`${x} ${y}`, {x, y});
+                });
+                placingBoard = newBoard;
+                event.preventDefault();
+            }
+            drawBoard(boxes);
+        }
+        function handleMove(event) {
+            check();
+            updateCoords(event);
+            drawBoard(boxes);
+        };
+        function handleClick(event) {
+            check();
+            updateCoords(event);
+            for (let x = minX; x <= maxX; x++) {
+                for (let y = minY; y <= maxY; y++) {
+                    boxes.delete(`${x - xOff} ${y - yOff}`);
+                    if (placingBoard.has(`${x} ${y}`)) {
+                        boxes.set(`${x - xOff} ${y - yOff}`, {x: x - xOff, y: y - yOff});
+                    }
+                }
+            }
+            placingBoard = null;
+            updateAfterChange();
+            canvas.removeEventListener("mousemove", handleMove);
+            canvas.removeEventListener("click", handleClick);
+            window.removeEventListener("keydown", handleKey);
+            resolve();
+        };
+        canvas.addEventListener("mousemove", handleMove);
+        canvas.addEventListener("click", handleClick);
+        window.addEventListener("keydown", handleKey);
+        check();
+    });
+}
+
+function add() {
+    let options = document.querySelectorAll("#pattern > option");
+    let str = Array.from(options).find(el => el.selected)?.value;
+    if (str) {
+        placeBoard(MapCompressor.decompress(str), true).catch(() => {});
+    }
+}
+
+function save() {
+    chooseBoard().then(board => {
+        let name = prompt("What should this pattern be called?");
+        if (name) {
+            let compressed = MapCompressor.compress(board);
+            let RLE = MapCompressor.toRLE(board);
+            console.log("The compressed string is", compressed);
+            console.log("The RLE is", RLE);
+            let newElement = document.createElement("option");
+            newElement.value = compressed;
+            newElement.appendChild(document.createTextNode(name));
+            pattern.insertBefore(newElement, pattern.children[0]);
+        }
+    }, () => {});
+}
+
+function importBoard() {
+    let str = prompt("Enter compressed string.");
+    if (str) {
+        placeBoard(MapCompressor.decompress(str), true).catch(() => {});
+    }
+}
+
+// function edit
+
+function clearPart() {
+    chooseBoard().then(() => {
+        for (let x = minX; x <= maxX; x++) {
+            for (let y = minY; y <= maxY; y++) {
+                boxes.delete(`${x} ${y}`);
+            }
+        }
+        updateAfterChange();
+    }, () => {});
+}
+
+function move() {
+    chooseBoard().then(board => {
+        for (let x = minX; x <= maxX; x++) {
+            for (let y = minY; y <= maxY; y++) {
+                boxes.delete(`${x} ${y}`);
+            }
+        }
+        updateAfterChange();
+        placeBoard(board, false).catch(() => {});
+    }, () => {});
+}
+
+function copy() {
+    chooseBoard().then(board => {
+        placeBoard(board, false).catch(() => {});
+    }, () => {});
+}
+
+function tile() {
+    chooseBoard().then(tileWith => {
+        let tileSize = {x: maxX - minX + 1, y: maxY - minY + 1, xOff: minX, yOff: minY};
+        chooseBoard().then(() => {
+            for (let x = minX; x <= maxX; x++) {
+                for (let y = minY; y <= maxY; y++) {
+                    let tileX = (x - minX) % tileSize.x + tileSize.xOff;
+                    let tileY = (y - minY) % tileSize.y + tileSize.yOff;
+                    if (tileWith.has(`${tileX} ${tileY}`)) {
+                        boxes.set(`${x} ${y}`, {x, y});
+                    } else {
+                        boxes.delete(`${x} ${y}`);
+                    }
+                }
+            }
+            updateAfterChange();
+        }, () => {});
+    }, () => {});
+}
+
+document.addEventListener("keyup", function(event) {
+    event.target.blur();
+
+    let key = event.key.toLowerCase();
+    
+    for(let i = 0; i < buttons.length; i++) {
+        if(buttons[i].id[0].toLowerCase() === key) {
+            buttons[i].click();
+           break;
+        }
+    }
+});
+
+window.addEventListener("beforeunload", event => {
+    event.preventDefault();
+    //event.returnValue = "Any unsaved changes will be lost!";
 });
 
 nextB.addEventListener("click", next);
 randB.addEventListener("click", randomize);
 clearB.addEventListener("click", clear);
 startB.onclick = startRunning;
-applyB.addEventListener("click", apply);
 backB.addEventListener("click", resetBoard);
+addB.addEventListener("click", add);
+saveB.addEventListener("click", save);
+importB.addEventListener("click", importBoard);
+// editB.addEventListener("click", edit);
+clearPartB.addEventListener("click", clearPart);
+copyB.addEventListener("click", copy);
+moveB.addEventListener("click", move);
+tileB.addEventListener("click", tile);
+runSpeed.addEventListener("input", () => { updateSpeedCounter(); })
 
+updateSpeedCounter();
 randomize();
 drawBoard(boxes);
         </script>
