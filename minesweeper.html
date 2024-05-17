@@ -243,14 +243,16 @@ let numBlocksX = 0;
 let numBlocksY = 16;
 
 let blocks = [];
-
-
-function elt(type, child, ...props){
-    let el = document.createElement(type);
-    if(child) el.appendChild(child);
-    return Object.assign(el, ...props);
-}
-
+let dirs = [
+    [-1, +0],
+    [+1, +0],
+    [+0, -1],
+    [+0, +1],
+    [-1, -1],
+    [+1, -1],
+    [-1, +1],
+    [+1, +1],
+    ];
 
 function checkWin() {
     won = true;
@@ -269,22 +271,22 @@ function checkWin() {
 }
 
 function checkBlocks() {
-    if(checkWin()){
+    if (checkWin()) {
         endText.textContent = "You won!";
         endBox.setAttribute("data-show", "true");
-        endText.style.color = "#00f";
-    }else if(gameIsOver){
+        endText.style.color = "#f5cc00";
+    }else if (gameIsOver) {
         endText.textContent = "You lost.";
         endBox.setAttribute("data-show", "true");
-        endText.style.color = "#f00";
+        endText.style.color = "#ff0022";
     }
 }
 
 function resetBlocks() {
     for(let i = 0; i < blocks.length; i++){
         for(let j = 0; j < blocks[0].length; j++){
-            blocks[i][j].allclicked = false;
-            blocks[i][j].setAttribute("data-game-over", gameIsOver);
+            blocks[i][j].allClicked = false;
+            blocks[i][j].element.setAttribute("data-game-over", gameIsOver);
         }
     }
     
@@ -295,7 +297,7 @@ function validateInputs() {
     let allValid = true;
     
     for(let i = 0; i < inputs.length; i++){
-        allValid = allValid && inputs[i].checkValidity();
+        allValid &&= inputs[i].checkValidity();
     }
 
     menu.setAttribute("data-valid", allValid);
@@ -304,174 +306,206 @@ function validateInputs() {
 }
 
 
-let Block = (function(){
-    let borderW = 10;
-    let dirs = [
-        [-1, +0],
-        [+1, +0],
-        [+0, -1],
-        [+0, +1],
-        [-1, -1],
-        [+1, -1],
-        [-1, +1],
-        [+1, +1],
-        ];
-    
-    let props = {
-        className: "block",
-        bombs: 0,
-        flags: 0,
-        showBomb: false,
-        clicked: false,
-        flagged: false,
-        textContent: " ",
-        timeout: undefined,
-        onmousedown: function(){
-            if(!this.timeout) {
-                let curThis = this;
-                this.timeout = setTimeout(function() {
-                    curThis.timeout = undefined;
-                    curThis.clickOn("first", true);
-                }, 400);
-            }
-        },
-        onmouseup: function(event){
-            if(this.timeout) {
-                clearTimeout(this.timeout);
-                this.timeout = undefined;
-                console.log(event);
-                this.clickOn("first", event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || flagMode);
-            }
-        }
-    };
-    
-    function Block(i, j) {
-        let newBlock = elt("div", null, Block.prototype, props, {
+class Block {    
+    constructor(i, j) {
+        Object.assign(this, {
             i: i,
             j: j,
-            bomb: false
+            element: document.createElement("div"),
+            flags: 0,
+            bombs: 0,
+            showBomb: false,
+            _bomb: false,
+            _clicked: false,
+            _flagged: false,
+            allClicked: false,
+            timeout: undefined,
+        });
+
+        Object.defineProperties(this, {
+            bomb: {
+                get: () => {
+                    return this._bomb;
+                },
+                set: bomb => {
+                    this._bomb = Boolean(bomb);
+                    this.element.setAttribute("data-bomb", bomb);
+                }
+            },
+            flagged: {
+                get: () => {
+                    return this._flagged;
+                },
+                set: flagged => {
+                    this._flagged = Boolean(flagged);
+                    this.element.setAttribute("data-flagged", flagged);
+                }
+            },
+            clicked: {
+                get: () => {
+                    return this._clicked;
+                },
+                set: clicked => {
+                    this._clicked = Boolean(clicked);
+                    this.element.setAttribute("data-clicked", clicked);
+                }
+            },
+        })
+
+        let curThis = this;
+        Object.assign(this.element, {
+            className: "block",
+            textContent: " ",
+            onmousedown: event => curThis.onmousedown(event),
+            onmouseup: event => curThis.onmouseup(event),
+            ontouchstart: event => curThis.ontouchstart(event),
+            ontouchend: event => curThis.ontouchend(event),
         });
         
+        Object.assign(this.element.style, {
+            width: blockSize + "px",
+            height: blockSize + "px",
+            fontSize: blockSize * 0.8 + "px",
+            top: j * blockSize + "px",
+            left: i * blockSize + "px",
+            lineHeight: blockSize + "px",
+        });
         
-        newBlock.style.width = blockSize + "px";
-        newBlock.style.height = blockSize + "px";
-        newBlock.style.fontSize = blockSize * 0.8 + "px";
-        newBlock.style.top = j * blockSize + "px";
-        newBlock.style.left = i * blockSize + "px";
-        newBlock.style.lineHeight = blockSize + "px";
-        
-        newBlock.setAttribute("data-bomb", newBlock.bomb);
-        newBlock.setAttribute("data-flagged", false);
-        
-        return newBlock;
+        this.bomb = this.bomb;
+        this.flagged = this.flagged;
+        this.clicked = this.clicked;
     }
 
-    Block.prototype.setBomb = function(value) {
-        this.bomb = value;
-        this.setAttribute("data-bomb", value);
+    onmousedown() {
+        if (!this.timeout && !gameIsOver) {
+            let curThis = this;
+            this.timeout = setTimeout(() => {
+                curThis.timeout = undefined;
+                curThis.clickOn("first", true);
+            }, 400);
+        }
     }
-    
-    Block.prototype.clickOn = function(first, flag) {
-        let i = this.i, j = this.j;
-        
-        if(flag){
+
+    onmouseup(event) {
+        if (this.timeout && !gameIsOver) {
+            clearTimeout(this.timeout);
+            this.timeout = undefined;
+            this.clickOn("first", event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || flagMode);
+        }
+    }
+
+    ontouchstart(event) {
+        event.preventDefault();
+        if (!this.timeout && !gameIsOver) {
+            let curThis = this;
+            this.timeout = setTimeout(() => {
+                curThis.timeout = undefined;
+                curThis.clickOn("first", true);
+            }, 400);
+        }
+    }
+
+    ontouchend(event) {
+        event.preventDefault();
+        if (this.timeout && !gameIsOver) {
+            clearTimeout(this.timeout);
+            this.timeout = undefined;
+            this.clickOn("first", event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || flagMode);
+        }
+    }
+
+    setBomb(value) {
+        this.bomb = value;
+    }
+
+    clickOn(first, flag) {
+        if (flag) {
             this.flag();
-        }else{
-            if(!this.flagged){
+        } else {
+            if (!this.flagged) {
                 this.clicked = true;
-                this.setAttribute("data-clicked", true);
                 
-                if(this.bomb){
+                if (this.bomb) {
                     gameIsOver = true;
                     
-                    for(let i = 0; i < blocks.length; i++){
-                        for(let j = 0; j < blocks[0].length; j++){
-                            blocks[i][j].onclick = function(){};
-                        }
-                    }
-                    
-                    if(first){
+                    if (first) {
                         resetBlocks();
                     }
-                }else{
-                    this.textContent = this.bombs || " ";
+                } else {
+                    this.element.textContent = this.bombs || " ";
                     this.clickAround();
-                    if(first){
+
+                    if (first) {
                         resetBlocks();
                     }
                 }
             }
         }
-    };
+    }
     
-    Block.prototype.flag = function(){
-        if(!this.clicked){
-            this.setAttribute("data-flagged", this.flagged = !this.flagged);
+    flag() {
+        if (!this.clicked) {
+            this.flagged = !this.flagged;
             checkBlocks();
         }
-    };
+    }
     
-    Block.prototype.clickAround = function() {
+    clickAround() {
         let i = this.i, j = this.j;
         
         this.setFlags();
         
-        let click = function(x, y) {
-            if(x >= 0 && x < numBlocksX && y >= 0 && y < numBlocksY && !blocks[y][x].flagged){
-                let b = blocks[y][x];
-                if(!b.allclicked){
-                    b.allclicked = true;
-                    
-                    b.clickOn();
+        let click = (x, y) => {
+            if (x >= 0 && x < numBlocksX && y >= 0 && y < numBlocksY && !blocks[y][x].flagged) {
+                if (!blocks[y][x].allClicked) {
+                    blocks[y][x].allClicked = true;
+                    blocks[y][x].clickOn();
                 }
             }
         };
         
-        if(this.flags === this.bombs){
-            for(let d = 0; d < dirs.length; d++){
+        if (this.flags === this.bombs) {
+            for (let d = 0; d < dirs.length; d++) {
                 click(j + dirs[d][0], i + dirs[d][1]);
             }
         }
-    };
+    }
     
-    Block.prototype.setBombs = function() {
+    setBombs() {
         let i = this.i, j = this.j;
         
         this.bombs = 0;
-        
-        for(let d = 0; d < dirs.length; d++){
-            let x = j+dirs[d][0];
-            let y = i+dirs[d][1];
+        for (let d = 0; d < dirs.length; d++) {
+            let x = j + dirs[d][0];
+            let y = i + dirs[d][1];
             
-            if(x >= 0 && x < numBlocksX && y >= 0 && y < numBlocksY){
-                if(blocks[y][x].bomb){
+            if (x >= 0 && x < numBlocksX && y >= 0 && y < numBlocksY) {
+                if (blocks[y][x].bomb) {
                     this.bombs++;
                 }
             }
         }
         
-        this.setAttribute("data-bombs", this.bombs);
-    };
+        this.element.setAttribute("data-bombs", this.bombs);
+    }
     
-    Block.prototype.setFlags = function() {
+    setFlags() {
         let i = this.i, j = this.j;
         
         this.flags = 0;
         
-        for(let d = 0; d < dirs.length; d++){
+        for (let d = 0; d < dirs.length; d++) {
             let x = j+dirs[d][0];
             let y = i+dirs[d][1];
             
-            if(x >= 0 && x < numBlocksX && y >= 0 && y < numBlocksY){
-                if(blocks[y][x].flagged && !blocks[y][x].clicked){
+            if (x >= 0 && x < numBlocksX && y >= 0 && y < numBlocksY) {
+                if (blocks[y][x].flagged && !blocks[y][x].clicked) {
                     this.flags++;
                 }
             }
         }
-    };
-    
-    return Block;
-})();
+    }
+}
 
 
 function start(level) {
@@ -492,10 +526,12 @@ function start(level) {
         numBlocksX = Number(inputs[0].value);
         numBlocksY = Number(inputs[1].value);
         
-        if(Number.isNaN(numBlocksX) || Number.isNaN(numBlocksY)){
+        if (Number.isNaN(numBlocksX) || Number.isNaN(numBlocksY)) {
             throw new Error("Invalid input.");
         }
     }
+
+    let totalBlocks = numBlocksX * numBlocksY;
 
     this.disabled = true;
     
@@ -509,25 +545,34 @@ function start(level) {
     
     for (let i = 0; i < numBlocksY; i++) {
         let row = [];
-        let tableRow = document.createElement("tr");
         
         for (let j = 0; j < numBlocksX; j++) {
-            let newB = Block(i, j);
+            let newBlock = new Block(i, j);
             
-            row.push(newB);
-            board.appendChild(newB);
+            row.push(newBlock);
+            board.appendChild(newBlock.element);
         }
         
         blocks.push(row);
     }
-    
-    let safeBlocks = blocks.flat();
-    for (let i = 0; i < numBlocksX * numBlocksY * difficulty.value / 100; i++) {
-        let ind = Math.floor(Math.random() * safeBlocks.length);
-        safeBlocks[ind].setBomb(true);
-        safeBlocks.splice(ind, 1);
+
+    let bombArray = Array(totalBlocks);
+    for (let i = 0; i < bombArray.length; i++) {
+        bombArray[i] = i < totalBlocks * difficulty.value / 100;
     }
 
+    for (let i = 0; i < bombArray.length; i++) {
+        let randIndex = Math.floor(Math.random() * bombArray.length);
+        let temp = bombArray[i];
+        bombArray[i] = bombArray[randIndex];
+        bombArray[randIndex] = temp;
+    }
+
+    for (let i = 0; i < bombArray.length; i++) {
+        let y = Math.floor(i / numBlocksX), x = i % numBlocksX;
+        if (bombArray[i]) blocks[y][x].setBomb(true);
+    }
+    
     for (let i = 0; i < blocks.length; i++) {
         for (let j = 0; j < blocks[i].length; j++) {
             blocks[i][j].setBombs();
@@ -537,22 +582,20 @@ function start(level) {
     let emptyBlocks = [];
     for (let i = 0; i < blocks.length; i++) {
         for (let j = 0; j < blocks[i].length; j++) {
-            let b = blocks[i][j];
-            
-            if(b.bombs === 0 && !b.bomb){
-                emptyBlocks.push(b);
+            if (blocks[i][j].bombs === 0 && !blocks[i][j].bomb) {
+                emptyBlocks.push(blocks[i][j]);
             }
         }
     }
     
-    if(emptyBlocks.length){
+    if (emptyBlocks.length) {
         let randomBlock = emptyBlocks[Math.floor(Math.random() * emptyBlocks.length)];
         randomBlock.clickOn("start", false);
-        randomBlock.scrollIntoView(false);
-    }else{
-        for(let i = 0; i < blocks.length; i++){
-            for(let j = 0; j < blocks[i].length; j++){
-                if(blocks[i][j].bomb){
+        randomBlock.element.scrollIntoView(false);
+    } else {
+        for (let i = 0; i < blocks.length; i++) {
+            for (let j = 0; j < blocks[i].length; j++) {
+                if (blocks[i][j].bomb) {
                     blocks[i][j].flag();
                 }
             }
@@ -578,9 +621,11 @@ window.addEventListener("keyup", function(event){
 
 validateInputs();
 
-let curDifficulty = Number(localStorage.getItem("difficulty") || "30");
-difficulty.value = curDifficulty;
-onDifficultyInput.call(difficulty);
+let curDifficulty = Number(localStorage.getItem("difficulty"));
+if (curDifficulty || curDifficulty === 0) {
+    difficulty.value = curDifficulty;
+    onDifficultyInput.call(difficulty);
+}
 </script>
     </body>
 </html>
