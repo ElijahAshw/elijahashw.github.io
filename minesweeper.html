@@ -615,7 +615,7 @@ inputs[0].addEventListener("input", validateInputs);
 inputs[1].addEventListener("input", validateInputs);
 
 window.addEventListener("keyup", function(event){
-    board.setAttribute("data-flag-mode", Boolean(flagMode ^= event.key !== "Control"));
+    board.setAttribute("data-flag-mode", Boolean(flagMode ^= !(event.key === "Control" || event.key === "Meta")));
     event.preventDefault();
 });
 
