@@ -212,9 +212,9 @@ button:not([data-valid="false"] .create):active{
         <div id="start">
             <p id="header">Select your difficulty:</p>
             <input id="difficulty" type="range" min="0" max="100" value="30"><label id="difficulty-label">30</label>
-            <button class="green" onclick="start('easy')" title="10x10">Easy</button>
-            <button class="yellow" onclick="start('medium')" title="20x20">Medium</button>
-            <button class="red" onclick="start('hard')" title="30x30">Hard</button>
+            <button class="green" onclick="start('easy')">Small 10x10</button>
+            <button class="yellow" onclick="start('medium')">Medium 20x20</button>
+            <button class="red" onclick="start('hard')">Large 30x30</button>
             <button class="create" onclick="start('custom')" title="width &times; height">Custom</button>
             <input class="size" pattern="^\d+$" maxlength="3" placeholder="width" required="required">
             <label class="by">x</label>
