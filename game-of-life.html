@@ -125,10 +125,10 @@
     
     <button id="next" class="underline">Next</button>
     <button id="randomize" class="underline">Randomize</button>
-    <button id="clear" class="underline">Clear</button>
+    <button id="clear">Clear</button>
     <button id="start" class="underline">Start</button>
     <div class="input-wrapper">
-        <input id="speed" type="range" min="-100" max="100" value="0">
+        <input id="speed" type="range" min="-101" max="100" value="0">
         <label for="speed" id="speed-counter">Speed</label>
     </div>
     <p id="counter"></p>
@@ -141,28 +141,64 @@
             <option value="!#!%#&$!$&%&&#&&'$'%'&">MWSS</option>
             <option value="!#!%#&$!$&%!%&&&'#'&($(%(&">HWSS</option>
             <option value="!!#!###$%$$%%%">Eater1</option>
+            <option value="!&!'#&#'%#&$&('!'#'$''')(()))*)+*+">Eater5</option>
             <option value="'!&#(#'$%&&&'&(&)&!'$'*'¶'!(#(%()(+(¶(%)))%*)*&+'+(+&-'-(-%.).%/&/(/)/">Elijah's oscillator</option>
             <option value="!%!&#%#'$!$#$%$'%!%%%'%(&%'!'%'''((!(#(%(')%)'*%*&">Elijah's on-off</option>
             <option value="|I|K|L}I}J}L¤J¥D¥E¥I¥M¥N¥O¦D¦E¦H¦O§I§O¨J¨K¨M¨N±`±aµ`µaÀ]À^ÀdÀeÁ]Á^ÁdÁeÄhÅfÅgÅhÆeÇeÇf×pØoØqÙoÙqÚpÜkÜlÜtÜuÝjÝmÝsÝvÞkÞlÞtÞuàpáoáqâoâqãpëÁëÂìÁìÂïÄïÅðÄðÅòÁòÂóÁóÂü¦ü§ý§þ¤þ¥þ¦ÿ¤ĀËĀÌĀÍāÊāÍĂÊĂÍăÓăÔĄÊĄÔąÊąÎąÓĆËĆÍĆÓĆÔćÌĊÌĊÍċÌċÍ">Elijah's big oscillator</option>
             <option value="!'!)!*#'#(#*)!)#)))**!*#*)**¶&¶'-&-'<B<C<E<F=A=G>A>H>K>L?A?B?C?G?K?L@FQEQFRFSCSDSETCXZYYY[ZYZ[[Z^U^V^_^`^i_T_W_^_a_g_h_i`U`V`_```fafagbZcYc[dYd[eZgtguhthukwkxlwlxntnuotoutdudvcvewdxdydzd{c{e|d|~|¡|¢}d}}}¢~}~¢¡¨¡©¢}¢©£}£££¨¤~¤¢¤¨¤©¥¡¨¡¨¢©¡©¢">Elijah's p2520 gun</option>
             <option value="!J!K#J$H$J%H%I&¶&-&/&:&D&E'-'/':'D'E(-)*)+)-)/):);*+*-*/*:*;*H*I+#+$+++-+.+<+G+J¶$¶¶¶:¶;¶H¶I-$-&---.-/.%.'./.D/'/(/*/+/C/E:*:+:C:E;$;%;D<%=!=#=$>!>*?)?+@(@+A)A*A.A/B.B:C.D%D&E$E&ESETEUF$FSFfFgG#G$GTGfGgJ&J'J-J.JgK&K'K-K.KfKhLeLiM*M+MiN*N+OfOiPfPiQfQgQhRKRLS<S=S>S?SKSLT;TUTVTWU:U?UHUIUOUPUTUXV;V=V>VHVIVOVPVSVYVtW<WuXRXZXsXtXuYRYZZx[E[S[Y[w[y]D]F]H]J]K]T]X]x]y^E^F^H^I^K^U^V^W_q_r_x_y`q`r`yaxbnbobxbycncofqfrgqgr">Elijah's p3000 gun (Old record)</option>
-            <option value="!J!K#J$H$J$p%H%I%n%o%p&¶&-&/&:&D&E&m'-'/':'D'E'e'f'm'n(-(e(g)*)+)-)/):);)f*+*-*/*:*;*H*I+#+$+++-+.+<+G+J¶$¶¶¶:¶;¶H¶I¶r¶s-$-&---.-/-j-k-r-s.%.'./.D.j.k/'/(/*/+/C/E:*:+:C:E:a:b;$;%;D;a;b<%=!=#=$=p=q>!>*>p>r?)?+?r@(@+@r@sA)A*A.A/B.B:C.D%D&E$E&ESETEUF$FSFfFgG#G$GTGfGgJ&J'J-J.JgK&K'K-K.KfKhLeLiM*M+MiN*N+OfOiPfPiQfQgQhRKRLS<S=S>S?SKSLT;TUTVTWU:U?UHUIUOUPUTUXV;V=V>VHVIVOVPVSVYVtW<WuXRXZXsXtXuYRYZZx[E[S[Y[w[y]D]F]H]J]K]T]X]x]y^E^F^H^I^K^U^V^W_q_r_x_y`q`r`yaxbnbobxbycncofqfrgqgr">Elijah's p6000 gun (Record?)</option>
-            <option value="!J!K!h!k!l#J#h#i#j#k#m$H$J$m%H%I%f%g%h%i%j%k%l%n%o&¶&-&/&:&D&E&e&l&n&q'-'/':'D'E'e'f'i'j'l'p'q(-(i(j(l(m)*)+)-)/):);*+*-*/*:*;*H*I+#+$+++-+.+<+G+J¶$¶¶¶:¶;¶H¶I-$-&---.-/-`-a.%.'./.D.a.i.j/'/(/*/+/C/E/a/c/i/j:*:+:C:E:b:c;$;%;D<%=!=#=$>!>*?)?+@(@+A)A*A.A/AlAmB.B:BlC.CmCnCoD%D&DoE$E&ESETEUF$FSFfFgG#G$GTGfGgJ&J'J-J.JgK&K'K-K.KfKhLeLiM*M+MiN*N+OfOiPfPiQfQgQhRKRLS<S=S>S?SKSLT;TUTVTWU:U?UHUIUOUPUTUXV;V=V>VHVIVOVPVSVYVtW<WuXRXZXsXtXuYRYZZx[E[S[Y[w[y]D]F]H]J]K]T]X]x]y^E^F^H^I^K^U^V^W_q_r_x_y`q`r`yaxbnbobxbycncofqfrgqgr">Elijah's p9000 gun (Record?)</option>
+            <option value="!J!K#J$H$J$p%H%I%n%o%p&¶&-&/&:&D&E&m'-'/':'D'E'e'f'm'n(-(e(g)*)+)-)/):);)f*+*-*/*:*;*H*I+#+$+++-+.+<+G+J¶$¶¶¶:¶;¶H¶I¶r¶s-$-&---.-/-j-k-r-s.%.'./.D.j.k/'/(/*/+/C/E:*:+:C:E:a:b;$;%;D;a;b<%=!=#=$=p=q>!>*>p>r?)?+?r@(@+@r@sA)A*A.A/B.B:C.D%D&E$E&ESETEUF$FSFfFgG#G$GTGfGgJ&J'J-J.JgK&K'K-K.KfKhLeLiM*M+MiN*N+OfOiPfPiQfQgQhRKRLS<S=S>S?SKSLT;TUTVTWU:U?UHUIUOUPUTUXV;V=V>VHVIVOVPVSVYVtW<WuXRXZXsXtXuYRYZZx[E[S[Y[w[y]D]F]H]J]K]T]X]x]y^E^F^H^I^K^U^V^W_q_r_x_y`q`r`yaxbnbobxbycncofqfrgqgr">Elijah's p6000 gun (Old record)</option>
+            <option value="!J!K!h!k!l#J#h#i#j#k#m$H$J$m%H%I%f%g%h%i%j%k%l%n%o&¶&-&/&:&D&E&e&l&n&q'-'/':'D'E'e'f'i'j'l'p'q(-(i(j(l(m)*)+)-)/):);*+*-*/*:*;*H*I+#+$+++-+.+<+G+J¶$¶¶¶:¶;¶H¶I-$-&---.-/-`-a.%.'./.D.a.i.j/'/(/*/+/C/E/a/c/i/j:*:+:C:E:b:c;$;%;D<%=!=#=$>!>*?)?+@(@+A)A*A.A/AlAmB.B:BlC.CmCnCoD%D&DoE$E&ESETEUF$FSFfFgG#G$GTGfGgJ&J'J-J.JgK&K'K-K.KfKhLeLiM*M+MiN*N+OfOiPfPiQfQgQhRKRLS<S=S>S?SKSLT;TUTVTWU:U?UHUIUOUPUTUXV;V=V>VHVIVOVPVSVYVtW<WuXRXZXsXtXuYRYZZx[E[S[Y[w[y]D]F]H]J]K]T]X]x]y^E^F^H^I^K^U^V^W_q_r_x_y`q`r`yaxbnbobxbycncofqfrgqgr">Elijah's p9000 gun (Old record)</option>
+            <option value="!<!=!O#<#O#P#Q$=$R%&%<%=%Q%R&&&'&(&>&?')'<'='@((()(=(?)#)$)¶);)=)?)@*$*+*-*;*<*F*G*M*N+$+&+++.+F+G+M+N¶%¶&¶¶¶--J-K.J.K/#/$:$;#<#<$<V<b<c=&='=T=U=V=b=c>#>$>&>'>T>U>V?!?$?S?W?_?`?f?g@!@&@'@(@)@T@U@V@W@_@`@f@gA#A$A%A)ATAUAWB&C%C&HFHGHHIFJGQuQvRtRwR}R~SuSvSxS~TlTxT{T|T}UjUlUwUxUzVkVlVtVuVwVzWsWvWyW{W|W}XtXuY~Z|Z~[|[}_x_y`w`zawaybxd}eye{e|e}fyf{f|gYgZg[gegfgggxgyg{hYhZh[heh{h|iZifiyi{jZjwjyjzj{kZkvkwkxkylYl[ltlulvmcmdmimsmuncndninjnsoYo[ocodojokorospZpbpcqZqbqcrZrarcrnrosYsZs[sbsesfsntYtZt[t_t`tatetgtotptqu_uguqvgvh">Elijah's p5160 gun (Old record)</option>
             <option value="!<!=#<$=$Y$Z%&%<%=%Y%[&&&'&(&>&?&[&a&b')'<'='@'W'X'Y'Z']'^'a'd((()(=(?(Q(R(W(Z(](_(a(c(d)#)$)¶);)=)?)@)Q)Z)])_)a*$*+*-*;*<*S*[*]*_*a+$+&+++.+O+P+Q+R+S+`¶%¶&¶¶¶-¶O-R-S-T-U.R.U.Z.[/#/$/Z/[:$:M:N;#;M;P;R;S<#<$<O<P<R<S=&='>#>$>&>'?!?$@!@&@'@(@)A#A$A%A)A^A_B&B^C%C&C_C`CaDaFDFEFFGDGVGWHEHVHWKWLVLXMUMYNYPVPYQVQYRVRWRXUFUGUHVEVIWDWJWeXfYCYKYdYeYfZCZK]D]J^E^I_F_G_H`b`c`i`jabacajbic_c`cicjd_d`gbgchbhc">Elijah's p4080 gun (Record)</option>
             <option value="!<!=!Y!]!^#<#Y#Z#[#]#_$=$_%&%<%=%W%X%Y%Z%[%]%^%`%a&&&'&(&>&?&V&^&`&c')'<'='@'V'W'Z'['^'b'c((()(=(?(Z([(^(_)#)$)¶);)=)?)@*$*+*-*;*<+$+&+++.¶%¶&¶¶¶--Q-R.R.Z.[/#/$/R/T/Z/[:$:S:T;#<#<$=&='>#>$>&>'?!?$@!@&@'@(@)A#A$A%A)A^A_B&B^C%C&C_C`CaDaFDFEFFGDGVGWHEHVHWKWLVLXMUMYNYPVPYQVQYRVRWRXUFUGUHVEVIWDWJWeXfYCYKYdYeYfZCZK]D]J^E^I_F_G_H`b`c`i`jabacajbic_c`cicjd_d`gbgchbhc">Elijah's p6120 gun (Record)</option>
-            <option value="!<!=!Y!]!^#<#Y#Z#[#]#_$=$_%&%<%=%W%X%Y%Z%[%]%^%`%a&&&'&(&>&?&V&^&`&c')'<'='@'V'W'Z'['^'b'c((()(=(?(Q(R(Z([(^(_)#)$)¶);)=)?)@)Q*$*+*-*;*<*S+$+&+++.+O+P+Q+R+S¶%¶&¶¶¶-¶C¶O-A-B-C-R-S-T-U.@.R.U.Z.[/#/$/@/A/Z/[:$:M:N;#;M;P;R;S<#<$<O<P<R<S=&='>#>$>&>'?!?$?L@!@&@'@(@)@J@K@LA#A$A%A)AIA^A_B&BIBJB^C%C&C_C`CaDaFDFEFFGDGVGWHEHVHWKWLVLXMUMYNYPVPYQVQYRVRWRXUFUGUHVEVIWDWJWeXfYCYKYdYeYfZCZK]D]J^E^I_F_G_H`b`c`i`jabacajbic_c`cicjd_d`gbgchbhc">Elijah's p7200 gun (Record)</option>
-            <option value="!<!=!O#<#O#P#Q$=$R%&%<%=%Q%R&&&'&(&>&?')'<'='@((()(=(?)#)$)¶);)=)?)@*$*+*-*;*<*F*G*M*N+$+&+++.+F+G+M+N¶%¶&¶¶¶--J-K.J.K/#/$:$;#<#<$<V<b<c=&='=T=U=V=b=c>#>$>&>'>T>U>V?!?$?S?W?_?`?f?g@!@&@'@(@)@T@U@V@W@_@`@f@gA#A$A%A)ATAUAWB&C%C&HFHGHHIFJGQuQvRtRwR}R~SuSvSxS~TlTxT{T|T}UjUlUwUxUzVkVlVtVuVwVzWsWvWyW{W|W}XtXuY~Z|Z~[|[}_x_y`w`zawaybxd}eye{e|e}fyf{f|gYgZg[gegfgggxgyg{hYhZh[heh{h|iZifiyi{jZjwjyjzj{kZkvkwkxkylYl[ltlulvmcmdmimsmuncndninjnsoYo[ocodojokorospZpbpcqZqbqcrZrarcrnrosYsZs[sbsesfsntYtZt[t_t`tatetgtotptqu_uguqvgvh">Elijah's p5160 gun (Record)</option>
+            <option value="!S!T#J#S#U$I$K$N$O$V$_$`%I%K%M%P%S%V%_%`&?&@&J&N&O&V')'/';'<'>'A'S'U()(*(+(/(:(<(>(?(A(S(T)¶)A)C)G)H)L)M*%*&*+*¶*=*>*@*B*C*G*H*L*M+&+=+>+@+H+I+J+K+L¶&¶(¶@¶I¶K-'-(-@-A-U-V.I.J.K.T.V/*/+/S/Z/[:):¶:S:V:Y:]:_:`;*;¶;S;Z;[;_;`<+<T<V=U=V?)?*@!@#@%@'@*A!A$A%A'A(A)B&C&C(C)D'D)GUGVHUHVJ$K$K%K&KXKYL'LXLYM&M'NUNVOUOVT:T;U)U*U:U<URUSUTV)V*V<VRW<W=WSXJXKYKZHZIZJ[H]&]'])]*]`]a]b^!^#^'^)^*^-^.^_^b_!_%_'_.___b`$`%`'`(`)`*`+`¶`-`h`ia&a_aib&b(b)b*b+b_bcbhc'c(c+c`cbchcidagagbhahb">Elijah's p7200 gun (Record)</option>
+            <option value="!;#;#<#=$($)$>%'%)%=%>&'&)&+&¶'('*'¶(*)*)+)I)J***+*¶*;*H*K+*+++¶+:+<+I+J¶*¶+¶¶¶:¶<-*-+-¶-;.*.+.L.M/*/L:(:*:¶:M:N:O;';);+;¶;O<'<)<=<>=(=)=>>#>$>¶>->;><>=?$?¶?.?:@$@&@.@:@<@=@DA%A&A-A:A=ACAEB-B.B;B<BDE!E#F#G#G%G*GCH$H%H)H*H+HBHCHDI(I)I*I+I¶IAIBICIDIEJ'J(J¶J-J@JAJEJFK(K)K*K+K¶KAKBKCKDKEL)L*L+LBLCLDLHLIM*MCMHMJNJOJOKQOQPR)R;R<R?R@RPS(S*S:S=S@SPSRT)T;T=T?TQTRU<U=U@UAUBUVV>V?VCVKVUVWW<W=W@WAWBWIWKWUWWX)X;X=X?XJXKXVY(Y*Y:Y=Y@Z)Z;Z<Z?Z@^J^K_J`H`Ja)a*aBaCaHaIb(b+b¶bAbDbEc(c)c+c¶cAcBcDcEcMcNd(d)d¶dAdBdEdLdNe$e%e*e+eCeDeLe_f#f%fIfJfLf^f`g#gJgLgMg^g`h!h#hJhLhOhPh_iIiJiMiOiPjKjMk-k.k;k<kDkIkJkKkMl%l&l-l:l=lClElHlMlNm$m&m.m:m<mDmHmImJmKmLmOmQmYn$n¶n.n:n;nMnPnQnXnZo#o$o¶o-oJoKoLoYpJsVsWs[s]tWt[uTuUuVu]u^u_vTv_">Elijah's p5160 gun (Record) (not using my reaction)</option>
+            <option value="!/#/#:#;$&$'$<%%%'%;%<&%&'&)&*'&'('*(()()))G)H*(*)***/*F*I+(+)+*+.+:+G+H¶(¶)¶*¶.¶:-(-)-*-/.(.).J.K/(/J:&:(:*:K:L:M;%;';);*;M<%<'<;<<=&='=¶=<>+>->/>:>;?#?$?*?-?/@$@+@¶@-@:@;A$A&A.A:A<ADB%B&B-B:B=BCBEC-C.C;C<CDF!F#G#H#H%H*HCI$I%I)I*I+IBICIDJ(J)J*J+J¶JAJBJCJDJEK'K(K¶K-K@KAKEKFL(L)L*L+L¶LALBLCLDLEM)M*M+MBMCMDMHMIN*NCNHNJOJPJPKRNROS)S;S<S?S@SOT(T*T:T=T@TOTQU)U;U=U?UPUQV<V=V@VAVBVUW>W?WCWKWTWVX<X=X@XAXBXIXKXTXVY)Y;Y=Y?YJYKYUZ(Z*Z:Z=Z@[)[;[<[?[@_J_K`JaHaJb)b*bBbCbHbIc(c+c¶cAcDcEd(d)d+d¶dAdBdDdEdLdMe(e)e¶eAeBeEeKeMf$f%f*f+fCfDfKfSfTg#g%gJgKgRgUh#hShTi!i#l-l.l;l<lDlNlOlXlYm%m&m-m:m=mCmEmNmYn$n&n.n:n<nDnOnPnQnRnSnTnUnVnWnXo$o¶o.o:o;oLoMoNoQoRoSoToUoVoYoZo[p#p$p¶p-pLpOpRpSpTpUpXp[qMqNqYqZ">Elijah's p2580 gun (Record) (not using my reaction)</option>
+            <option value="!:!;!E#-#.#;#C#D#E$+$¶$-$/$:$B%*%B%C&%&+&¶&-&/&:&J'$'&'-'/':'H'I'J($(&(G)#)$)&)')G)H*#+$+&+'¶!¶$¶&¶'-!-#-A-B.A.B///:/;/I/J:/:;:I:J;/;:;;;?<+<¶<=<><@<A===>=@=A?>???A?B@>@?@A@B@J@KA@AJAKBCBDBEDAEAELEMFAFLFMH*H+H>H?HSHUHYH[I+I>I?ILIMINIRIYI[J+J-JMJNJSJWJXJ[K¶K-KJKKKUKWLJLKLLLVLZMKMMMVMXMYNLNMNTNUNXNYOVQ?QBQQR=R>R?R@RPRRSCSQSVSWSXSYSZS[T=T>TATBTUTXTYTZT[UTUWUXVAVBVUVVV^V_WBWCW^W_W`X)X*X>XAXBX^X_XaY)Y*Y`YbZ_Zb[`[a]Y]Z]f]g^X^[^f^h_Y_Z_h`*`+`h`j`ka*a+aeafahajbQbRbebfbhbjcRc_c`chcjckdMdNdPdRdTdUd^dadedfdgdhdkeMeNePeQeSeUe_e`eeeiejfSfgfhg¶g-gMgNgPgQgRgSghh-hNhPhfi*i+i¶iDiEiGiMiQifigj*jDjEjGjHjIjMjNjOjPk;k<kJkUl<lDlElGlHlIlMlNlTm/m:m;mCmFmGmMmNmTmUmVn/nCnD">Elijah's p5440 gun (Record, 9724 -> 4224, later improved to 4158) (Not using my reaction)</option>
             <option value="!<!=#<$=$Y$Z%&%<%=%Y%[&&&'&(&>&?&[&a&b')'<'='@'W'X'Y'Z']'^'a'd((()(=(?(Q(R(W(Z(](_(a(c(d)#)$)¶);)=)?)@)Q)Z)])_)a*$*+*-*;*<*S*[*]*_*a+$+&+++.+O+P+Q+R+S+`¶%¶&¶¶¶-¶C¶O-A-B-C-R-S-T-U.@.R.U.Z.[/#/$/@/A/Z/[:$:M:N;#;M;P;R;S<#<$<O<P<R<S=&='>#>$>&>'?!?$?L@!@&@'@(@)@J@K@LA#A$A%A)AIA^A_B&BIBJB^C%C&C_C`CaDaFDFEFFGDGVGWHEHVHWKWLVLXMUMYNYPVPYQVQYRVRWRXUFUGUHVEVIWDWJWeXfYCYKYdYeYfZCZK]D]J^E^I_F_G_H`b`c`i`jabacajbic_c`cicjd_d`gbgchbhc">Elijah's p3600 gun (Record)</option>
             <option value="!<!=!Y!]!^#<#Y#Z#[#]#_$=$_%&%<%=%W%X%Y%Z%[%]%^%`%a&&&'&(&>&?&V&^&`&c')'<'='@'V'W'Z'['^'b'c((()(=(?(Q(R(Z([(^(_)#)$)¶);)=)?)@)Q*$*+*-*;*<*S+$+&+++.+O+P+Q+R+S¶%¶&¶¶¶-¶O-R-S-T-U.R.U.Z.[/#/$/Z/[:$:M:N;#;M;P;R;S<#<$<O<P<R<S=&='>#>$>&>'?!?$?L@!@&@'@(@)@J@K@LA#A$A%A)AIA^A_B&BIBJB^C%C&C_C`CaDaFDFEFFGDGVGWHEHVHWKWLVLXMUMYNYPVPYQVQYRVRWRXUFUGUHVEVIWDWJWeXfYCYKYdYeYfZCZK]D]J^E^I_F_G_H`b`c`i`jabacajbic_c`cicjd_d`gbgchbhc">Elijah's p7680 gun (Record)</option>
             <option value="!<!=!Y!]!^#<#Y#Z#[#]#_$=$_%&%<%=%W%X%Y%Z%[%]%^%`%a&&&'&(&>&?&V&^&`&c')'<'='@'V'W'Z'['^'b'c((()(=(?(Q(R(Z([(^(_)#)$)¶);)=)?)@)Q*$*+*-*;*<*S+$+&+++.+O+P+Q+R+S¶%¶&¶¶¶-¶O-R-S-T-U.R.U.Z.[/#/$/Z/[:$:M:N;#;M;P;R;S<#<$<O<P<R<S=&='>#>$>&>'?!?$@!@&@'@(@)A#A$A%A)A^A_B&B^C%C&C_C`CaDaFDFEFFGDGVGWHEHVHWKWLVLXMUMYNYPVPYQVQYRVRWRXUFUGUHVEVIWDWJWeXfYCYKYdYeYfZCZK]D]J^E^I_F_G_H`b`c`i`jabacajbic_c`cicjd_d`gbgchbhc">Elijah's p8160 gun (Record)</option>
-            <option value="!?!@#)#/#;#<#>#A$)$*$+$/$:$<$>$?$A%¶%A%C&%&&&+&¶&=&>&@&B&C'&'='>'@(&(((@)')()@)A+*++¶)¶¶¶e¶f-*-¶-e-g.+.g.l.m/c/d/e/f/h/i/l/o:]:^:c:f:h:j:l:n:o;);*;];f;h;j;l<!<#<%<'<*<_<g<h<j<l=!=$=%='=(=)=Z=[=]=^=_=k>&>Z?&?(?)?^?_?`?a@'@)@^@a@f@gAfAgBXBYCXC[C^C_DZD[D^D_GWHUHVHWITIiIjJTJUJiKjKkKlLlNONPNQOOObOcPPPbPcScTbTdUaUeVeXbXeYbYeZbZcZd^Q^R^S_P_T`O`U`paqbNbVbobpbqcNcVeOeUfPfTgQgRgShmhnhthuiminiujtkjkkktkuljlkomonpmpn">Elijah's p6960 gun (Record)</option>
+            <option value="!P#P#Q#R$?$@$S$j$n%)%/%;%<%>%A%R%S%i%k%m%o&)&*&+&/&:&<&>&?&A&j&k&m&n'¶'A'C(%(&(+(¶(=(>(@(B(C)&)=)>)@)M)f)g)q)r*&*(*@*G*H*L*P*Q*R*f*h*i*j*k*m*n*o*p*r+'+(+@+A+G+H+K+R+g+k+m+q¶L¶R¶g¶k¶m¶q-*-+-M-N-P-Q-h-i-j-n-o-p.).¶/*/¶:+<c<d=)=*=c=d>!>#>%>'>*?!?$?%?'?(?)?`?a?g?h@&@`@a@g@hA&A(A)AYB'B)BWBYCXCYHmHnIHIIIJIWIlIoIuIvJHJUJVJWJmJnJpJvKIKTKpKsKtKuLTLULpLrMlMmMpMrMtMuNkNnNrOlOmOuPvQtQvRtRuUpUqVoVrWoWqXpZt[u[v]p]q]r]t^e^g^t_e_f_o`R`f`q`s`taQaSaoaqarbPbTbobpcPcTclcmdPdTdZd[dadbdkdmePeTeZe[e`ecekfPfTfZf[fafcfjfkgPgTgYgZgbhQhShYhZiRiXiZifigjYj]j^jfkVkWkXk]k_kgkhkilVl_lim_m`">Elijah's p6960 gun (Record)</option>
+            <option value="!<!=!Y!]!^#<#Y#Z#[#]#_$=$_%&%<%=%W%X%Y%Z%[%]%^%`%a&&&'&(&>&?&V&^&`&c')'<'='@'V'W'Z'['^'b'c((()(=(?(Z([(^(_)#)$)¶);)=)?)@*$*+*-*;*<+$+&+++.+S+T¶%¶&¶¶¶-¶C¶G¶H¶R¶U-A-B-C-H-Q-S-U.@.G.Q.T.Z.[/#/$/@/A/G/I/P/Z/[:$:E:F:H:J:Q:S;#;D;H;K<#<$<D<F<G<I<K=&='=E=G=I=K=M=N>#>$>&>'>I>K>N?!?$?H?J?L@!@&@'@(@)@H@J@L@MA#A$A%A)AIAJALAOA^A_B&BNBOB^C%C&C_C`CaDaGVGWHVHWKVKWKXLVLYMXMYQUQVQXRURXSVSWSXTFTGTHUEUIVEVIWFWGWHXfYdYfZeZf]F]G]H^E^I_E_I`F`G`H`b`c`i`jabacajbic_c`cicjd_d`gbgchbhc">Elijah's p6720 gun (Record)</option>
+            <option value="!<!=!Y!]!^#<#Y#Z#[#]#_$=$_%&%<%=%W%X%Y%Z%[%]%^%`%a&&&'&(&>&?&V&^&`&c')'<'='@'V'W'Z'['^'b'c((()(=(?(Z([(^(_)#)$)¶);)=)?)@*$*+*-*;*<+$+&+++.¶%¶&¶¶¶-¶C¶G¶H-A-B-C-H-Q-R.@.G.R.Z.[/#/$/@/A/G/I/R/T/Z/[:$:E:F:H:J:S:T;#;D;H;K<#<$<D<F<G<I<K=&='=E=G=I=K=M=N>#>$>&>'>I>K>N?!?$?H?J?L@!@&@'@(@)@H@J@L@MA#A$A%A)AIAJALAOA^A_B&BNBOB^C%C&C_C`CaDaGVGWHVHWKVKWKXLVLYMXMYQUQVQXRURXSVSWSXTFTGTHUEUIVEVIWFWGWHXfYdYfZeZf]F]G]H^E^I_E_I`F`G`H`b`c`i`jabacajbic_c`cicjd_d`gbgchbhc">Elijah's p5040 gun (Record)</option>
+            <option value="!<!=#<#Z#[$=$Z$]%&%<%=%]%b%c&&&'&(&>&?&X&Y&Z&[&^&_&b&e')'<'='@'R'S'X'['^'`'b'd'e((()(=(?(R([(^(`(b)#)$)¶);)=)?)@)T)])^)`)b*$*+*-*;*<*P*Q*R*S*T*a+$+&+++.+P¶%¶&¶¶¶-¶C¶G¶H¶S¶T¶U¶V-A-B-C-H-S-V-[-].@.G.[.]/#/$/@/A/G/I/N/O:$:E:F:H:J:N:Q:S:T;#;D;H;K;P;Q;S;T<#<$<D<F<G<I<K=&='=E=G=I=K=M=N>#>$>&>'>I>K>N?!?$?H?J?L@!@&@'@(@)@H@J@L@M@_@`A#A$A%A)AIAJALAOA_B&BNBOB`BaBbC%C&CbFDFEFFGDGVGWHEHVHWKWLVLXMUMYNYPVPYQVQYRVRWRXUFUGUHVEVIWDWJWeXfYCYKYdYeYfZCZK]D]J^E^I_F_G_H`b`c`i`jabacajbic_c`cicjd_d`gbgchbhc">Elijah's p3360 gun (Record)</option>
+            <option value="!<!=!Y!]!^#<#Y#Z#[#]#_$=$_%&%<%=%W%X%Y%Z%[%]%^%`%a&&&'&(&>&?&V&^&`&c')'<'='@'V'W'Z'['^'b'c((()(=(?(Z([(^(_)#)$)¶);)=)?)@*$*+*-*;*<+$+&+++.¶%¶&¶¶¶-¶C-A-B-C-Q-R.@.R.Z.[/#/$/@/A/R/T/Z/[:$:S:T;#<#<$=&='>#>$>&>'?!?$?L@!@&@'@(@)@J@K@LA#A$A%A)AIA^A_B&BIBJB^C%C&C_C`CaDaFDFEFFGDGVGWHEHVHWKWLVLXMUMYNYPVPYQVQYRVRWRXUFUGUHVEVIWDWJWeXfYCYKYdYeYfZCZK]D]J^E^I_F_G_H`b`c`i`jabacajbic_c`cicjd_d`gbgchbhc">Elijah's p5400 gun (Record)</option>
+            <option value="!L!N!O#?#@#L#M#O$)$/$;$<$>$A%)%*%+%/%:%<%>%?%A&¶&A&C'%'&'+'¶'='>'@'B'C(&(=(>(@(M)&)()@)G)H)L)P)Q)R*'*(*@*A*G*H*K*R+L+R¶*¶+¶M¶N¶P¶Q-)-¶.*.¶/+;c;d<)<*<c<d=!=#=%='=*>!>$>%>'>(>)>`>a>g>h?&?`?a?g?h@&@(@)@YA'A)AWAYBXBYGmGnHHHIHJHWHlHoHuHvIHIUIVIWImInIpIvJIJTJpJsJtJuKTKUKpKrLlLmLpLrLtLuMkMnMrNlNmNuOvPtPvQtQuTpTqUoUrVoVqWpYtZuZv[p[q[r[t]e]g]t^e^f^o_R_f_q_s_t`Q`S`o`q`raPaTaoapbPbTblbmcPcTcZc[cacbckcmdPdTdZd[d`dcdkePeTeZe[eaecejekfPfTfYfZfbgQgSgYgZhRhXhZhfhgiYi]i^ifjVjWjXj]j_jgjhjikVk_kil_l`">Elijah's p3480 gun (Record)</option>
+            <option value="!S!T#J#S#U$I$K$N$O$V$_$`%I%K%M%P%S%V%_%`&?&@&J&N&O&V')'/';'<'>'A'S'U()(*(+(/(:(<(>(?(A(S(T)¶)A)C)G)H)L)M*%*&*+*¶*=*>*@*B*C*G*H*L*M+&+=+>+@+H+I+J+K+L¶&¶(¶@¶I¶K-'-(-@-A-U-V.I.J.K.T.V/*/+/S/Z/[:):¶:S:V:Y:]:_:`;*;¶;S;Z;[;_;`<+<T<V=U=V?)?*@!@#@%@'@*A!A$A%A'A(A)B&C&C(C)D'D)GUGVHUHVJ$K$K%K&KXKYL'LXLYM&M'NUNVOUOVR;R<R>R?S;S<S>SAT@TAU)U*URUSUTV)V*V/V<VRW/W:W;W<WSX?XJXKY;Y<Y=Y>Y?YKZ;ZHZIZJ[=[H]&]'])]*]<]=]`]a]b^!^#^'^)^*^-^.^_^b_!_%_'_.___b`$`%`'`(`)`*`+`¶`-`h`ia&a_aib&b(b)b*b+b_bcbhc'c(c+c`cbchcidagagbhahb">Elijah's p9600 gun (Record)</option>
+            <option value="!W#V#X$V$W$Y$_$`%V%W%Y%Z%_%`&?&@&V&W&Y')'/';'<'>'A'V'X()(*(+(/(:(<(>(?(A(W)¶)A)C)J*%*&*+*¶*=*>*@*B*C*I*J*K+&+=+>+@+H+I+J+K+L¶&¶(¶@¶G¶H¶L¶M-'-(-@-A-R.Q.S/*/+/P/R/S:):¶:I:J:K:O:P:R:S:_:`;*;¶;I;J;K;P;R;S;_;`<+<Q<S=R?)?*@!@#@%@'@*A!A$A%A'A(A)B&C&C(C)D'D)D.D/E-E/F-G¶G-IGIHJGJIJXJYKGKWKZLWLYL[MXMZM[M]NZN[N]OSOTPSPTQbQcRbS`SbT`TaU]V]XJXKXZX]X_YKYXYZY[Y]Y^Y_ZHZIZJZVZ[Z]Z^Z`Za[H[Y[Z[][_[`]T][]^]_]`]a]c]d^S^W^]^_^`_S_U___`_a`S`_aQaRaSa]a_bRbSbUbZb_cNcOcQcRcScTcVc^dRdSdUdWdXeQeReTeUeVe[fSfTfUfVfWfYgSgUgWiUjUkQkRlPlRmPnOnPn]n^o]p^p_p`q`">Elijah's p7980 gun (Record)</option>
+            <option value="!S!T#J#S#U$I$K$N$O$V$_$`%I%K%M%P%S%V%_%`&?&@&J&N&O&V')'/';'<'>'A'S'U()(*(+(/(:(<(>(?(A(S(T)¶)A)C)G)H)L)M*%*&*+*¶*=*>*@*B*C*G*H*L*M+&+=+>+@+H+I+J+K+L¶&¶(¶@¶I¶K-'-(-@-A-U-V.I.J.K.T.V/*/+/S/Z/[:):¶:S:V:Y:]:_:`;*;¶;S;Z;[;_;`<+<T<V=U=V?)?*@!@#@%@'@*A!A$A%A'A(A)B&C&C(C)D'D)GUGVHUHVK#KXKYL#L$L%LXLYM&N%N&NUNVOUOVS:S;S=S>T:T;T=T@U?U@URUSUTV(V)VRW(W)W.W;WSX.X/X:X;XJXKY>YKZ$Z:Z;Z<Z=Z>ZHZIZJ[#[%['[([:[H]#]%]'])].]/]<]`]a]b^!^#^%^'^)^¶^/^;^<^_^b_#_&_'_)_*_+_¶_-_;___b`#`(`;`=`h`ia$a%a&a(a*a+a<a=a_aib&b(b)b+b_bcbhc`cbchcidagagbhahb">Elijah's p4800 gun (Record)</option>
+            <option value="!S!T#J#S#U$I$K$N$O$V$_$`%I%K%M%P%S%V%_%`&?&@&J&N&O&V')'/';'<'>'A'S'U()(*(+(/(:(<(>(?(A(S(T)¶)A)C)G)H)L)M*%*&*+*¶*=*>*@*B*C*G*H*L*M+&+=+>+@+H+I+J+K+L¶&¶(¶@¶I¶K-'-(-@-A-U-V.I.J.K.T.V/*/+/S/Z/[:):¶:S:V:Y:]:_:`;*;¶;S;Z;[;_;`<+<T<V=U=V?)?*@!@#@%@'@*A!A$A%A'A(A)B&C&C(C)D'D)D.D/E-E/F-G¶G-GUGVHUHVKXKYLXLYNUNVOUOVURUSUTVRWSXJXKYKZHZIZJ[H]`]a]b^_^b___b`h`ia_aib_bcbhc`cbchcidagagbhahb">Elijah's p2280 gun (Record)</option>
+            <option value="!S!T#J#S#U$I$K$N$O$V$_$`%I%K%M%P%S%V%_%`&?&@&J&N&O&V')'/';'<'>'A'S'U()(*(+(/(:(<(>(?(A(S(T)¶)A)C)G)H)L)M*%*&*+*¶*=*>*@*B*C*G*H*L*M+&+=+>+@+H+I+J+K+L¶&¶(¶@¶I¶K-'-(-@-A-U-V.I.J.K.T.V/*/+/S/Z/[:):¶:S:V:Y:]:_:`;*;¶;S;Z;[;_;`<+<T<V=U=V?)?*@!@#@%@'@*A!A$A%A'A(A)B&C&C(C)D'D)D.D/E-E/F-G¶G-GUGVHUHVK#KXKYL#L$L%LXLYM&N%N&NUNVOUOVP>Q>R>T:T;T<T@TATBURUSUTV(V)VRW(W)WSXJXKY@YAYKZ$Z@ZHZIZJ[#[%['[([A[B[C[H]#]%]'])].]/]C]`]a]b^!^#^%^'^)^¶^/^_^b_#_&_'_)_*_+_¶_-___b`#`(`h`ia$a%a&a(a*a+a_aib&b(b)b+b_bcbhc`cbchcidagagbhahb">Elijah's p4560 gun (Record)</option>
+            <option value="!S!T#J#S#U$I$K$N$O$V$_$`%I%K%M%P%S%V%_%`&?&@&J&N&O&V')'/';'<'>'A'S'U()(*(+(/(:(<(>(?(A(S(T)¶)A)C)G)H)L)M*%*&*+*¶*=*>*@*B*C*G*H*L*M+&+=+>+@+H+I+J+K+L¶&¶(¶@¶I¶K-'-(-@-A-U-V.I.J.K.T.V/*/+/S/Z/[:):¶:S:V:Y:]:_:`;*;¶;S;Z;[;_;`<+<T<V=U=V?)?*@!@#@%@'@*A!A$A%A'A(A)B&C&C(C)D'D)D.D/E-E/F-G¶G-GUGVHUHVJ$K$K%K&KXKYL'LXLYM&M'NUNVOUOVT:T;U)U*U:U<URUSUTV)V*V<VRW<W=WSXJXKYKZHZIZJ[H]&]'])]*]`]a]b^!^#^'^)^*^-^.^_^b_!_%_'_.___b`$`%`'`(`)`*`+`¶`-`h`ia&a_aib&b(b)b*b+b_bcbhc'c(c+c`cbchcidagagbhahb">Elijah's p6840 gun (Record)</option>
+            <option value="!S!T#J#S#U$I$K$N$O$V$_$`%I%K%M%P%S%V%_%`&?&@&J&N&O&V')'/';'<'>'A'S'U()(*(+(/(:(<(>(?(A(S(T)¶)A)C)G)H)L)M*%*&*+*¶*=*>*@*B*C*G*H*L*M+&+=+>+@+H+I+J+K+L¶&¶(¶@¶I¶K-'-(-@-A-U-V.I.J.K.T.V/*/+/S/Z/[:):¶:S:V:Y:]:_:`;*;¶;S;Z;[;_;`<+<T<V=U=V?)?*@!@#@%@'@*A!A$A%A'A(A)B&C&C(C)D'D)D.D/E-E/F-G¶G-GUGVHUHVJ$K$K%K&KXKYL'LXLYM&M'NUNVOUOVR;R<R>R?S;S<S>SAT@TAU)U*URUSUTV)V*V/V<VRW/W:W;W<WSX?XJXKY;Y<Y=Y>Y?YKZ;ZHZIZJ[=[H]&]'])]*]<]=]`]a]b^!^#^'^)^*^-^.^_^b_!_%_'_.___b`$`%`'`(`)`*`+`¶`-`h`ia&a_aib&b(b)b*b+b_bcbhc'c(c+c`cbchcidagagbhahb">Elijah's p9120 gun (Record)</option>
+            <option value="!U!V#T#V$S$T$U$Z$[$^$_$`%R%S%T%Y%]%^%_%`&?&@&J&S&T&U&Z&[')'/';'<'>'A'J'T'V()(*(+(/(:(<(>(?(A(I(K(U(V)¶)A)C)H)I)K)L*%*&*+*¶*=*>*@*B*C*G*M+&+=+>+@+J¶&¶(¶@¶G¶H¶L¶M-'-(-@-A-S-T.S.U/*/+/J/N/O/T/U/V:):¶:I:K:L:M:P:U:V:W:_:`:g:h;*;¶;I;K;L;N;O;T;U;V;_;`;g;h<+<J<S<U=S=T>h?)?*?g?i@!@#@%@'@*@f@jA!A$A%A'A(A)AfAgAhAiAjB&BeBfBjBkC&C(C)CfCgChCiCjD'D)D.D/DgDhDiE-E/EhF-G¶G-IGIHIiJGJIJfJgKGKfKgKhLgLhM^M_MgNSNTN^N_NfNhOTOfOgPTPVQUQVRgRhRjRlRmTgTmVhViVkVlWjXJXKYKZHZIZJZlZm[H[l]m]n]o^o___`_i`_`b`i`kaYaZa^abajalaqarbXbYbZb^b_bbbjbmbqbrcUcWcXcjcldNdOdUdXdbdcdddidkeNeOeUeWeXeifXfYfZgYgZ">Elijah's p1710 gun (Record)</option>
+            <option value="!U!V#T#V$S$T$U$Z$[$^$_$`%R%S%T%Y%]%^%_%`&?&@&J&S&T&U&Z&[')'/';'<'>'A'J'T'V()(*(+(/(:(<(>(?(A(I(K(U(V)¶)A)C)H)I)K)L*%*&*+*¶*=*>*@*B*C*G*M+&+=+>+@+J¶&¶(¶@¶G¶H¶L¶M-'-(-@-A-S-T.S.U/*/+/J/N/O/T/U/V:):¶:I:K:L:M:P:U:V:W:_:`:g:h;*;¶;I;K;L;N;O;T;U;V;_;`;g;h<+<J<S<U=S=T>h?)?*?g?i@!@#@%@'@*@f@jA!A$A%A'A(A)AfAgAhAiAjB&BeBfBjBkC&C(C)CfCgChCiCjD'D)D.D/DgDhDiE-E/EhF-G¶G-IGIHIiJGJIJfJgK#KGKfKgKhL#L$L%LgLhM&M^M_MgN%N&NSNTN^N_NfNhOTOfOgPTPVQUQVRgRhRjRlRmS:S;S=S>T:T;T=T@TgTmU?U@V(V)VhViVkVlW(W)W.W;WjX.X/X:X;XJXKY>YKZ$Z:Z;Z<Z=Z>ZHZIZJZlZm[#[%['[([:[H[l]#]%]'])].]/]<]m]n]o^!^#^%^'^)^¶^/^;^<^o_#_&_'_)_*_+_¶_-_;___`_i`#`(`;`=`_`b`i`ka$a%a&a(a*a+a<a=aYaZa^abajalaqarb&b(b)b+bXbYbZb^b_bbbjbmbqbrcUcWcXcjcldNdOdUdXdbdcdddidkeNeOeUeWeXeifXfYfZgYgZ">Elijah's p3420 gun (Record)</option>
+            <option value="!T!V#S#V$R$S$_$`%J%P%Q%U%_%`&?&@&I&K&R&S&Y&Z')'/';'<'>'A'H'L'S'V'[()(*(+(/(:(<(>(?(A(I(J(K(T(V)¶)A)C)G)H)L)M*%*&*+*¶*=*>*@*B*C+&+=+>+@+j+k¶&¶(¶@¶j¶k-'-(-@-A-S-U.N.S.V/*/+/O/P/V/W:):¶:J:T:X:Y:_:`;*;¶;J;V;W;_;`<+<S<V=S=U?)?*?j?k?l@!@#@%@'@*@i@mA!A$A%A'A(A)AhAnB&B[BhBnC&C(C)C[CkD'D)D.D/D[DiDmE-E/EXEZEjEkElF-FTFUFXFYF[FkG¶G-GSGUGVGWGXGYGZHFHGHSIFIHITIUIVIWIlImInJ$JFJWJlJmJnK$K%K&KTKUKWKkKoL'LWL]L^LeLgM&M'MTM]M^MeMfMjMkMoMpNSNfOSOUPTPUT:T;U)U*U:U<UjUkV)V*V<VkW<W=WhWiWjXJXKXgYKYgYiYjYkYlYnYoZHZIZJZfZgZiZlZnZo[H]&]'])]*]m]n]o^!^#^'^)^*^-^.^^^_^h^m^p_!_%_'_._^_a_h_j_o_p`$`%`'`(`)`*`+`¶`-`X`Y`]`a`i`ka&aWaXaYa]a^aaaialb&b(b)b*b+bTbVbWbibkc'c(c+cMcNcTcWcacbccchcjdMdNdTdVdWdheWeXeYfXfY">Elijah's p5130 gun (Record)</option>
+            <option value="!<!=!@!A#<#?#A$=$?$F$G%&%<%=%@%G&&&'&(&>&@&E&Y&Z&c&d')'<'='?'E'F'Y'b'e((()(=(C(D(H(W(Y(e)#)$)¶);)=)B)E)F)G)H)W)X)e)p*$*+*-*;*<*B*C*E*_*c*e*n*o*p+$+&+++.+C+E+G+H+N+O+^+b+d+m¶%¶&¶¶¶-¶C¶E¶G¶H¶N¶O¶^¶c¶m¶n-A-B-C-E-_-`-a-b.@.E/#/$/@/A/E/G:$:F:G;#;^<#<$<O<P<]<_=&='=L=P=]=`>#>$>&>'>L>M>N>O>^>_?!?$@!@&@'@(@)@J@K@L@M@h@i@m@nA#A$A%A)A?A@AAAIAMAbAcAjAkAlB&B?BIBJBbBdBiBmC%C&C@CdCjClDdDeDkIlImInJfJhK]K^KfKgKlKnLRLSL]L^LgLkLlLmLnLoMSMjMkMoMpNSNUNjNkNoNpOTOUQ`RGR^R_SGS_S`TFTGTHTjTkUkVhViVjWFWGWHWVWWWgXGXVXXXgXiXjXkXlXnXoYGYVYfYgYiYlYnYoZG[G[m[n[o]F]G]H]e]g]m]p^`^a^e^h^o^p_X_Y_]_^_`_a_b_h_i`F`G`H`W`Y`^`b`f`j`kaGaVa`abahaibGbMbNbVbYbabbbebhcMcNcVcecgdWdYeXeY">Elijah's p4050 gun (Record)</option>
+            <option value="!<!=!t!u#<#t#u$=%&%<%=&&&'&(&>&?')'<'='@'X((()(=(?(X(Y(Z)#)$)¶);)=)?)@)[)t)u)v*$*+*-*;*<*Z*[*j*k*l+$+&+++.+t+v¶%¶&¶¶¶-¶C¶i¶m¶s¶t¶u¶v¶w-A-B-C-i-m-r-s-w-x.@.S.T.r.s.w.x/#/$/@/A/R/U/j/k/l:$:S:T:c:d;#;c;d;u;v<#<$<j<k<l<s<t<v<w=&='=P=Q=s=v>#>$>&>'>Q>i>m>v?!?$?L?N?O?P?i?m?s@!@&@'@(@)@J@K@L@N@t@uA#A$A%A)A?A@AAAIA`AaAjAkAlB&B?BIBJB`C%C&C@CaCbCcCtCuCyCzDcDoDuDvDwDxDyEmEnEvEwExFnFoFwL^L_LfLhMSMTM^M_MfMgNTNgNwNxOTOVOwOxPUPVRGSGS`TFTGTHT^T_U_U`WFWGWHWVWWXGXVXXYGYVZG[G]F]G]H^_^`^i___b_i_k`F`G`H`Y`Z`^`b`j`laGaXaYaZa^a_abajamaqarbGbUbWbXbjblbqbrcNcOcUcXcbcccdcickdNdOdUdWdXdieXeYeZfYfZ">Elijah's p6750 gun (Record)</option>
+            <option value="!J!K#J#L$L$Q$R%H%I%J%K%M%N%Q%T&H&K&M&O&Q&S&T'K'M'O'Q(L(M(O(Q)P+B+C¶C¶K¶L-C-E-K-L-¯-°.D.E.¯/~/¡/©/¯:[:~:£:©:ª;[;];^;t;x;y;z;¤<_<s<t<u<v<w<{<¤=^=`=g=h=r=s=u=v=z=¤>^>`>g>h>q>r>s>u>v>z>~>£?N?O?_?r?s?u?v?w?x?~?¡?À@N@s@t@u@v@µ@¿@ÀAOAPAQAtAyA±BQBxByB±BµCxCzDnDoEnEoGªG¯G°H©H±IYIZI¢I£J%J&JXJZJ¡J¢J¨JµK&KXK£K¨K©K±KµL$LWLXLaLbM$M%M&M'M(MAMBMbN)NANaN¯O&O'O(O?OAOiOjOlOªP%P?P@PcPiPjPlPmPnPªQ%Q&Q'Q(Q`QoR#R$R(R¶R-R`RcRiRjRlRmRnRsRtR§R¨R©R±RµS!S%S&S'S¶S-S_S`SaShSkSlSsStS©S±T!T#T%T_T`TaTgTiT¨TµT¿TÀU%UTU_UbUfUhUjUkUmUÀV%V&VTVUVVV`VbVgVjVlVmVrVsVtWWW`WaWbWjWrWsWtXVXWXiXjY-Y.YfYhYkYlY~Y¡Z.ZfZgZjZmZ}Z¡Z±Zµ[+[¶[-[k[l[p[q[u[v[¡[±[µ]+]q]r]s]t]u^r^s^t_l_m_s_±`l`°`µajala¯a¿bjbkbvbwbxb¯b°b±bµb¿cxc}cªc¯c¿cÀdwd|d}d¯d°d±dµd¿e°e±eµfzf{f|f¡f£f±g|g~g¡g¢g£h¢h£iwixjvjwkmknkqkrkxljlnlqlrm[m]mjmkmlmmm¦m§n[n]n¦n©ojokozo~o¡o¢oªpjpkpypzp{p|p}p£pªqxqyq{q|q¢qªrmrnrwrxryr{r|r¢r¦r©smsnsxsys{s|s}s~s¦s§tytzt{t|uz">Elijah's p4110 gun (Record)</option>
+            <option value="!J!K#J#L$L$Q$R%H%I%J%K%M%N%Q%T&H&K&M&O&Q&S&T&n&o&x'K'M'O'Q'n'o'v'w'x(L(M(O(Q(u)P)f)g)u)v*g+B+C+g+i¶C¶K¶L¶h¶i-C-E-K-L-m-n.D.E.m.n:[:ª:¯;[;];^;ª;¯<_<j=^=`=i=k>^>`>j?N?O?_@NAOAPAQArAsBQBrBsBªB¯B°C©C±DnDoEnEoE¨EµFbF¨F©F±FµG`GaGcGdH`HaHcHdIYIZI¯J%J&JXJZJªK&KXKªL$LWLXM$M%M&M'M(MAMBM±MµN)NAN±O&O'O(O?OAOiOjOlO|OµO¿OÀP%P?P@PiPjPlPmPnP{P}PÀQ%Q&Q'Q(QoQsQtQ{Q|Q~Q©Q¯R#R$R(R¶R-RiRjRlRmRnRrRuR{R|R~R¡R¨R¯S!S%S&S'S¶S-ShSkSlSsStS{S|S~S§S¨S¿SÀT!T#T%TgTiT{T}T¥T¦TªTµTÁU%UTUfUhUjUkUmU|U§U¨U¿UÀV%V&VTVUVVVgVjVlVmVrVsVtV¨V¯WWWjWrWsWtW©W¯XVXWXiXjX¿Y-Y.YfYhYkYlY~Y¡YµYÀZ.ZfZgZjZmZ}Z¡Z±ZÁ[+[¶[-[k[l[p[q[u[v[¡[±[µ[¿[À[Á]+]q]r]s]t]u]°]±]Á]Â^r^s^t^±^µ^¿^À^Á_l_m_s_µ_¿_À`l`¿ajalbjbkbvbwbxcxc}dwd|d}fzf{f|f¡f£g|g~g¡g¢g£h¢h£iwixi¿iÀjvjwj¿jÀkmknkqkrkxljlnlqlrm[m]mjmkmlmmm¦m§n[n]n¦n©ojokozo~o¡o¢oªpjpkpypzp{p|p}p£pªpÁpÂqxqyq{q|q¢qªqÁqÂrmrnrwrxryr{r|r¢r¦r©smsnsxsys{s|s}s~s¦s§tytzt{t|uz">Elijah's p8220 gun (Record)</option>
+            <option value="!c!o!p#b#d#o#p$Y$^$_$b$d%X%Z%^%a%b%d%e&X&Z&_&a'Y'[']'^'_'b'd'e([(`(b(d(e)I)J)Z)_)a*J*Y*^*`+J+L+Y+Z+_¶K¶L¶O¶P-O-P/g/h:g:h;C;D;v;w<:<;<C<D<u<x=;=v=w=y>;>=>y?<?=?y?z@j@kAkBhBiBjC[C]ChD[D^E^FEF^F_GAGBGDGFHBHDHFHGHHI@IEIII©IªJ'J(J*J+J@JAJBJCJEJHJIJ©K'K(K*KDKOKPK¯L*LBLOLPLuLvL§L¨L©LªL¯M$M%M*M¶MBMCMvM¦N$N%N+N¶NvNxN§N¨N©OwOxOªPDP§P¨P©PªQ+Q¶QDQFQ¢Q£Q§Q¯Q°R&R'R+R¶RGRHRNR¢R£R¨R©RªR±SGSHSMSOSªS°S±T=TGTHTMTOTªU>UDUFUNUpU©UªV<V=V>VDVnVoVpW!W#W'W(WmX#X$X%X&X'X+X¶XKXLXPXQXmXnX¡X¢Y#Y$Y&Y'Y¶Y-YKYLYPYQYiY¡Z#Z$Z&Z'Z+Z;ZLZMZNZOZPZgZiZ¢Z£Z¤[$[%[&[;[M[O[h[i[¤]:];]=]E^=^>^C^E^M^N^O_:_D_E`:`;`c`da&a'a(a/a:abadajakb&b'b(b/b:b;bNbbbjbkc%c)cMcOcacbd$d*e%e)eof&f'f(fkflfnfpgLgjglgngphKhLhMhghjhlhnhphrhsiJiKiLiMiNigihiiijilimipisjIjJjNjOjkjpjqkAkikkl<lAlBlClDliljm<mBmCmDmEn-n.nBnEnKnLnMo-o.oBoCoDoEoKoLoMp&p'pApBpCpDq&q'qA">Elijah's p4170 gun (Record)</option>
+            <option value="!{!|#|#ª#¯$s$t$|$~$ª%[%]%s%u%}%~%¨%ª&]&i&j&q&s&u&¨&©']'_'i'q'r'u'v(^(_(g(i(u)g)h)v)w)x*U*V*x*ª*¯+U+¥¶V¶W¶X¶j¶k¶¤¶¦¶À¶Á-X-i-k-|-}-~-¡-¢-£-À-Á.d.k.{.}.¡.¢.£.¥.¦/c/e/z/{/}/¡/£/¤:]:^:_:`:a:b:x:y:{:|:}:¡:£;[;^;`;a;b;d;e;{;|;};~;¡;¢<Z<[<^<`<b<c<x<z=X=Y=[=]=^=`=b=r=y>M>N>[>]>^>_>`>a>r>t>¦?M?N?X?Z?r?s?¦?§?¨@Y@©ASATAeA¨A©BeBfBgBuBvChCtCvC~C¡DeDfDgDtD~D¢EUEVEeEsEtE¢FOFPFTFVF_F`F¢F£GOGTG_GaGoGpHPHSHTHaHoHqICIOIPIaIbIqIvIwJCJDJEJQJRJSJTJmJnJoJpJrJsJvJyKFKOKPKTKmKpKrKtKvKxKyLELFLPLRLpLrLtLvM@MAMIMNMPMRMSMqMrMtMvNANHNJNNNONuOAOCOHOKPBPCPIPJPQPgPhQQQRQSQhQpQqRTR]R_RhRjRpRqSSSTS]S^SiSjT^TfUdUeUfVcWcWdZ`ZaZsZt[_[b[s]`]a]t]u]v^v`G`HaGaHjQjRkQkSlSlXlYm.m/mOmPmQmRmTmUmXm[mÁn.n/nOnRnTnVnXnZn[n¿nÁoRoToVoXoÀoÁpSpTpVpXq&qWr%r'r]r^s&sIsJs^tJtRtSt^t`uJuLuRuSu_u`vKvLvdw)w*wcwex)x*xcxey$y%ydz#z%{#|!|#|;|<|k|l};}U}V}k~*~+~<~=~>~U~i~k¡*¡+¡>¡V¡W¡X¡i¡j¡o¡q¢S¢T¢U¢X¢o¢p¢r£S£V£r¤Q¤S¤V¤W¤o¤p¤q¤s¤t¤v¥Q¥R¥Z¥[¥n¥q¥s¥u¥v¦Y¦[¦n¦o§B§C§Y¨B¨C¨X¨Y©mªKªLªlªn¯K¯L¯S¯T¯l¯o°S°T°m°nµaµbµpµq¿G¿b¿p¿rÀFÀHÀbÀdÀeÀrÁGÁNÁOÁ_Á`ÁbÁdÁeÁlÁmÁrÁsÂNÂ_ÂaÂlÃOÃPÃQÃaÃcÃdÃfÃhÃiÃmÃnÃoÄQÄaÄdÄfÄgÄiÄoÅbÅc">Elijah's p1909 gun (Record)</option>
+            <option value="!O!P#O#Q$Q$V$W%M%N%O%P%R%S%V%Y&G&H&M&P&R&T&V&X&Y'G'P'R'T'V(I(Q(R(T(V)E)F)G)H)I)U*E+H+I+J+K¶H¶K¶P¶Q-P-Q.C.D/C/F/H/I:E:F:H:I<c=c=d=e>f?S?T?e?g@S@e@gAPATAUAVAfBHBIBJBOBQBVCJCPDIE;ENEOEPEQERF;F<F=FNFSFuFvG>GQGTGuGvH=H>HQHRHTINITIVIWJ/J:JMJOJTJVK+K¶K.K;KMKPKSKTKWKaKbL+L¶L.L:L;LNLOLVLWL`LbM.MCM`N.N:N;NFNGN_N`NhNiO/O<OhOiP:P;P=PTQ-Q.Q/Q<QAQBQCQRQSQTQpQqQsR-R:RARCRQRpRqRsRtRuS.S/SASDSPSRSvTBTCTQTRTpTqTsTtTuUoUrUsV+VQVRVnVpW+W¶W-WRW[WmWoWqWrWtX.XQX[X]X^XnXqXsXtY'Y(Y-Y.YKYLYQYRY_YfYgYhYqZ(ZKZ^Z_ZhZpZq['[L[M[N[h[i[m[o[r[s]'](]N]m]n]q]t^r^s_'_(_@_A`'`)`?`B`J`Ka(a@aBaIaLb%b&b'b@bAbBbGbJbKbLbXbYc%cFcHcIcYdGdJdYd[e<e=eHeIeKeMeNeZe[f@fKfMfNg!g#g*g+gHgIgKh!h%h&h)h¶hHhKhihji#i%i*i¶iIiJiiikj!j#j%j+jkk%k'k(kkkll%l(lBlCm&m+mBmCm`mamcn'n(n)n*n+nancoEoFoLoMobogohp)pApCpFpMpgphq(q*q?q@qAqCqDqMqOr)r>rIrNrOs?s@sAsCsDsHsJtAtCtDtIvGvLvMwFwHwLwMwbwcxBxCxFxIxaxdxhxiyByCyGyHybycyhyi{P{Q|P|R}@}A}H}I}J}R~<~=~?~A~J~R~S¡)¡;¡=¡?¡I¢(¢*¢:¢=¢@£)£;£<£?£@¦J¦K§J¨H¨J©)©*©+©B©C©H©IªBªC¯*¯+¯B¯C°*°+±$±%±*±+±B±C±Dµ#µ%¿#À!À#Ã-Ã.Ã;Ã<ÃDÄ&Ä'Ä-Ä:Ä=ÄCÄEÅ'Å.Å:Å<ÅDÆ$Æ%Æ&Æ¶Æ.Æ:Æ;Ç$Ç¶Ç-">Elijah's p5246 gun (New)</option>
+            <option value="!K!S!T#+#¶#K#L#M#S#U#W#X$+$¶$N$U$W$Y$b%;%<%E%F%M%N%T%W%Z%a%c&)&*&+&¶&-&.&:&<&@&A&E&F&T&U&X&Y&b'('.':'A()(*(+(/(:(>(?(@(E(F(G(H(J(K)¶)>)D)H)J*%*&*+*¶*D*E*J+&+J+L¶&¶(¶K¶L¶Q¶R¶`¶a¶b-'-(-Q-R/*/+/`/a:):¶:P:Q:R:`:a:f:g;*;¶;f;h<+<h=h=i?)?*?r@!@#@%@'@*@P@X@Y@]@^@p@q@rA!A$A%A'A(A)AIAJALAOAQAWAZA^AoB&BIBKBLBPBXBZB]BgBoBpC#C$C'CYCZC]C_CeCgD#D%D&D^D_DfDgDxDyExEzF/F:FzG.G:GzG|G}H.HwHxHzH|I-I.IwIxIzI|JqJrJzJ|J}KEKgKhKpKsKwKxKyKzK}LDLFLfLhLqLrLwL{L|MDMFMfMyMzNENeNfNzOxPxPyR¶R-RIRJS¶SISJT-T.T/TZU/UZU[U]V^W?W@W]W^X?X@Zd[c[e]d]h]i]k]l^h^i^k^n_m_n```aa`aaafaibfbgbhbicld[dhdidjdkdleZe]e_e`ehfZf]f_fafjg¶gYgZg]g_gagdgigjh¶h-h.hZh^h_hahbhchdi/iZi`j.j/j[j]j^j`jcjdk^k_kckds=s>t;t>u:u<u=v:w-w.w:w?x-x.x:x;x?x@xAyBzAzB">Elijah's p1849 gun (Record, 8398 cell reduction), </option>
+            <option value="!O!R!S#O#P#Q#R#T$T%M%N%O%P%Q%R%S%U%V&L&S&U&X'L'M'P'Q'S'W'X(G(H(P(Q(S(T)G*I+E+F+G+H+I¶E-H-I-J-K.H.K.P.Q/P/Q:C:D;C;F;H;I<E<F<H<I>c?c?d?e@fASATAeAgBSBeBgCPCTCUCVCfDHDIDJDODQDVEJEPFIG;GNGOGPGQGRH;H<H=HNHSHuHvI>IQITIuIvJ=J>JQJRJTKNKTKVKWL/L:LMLOLTLVM+M¶M.M;MMMPMSMTMWMaMbN+N¶N.N:N;NNNONVNWN`NbO.OCO`P.P:P;PFPGP_P`PhPiQ/Q<QhQiR:R;R=RTS-S.S/S<SASBSCSRSSSTSpSqSsT-T:TATCTQTpTqTsTtTuU.U/UAUDUPURUvVBVCVQVRVpVqVsVtVuWoWrWsX+XQXRXnXpY+Y¶Y-YRY[YmYoYqYrYtZ.ZQZ[Z]Z^ZnZqZsZt['[([-[.[K[L[Q[R[_[f[g[h[q](]K]^]_]h]p]q^'^L^M^N^h^i^m^o^r^s_'_(_N_m_n_q_t`r`sa'a(a@aAb'b)b?bBbJbKc(c@cBcIcLd%d&d'd@dAdBdGdJdKdLdXdYe%eFeHeIeYfGfJfYf[g<g=gHgIgKgMgNgZg[h@hKhMhNi!i#i*i+iHiIiKj!j%j&j)j¶jHjKjijjk#k%k*k¶kIkJkikkl!l#l%l+lkm%m'm(mkmln%n(nBnCo&o+oBoCo`oaocp'p(p)p*p+papcqEqFqLqMqbqgqhr)rArCrFrMrgrhs(s*s?s@sAsCsDsMsOt)t>tItNtOu?u@uAuCuDuHuJvAvCvDvIxGxLxMyFyHyLyMybyczBzCzFzIzazdzhzi{B{C{G{H{b{c{h{i}P}Q~P~R¡H¡R¢H¢I¢R¢S£.£/£:£;£G£I¤%¤&¤-¤.¤;¤M¤O¤P¥%¥&¥¶¥-¥:¥M¥Q¦-¦:¦M¦N¦O§.§/©.©/ª-ª:¯%¯&¯¶¯-¯:¯H¯I¯P¯Q°%°&°-°.°;°H°I°P±.±/±:±;±Q±R±SµS¿G¿HÀGÀH">Elijah's p5612 gun (Record)</option>
+            <option value="!<!=#<$=$p$q%&%<%=%p%r&&&'&(&>&?&q&r&s')'<'='@'r's((()(=(?(r(s)#)$)¶);)=)?)@)p)r*$*+*-*;*<*U*q+$+&+++.+U+V+W¶%¶&¶¶¶-¶X-W-X-n-o-s-t.h.n.o.s.t/#/$/g/h/i:$:f:g:h:i:j:p:q:r;#;P;Q;p;q;r<#<$<O<R<q=&='=P=Q=`=a>#>$>&>'>`>a?!?$@!@&@'@(@)@M@NA#A$A%A)A?A@AAANAfAgAhAiAjB&B?BKBLBMBgBhBiBoC%C&C@CKChCmCnD]D^DnDoE]F^F_F`FrFsFtG`GqGuHpHvIpIvJfJhJsK]K^KfKgKqKuLRLSL]L^LgLrLsLtMSMsNSNUOTOUPsPtQ`QsQtRGR^R_SGS_S`TFTGTHWFWGWHWVWWXGXVXXYGYVZG[G]F]G]H]e]g^`^a^e^h_X_Y_]_^_`_a_b_h_i`F`G`H`W`Y`^`b`f`j`k`p`qaGaVa`abahaiapaqbGbMbNbVbYbabbbebhcMcNcVcecgdWdYeXeY">Eljiah's p7650 gun</option>
             <option value="!'!)!*#'#(#*)!)#)))**!*#*)**¶&¶'-&-'<B<C<E<F=A=G>A>H>K>L?A?B?C?G?K?L@FQEQFRFSCSDSETCbecdcfdddfeeg`gagigjh_hbhhhki`iaiiijkeldlfmdmfneq|rzr{r|sytytzz©zª{©{ª~°~±¡°¡±£©£ª¤©¤ª©wªw¯v¯x°w±wµw¿wÀvÀxÁwÁÃÁÄÁÅÂwÂÂÂÅÃÂÃÅÄËÄÌÅÂÅÌÆÂÆÆÆËÇÃÇÅÇËÇÌÈÄËÄËÅÌÄÌÅ">Elijah's p4080 gun</option>
             <option value="!&!'#&#'¶&¶'¶(-%-).$.*/$/*:';%;)<&<'<(='@$@%@&A$A%A&B#B'D!D#D'D(N$N%O$O%">P30 Gosper glider gun</option>
             <option value="!!!##!##&%&&'%'&)!)#*!*#A¶A-A.B+B.C+C.D>D?E+E?F+F/F>G¶G.G>G?H-K-K.L-L.">P120 Simkin glider gun</option>
             <option value="!+#)#*#+$(%(%)'&(%(')$)(*%*&*'+#+$+(+)-D-E.D///:/B/D:/:<:B:C;&;';(;);*;+;=<%<¶<==%=*=+==>&>'>/><?/?:@%A%C+C¶D!D#D'D(D+D¶J!J#J'J(M%N%Q$Q¶R$R%R+R¶S$S%S&S*S+S¶T&T'T)T*U&U*V#V$V¶V-W#W$W¶W-X'X)Y#Y&Y*Y-Z$Z%Z&Z*Z+Z¶[&[*]&]'])]*^'^)_%_'_)_+`%`&`*`+">P690 glider gun</option>
             <option value="!+!¶!A!B#*#-#@#C$*$+$¶$/$:$;$<$=$>$A$B$C%-%.%?%@&¶&A'¶'-'/'>'@'A(;(</I/J:I;G;I<G<H=!=#=;>!>#>:><>K>L>T?/?:?<?=?K?L?R?S?T@QAQARD/D:D<D=E!E#E:E<F!F#F;NJNKOJPKPLPMQ;Q<QMR¶R-R/R>R@RAS¶SAT-T.T?T@U*U+U¶U/U:U;U<U=U>UAUBUCV*V-V@VCW+W¶WAWB">P44 Glider gun</option>
-            <option value="!>!A!D#>#?#@#A#B#C#D%>%?%@%A%B%C%D&>&A&D¶@¶C-@-C-F-G.-...@.C.F.G/-/.;!;#;%;&<#<%<¶<-<.=#=%>!>#>%>&>O>P>R>S?#?%?¶?-?.?P?R@#@%@G@H@I@P@RA!A#A%A&AOAPARASBPBRCGCHCICPCRDODPDRDSFGFHG.G/G<G?GGGHH.H/H<H?I<I?M/M:M;N/N:N;O:P:Q:R/R;U/U;V:W:X:Y/Y:Y;Z/Z:Z;">P45 Glider gun</option>
+            <option value="!¶!-#+#-$¶&;':';'<(/(;(=)/);)=*:*;*<+!+#+)+;¶!¶#¶'¶(-'-(.(.).*.+.¶.;/(/)/+/¶/:/;/<:*:+:/:;:=;/;;;=<:<;<<=;@&@(A&A'B'C¶C/C>CAD*D+D¶D/D:D;D<D=D>DADBDCE¶E/E>EAG(H%H&H(H)I%I&I'I(I*J)J+K(K+L)L*">P45 Glider gun</option>
             <option value="!!!#!)!*#!###)#*:!:#:):*;!;$;%;';(;*<#<%<'<)=#=%='=)>!>*B$B%B'B(C!C%C'C*D!D#D$D(D)D*E#E)G!G#H!H#I=I>J<K;K>K?KJKKL;L>LJLKM;M=N<N=P<P=Q;Q=R;R>RJRKS;S>S?SJSKT<U=U>">P46 edge shooter</option>
+            <option value="!>#>#?#@#B#C$-$.$?$@$A$C%-%A%B&#&$&'&+&-'#'&'''+'¶'<'='?($(%(&()(;(=(?(@)()))<)B*$*%*&*)*>*@*A+$+'+(+-+=+>+?+@¶%¶¶¶-¶.¶/-!-#-$-+-/-:-;-A.!.¶.-.;.@.B/-/.///:/A:/>&>'>=>>?%?'?=??@%@?A$A%A/A?A@B-B/C.C/F-G¶G.H$H%H-I$I%I'J(J:K%K/K;KCL&L(L)L.L;LALCM(M)M.M:MBMCN.N/N:O.O/P.P/Q.Q/">P80 Glider gun</option>
+            <option value="!%#%#&#'$(%'%(%>%?&>'<'>(<(=-..-/.//;+;.;/<)</<:=(=*=+=¶=-=/>'>(>.?(?)?¶A(A)B*C)H$H%I#I%J#J@K!K#K>K@L:L;L?L@M:M;N(N)N*O(O)O*O¶P)P+P-Q*Q-R+R¶">P84 Glider gun</option>
+            <option value="!.!/#.#:$/&*&H&I')'*'+'H'I(((*(¶)()*)¶*)***+*G*H*I+*+<+B+C+G+H+I¶=¶>¶B¶C-=->.*./.:.;.<.=/)/*/+///:/</=/E/F/J/K:(:*:¶:::;:F:G:H:I:J;(;*;¶;G;H;I<)<*<+<H=*@=@?A>A?B>C$C'C¶C/D!D#D$D'D(D)D*D+D¶D/D:D;DHDIE$E'E¶E/EHEIG=H<H=H?H@I;I=I>I?I@J:J<K:K=KJL;L<LHLJMIMJ">P90 Glider gun</option>
+            <option value="!*!+#*#+%*&)&+')'+(*+'+(+*+¶+-¶'¶--(-¶.).*.+?¶@-A+A¶A-F&F'F(F)F*G%G'G(G)G+H&H*I'I(I)J(K%L$L&M$M&N%R!R#R'R(S#S$S%S&S'S+S¶T#T$T&T'T¶T-TBTCU#U$U&U'U+UBUDV$V%V&VDW:W;WDWEX:X;[&['[(]&]'](^%^)_$_*`%`)a&a'a(k'k(l'l(">Another P90 Glider gun</option>
+            <option value="!B!C#B#C-B-C-D.A.E/@/F:A:E;B;C;D<B<C<D?/?:@%@&@/@:A&ADAEAFB&B(B?BCBDBFBGC'C(C=C>CCCDCFCGD>D?DCDDDEDFDGEBECEGEHJFJGN¶N-NDNEO¶O.ODOEP¶RCRDSCSET/T>T?TDTETFTNTOU.U:U<U=U@UEUFUGUNUOV!V#V-V;V=V>V?VDVEVFW!W#W-W;W=W>WCWEX-X;X<XCXDY.Y:Z/">A third P90 Glider gun</option>
+            <option value="!-!.#.$.$:$;$=$>%/%;%=%@&!&:&?&@'!'#'$(%(C(D)$)%)))*)+)¶)-)C*)***+*¶*-*A*C+/+A+B¶%¶&¶)¶*¶.¶/-%-&-.-:-;.).*.+../¶/;:¶:-:.:/::;-<&</<;=%='>%>'>/>:>;?#?$?%?'?(@!A#A$A%A'A(A¶A-B%B'B(B¶B-E*E:F)F*F+F/F:F;G(G+G¶G.G/G<H(H¶H.H<I*I¶I.I:K'K(K*K+K/K:K<K=L)L;T$T%T?T@U$U&U>U@V%V?W)W*W:W;X)X*X:X;">P92 Glider gun</option>
+            <option value="!;!<!@#<#?#A$:$?$A%:%;%<%=%>%@&>')'*':';'?(*(:(;(@)!)#)*)¶)?)@*#*+*¶+#+%¶$¶%/C/D:C:D;!;#<#=#=%>$>%>)>*?(?+?A?B@)@+@A@CA)A*A+ACBCBDC!C#D!D#D¶E-F+F-G¶I:I;IDJ&J'J:J<JBJDK&K+K¶K<KCKDL'L+L¶L<L=M(N&N(N)N*N+N¶O%O'O¶P%P'P*Q&Q*Q+">P94 Glider gun</option>
             <option value="ZÄZÅ[Ä[ÅeÃeÄeÅfÂfÆgÁgÇhÁhÇiÄjÂjÆkÃkÄkÅlÄoÅoÆoÇpÅpÆpÇqÄqÈsÃsÄsÈsÉ}g}h}Æ}Ç~g~h~Æ~Ç£j¤i¤Â¤Ã¥i¥Â¥Ã¨e¨f¨j¨k©hªeªk¯f¯g¯i¯j°g°i±hµh¿¿¿À¿Ä¿ÅÁÀÁÄÂjÂÁÂÂÂÃÃiÃjÃkÃÁÃÂÃÃÄhÄlÅgÅiÅjÅkÅmÆhÆiÆjÆkÆlÆÀÇ¿ÇÀÇÁÈµÈÂÉÀÊ±ÊÃË±ËÃÌµÌÂÍ¿ÍÀÍÁÑiÑjÒiÒjÖÀÖÁ×À×Á">LWSS gun w/ gliders</option>
             <option value="!C!D#C$=$>$@$A$C%;%>%@%B&;&<&A&O'M'N'O(L)D)E)F)G)H)L)M*D*E*F*G*H+.+/+B¶-¶/¶B¶C¶G¶H¶K¶L-¶-@-A-C-K-L.+.C.F.G.H/+/¶/@/E:A:B:C:D:E;%;&;D;O<&<@<B<M<N<O=$=L>$>%>->@>A>B>L>M?¶?-?.?Q?R@$@%@¶@.@/@QA$A&A/A:ASB%B¶B.B/BRBSC!C#C$C¶C-C.D!D-DJDKDLDRDSEJEQESFJFKFLFRGSGTGUHUJ@JBK¶K-KCL(L)L¶L-LCM'M)M@MCN'NANBNCO&O'OJOKPJPKPNPOQNQPRPSPSQ">P46 Gliderless LWSS gun</option>
             <option value="}d}e~d¡^¡_¡a¡b¡d¢]¢_¢a¢c£]£b£p¤[¤]¤n¤o¤p¥W¥X¥m¦X¦m¦n§X§Z¨Y¨Z©`©a©c©d©l©mª`ªdªlªm¯a¯b¯cµn¿l¿m¿nÀkÁkÁlÂoÃoÃpÃqÄrÅqÅrÇqÇrÈlÈpÈrÉkÉlÉmÉqÊkÊmÊrÊsÊtËtÒiÒjÓiÓjÓmÓnÔmÔoÕoÖoÖp">P46 Gliderless MWSS gun</option>
@@ -170,37 +206,62 @@
             <option value="!)!;!<!=!>#)#:#>$%$($?%#%%%&%(%)%*%:%;%?&!&#&%&&&-&.&?'!'#'%'&'-'.'?(#(%(&((()(*(:(;(?)%)()?*)*:*>+)+;+<+=+>">Fireship</option>
             <option value="!%!&#&$$%$%%%&%'%(%A&)&A'&'''('?'A(%(?(@)%)&)')(*#*$*(*¶*-+!+%+&+'+¶+-¶!¶#¶%-%.%.&;-;.<.=+=¶=->+%B">Snark (Stable glider turner)</option>
             <option value="!+!¶#¶$*$:$;%*%+%;&;&=&>'*'+'.'/';'>(*(+(/(;(<)/*.*/¶>¶?-?.?.A.B/-/./=/>/?/B:-:.:<:@:A;<;=;>;?<$<%<?=#=%=<===>>#>;?!?#?<?=?>???@@@A>B>B?">Semi-Snark (reflects every other glider)</option>
+            <option value="!+!¶#¶$*$:$;%*%+%;%@%A&;&=&>&A'*'+'.'/';'>'?'@(*(+(/(;(<)/)=)>*.*/*=+?¶>¶?-?-A-B.?.A/-/./=/>/?/B:-:.:<:@:A:B;<;=;>;?<$<%<?<A<B=#=%=<===>=A>#>;>A?!?#?<?=?>???@@>">Semi-Snark alternate (reflects every other glider)</option>
             <option value="!'!(#'#(&:&;'/';(:+'¶(¶¶¶--&-'-(-¶--.;.</;/=:=;$;%;=;><%=!=#=$=+=¶>!>+>¶">CC Semi-Snark (reflects every other glider)</option>
+            <option value="!>!?#>$($?%(%)%*%<%=%>%?&+&<'*'+'?'@'A(?(B)A)B*!*#*&+!+%+'¶#¶%¶&-$.%.&./.:/&///;:$::;$;%;*;+<*<+>/>:?/@:@;@<A<">Another Semi-Snark (reflects every other glider)</option>
             <option value="!/#-#.#/$¶%¶%-'?'@(?(A)A*A*C*D+-+.+>+?+A+C¶-¶.¶>¶?¶A¶C-A-C-D.$.%.>.?.@.A.D/#/%/>/B/C:#:@:A;!;#;A<?=?=@">Tremi-Snark (reflects every third glider)</option>
             <option value="!+!¶#¶$*$:$;%*%+%;&;&=&>'*'+'.'/';'>(*(+(/(;(<)/*.*/+?+@¶?¶A-A.).A.C.D/*/-/./>/?/A/C:(:):*:-:.:>:?:A:C;A;C;D<$<%<><?<@<A<D=#=%=>=B=C>#>@>A?!?#?A@?A?A@">Quadri-Snark (reflects every fourth glider)</option>
             <option value="!&!'#'$'$)%(%)&-'¶'.($(¶(.)!)$)-*#*$¶>¶?->.<.>/</=/B/D:B:C:E;E<B<C<D<F<G<I=$=%=A=D=F=H=I>#>%>A>B?#@!@#A@B?BAC?CBD@DAF*F+FCFDG+GCGEH+H-H.HEI(I)I+I-I.I?I@IEIFJ(J*J?K*K¶K-K/K;K<K@KAKBL*L-L/L:L<LBM+M¶">Quinti-Snark (reflects every fifth glider)</option>
             <option value="!@#>#?#@$=$H$I%=%>%H%J&E&F&H&J'E'G'I(G)')()F)G*&*)*@*E*F*G+'+(+?+A+E+F+G¶?¶A¶E¶F¶G-@-E-F-G.$.%.F.G/%/G:!:#:$:E:G:I;!;E;F;H;J<=<><H<J=(=)===H=I>'>)>>>?>@?)?@">P4 Quinti-Snark (reflects every fifth glider)</option>
+            <option value="!)!@#'#)#>#?#@$($)$=%=%>%F&!&D&E&F&I'!'#'$'C'G'H'I(%(C(E(F)$)%)D)F)H)I*@*F*I+?+A+E+F¶'¶(¶?¶A¶D¶E¶F-&-)-@.'.(.F/F/G/H:F:I;C;D;F;H;I<=<><D<F===A=B=C=D=F=G=H=I>>>?>@>A>C>I?F?G?H@@@A@B@D@E@FA@ADAGAIBABBBCBEBFBHBICDCFDCDFEDEE">Smaller p4 Quinti-Snark</option>
+            <option value="!C!D#B#E%C%D&?&@&A'¶'>'?'@'E'F(¶(-(.)/)F)G*.*/+C+D+E+F¶B¶D¶E¶F-C-F.'.(.;.<.F.G/&/)/:/=:':(:::=:@:A:E:F:G;;;<;@;A;E=$=%>%?!?#?$@!A=A>B=C>C?C@D@">Even smaller p4 Quinti-Snark</option>
+            <option value="!&!'#'$'$)%(%)&-'¶'.(¶(.)-/+:):+;*;+=$=%>#>%>*>+?#?*?+@!@#C&C;D%D'D:D<E%E'E:E<F$F%F'F)F*F+F¶F-F.F:F<F=G%G*G-G<H%H'H(H)H.H/H:H>I&I)I*I+I¶I-I.I;I<I=I?J'J(J/J:J?K)K*K+K¶K-K.K;K?K@L)L¶L:L;">P3 Quinti-Snark</option>
+            <option value="!A!B#@#C#P#Q$A$B$P%*%+%N%P&&&'&+&N&O'&')'I((()(*(H(J)$)%)&)');)<)I*#*(*)***;*<*N*O+!+%+&+'+*+N+P¶#¶$¶(¶)¶P-%-&-P-Q.%/&:#:$:%:H:I;#;C;D;I<C<D<H=G>C>D>E>F>G>I?:?C?H?J@/@;@E@H@JA/A;ADAEAIB:C>C?D>D@E@F@FA">11x Snark</option>
+            <option value="!)#)#*#+$#$¶%$%+%-&!&#&$&+&-'¶¶E¶F-E-F;';(<&<(=&>%>&>.>/?.?/A@AAACB@BABCBDBECFD@DADCDDDEE?EBECF>F@G!G=G?GAGBGDH!H#H$H>HAHCHDI%IAJ$J%J@JAK=K?KBKCL=L>LALDMBMCPCPDQCRARCSASB_)_*`)`*">Glider duplicater</option>
             <option value="!!!###$#$%$&%$%(&)'&'''+((())()))+)¶*(*)+)+-¶+¶---/(:':);';*<#<$<%<(<)=%>$?¶?-@¶@.A-B$B%B¶B-C#C&C*C+C¶D$D%D'D*D¶E&E'E(E*E¶F&F(F+F¶F-G%G&G(G.H$H'H-H.I%I&">P3 bumper</option>
             <option value="!-!.#-$*$+$-%'%¶&&&+'&'*'+'¶('(¶(-)¶*-*.*/+'+/¶&¶(-&-).!.#.$.'.(/$:#;+;¶<+<-=->->.">P4 bumper</option>
             <option value="!+!¶#'#(#+$&$)$+%!%#%%%'%)%+%¶&!&$&%&+'''(')'-(#($(%(&(((*(+(¶(.)!).*#*$*%*+*¶*-+%++¶&¶'¶(¶)¶*;(<'<)='=*>#>$>%>(>)?%@$A¶A-B¶B.C.D.D/">P5 bumper</option>
             <option value="!¶!-#¶#-&¶&-&.'''('+'-'.('(((+(¶)+)¶-'.&.(/&/):!:#:$:':(;$<#=+=¶>+>-?-@-@.">P6 bumper</option>
+            <option value="!(!)!*#$#($#$$$%$'$($;%'%/%:%;&#&$&&&.'&'.'/(!(#)**!*)*++!+%+(++¶#¶$¶)¶*.+.¶/+/-:+">Another p6 bumper</option>
             <option value="!/#.#:$-$;%¶%:&+&/'*'.(+(-)¶*(+#+$+'+)¶!¶$¶'¶(-$-+-¶.+.-/&/'/-:&:':-:.">P8 bouncer</option>
             <option value="!¶#'#(#)#+#¶#/#:$'$($)$*$/$:%+%¶)'*&*(+&+)¶!¶#¶$¶'¶(-$.#/+/¶:+:-;-<-<.">P8 bumper</option>
             <option value="!/#.#/#:$'$($)%&%(%)&&&*&.&/&:'''*(.(:).):*'**+&+*+.+/+:¶&¶(¶)-'-(-).../.://;(<#<$<'<)=!=$='=(>$>+>¶?+?-@&@'@-A&A'A-A.">P15 bouncer</option>
             <option value="!+!¶#$#*$#$'$($+%#%(%¶&$&&&*&-')'*'+'¶)))*)+)¶*$*&***-+#+(+¶¶#¶'¶(¶+-$-*.+.¶;'<&<(=&=)>!>#>$>'>(?$@#A+A¶B+B-C-D-D.">P7 bumper</option>
+            <option value="!-!:!<!=!?!B#-#.#/#:#<#=#?#@#A#B$-$:$<$=$?$B&#&$'!'$'(')'*($)')+*'*+¶(¶)¶*/(/)/*;';+<'<+>(>)>*">P15 PD pair reflector</option>
+            <option value="!'!(!/#'#(#/#:#;$-$.$<%¶%:%;%=&'&(&¶&-&;&='''('¶'-'.';'='>(-(/(;)!)#)-)/);*!*#*.*/*;*<.#/!/$:#">P6 180 degree reflector</option>
             <option value="!'!(#'#(.%.&.*.+/'/(/):&:*;';)<(?*?+@*A!A#A$A+A¶A-B$B-C#">P30 buckaroo</option>
             <option value="!&!*#%#'#)#+$&$'$)$*&#&-'!'$'¶'.(!(&('()(*(.)#)')))-*$*%*'*)*+*¶+&+*-/./.:/./:">P16 filter</option>
+            <option value="!$!%$!$&%!%'&$&&&('%''')(&(+)')++(+)¶#-!-$-'.#.'.¶.-/&/'/¶/-">Another p16 filter</option>
             <option value="!#!$!*!+###$#*#+&#&+'!'#'$'*'+'¶(!(¶)#)$)%)))*)++&+(/#/$/*/+:#:$:*:+">P14 shuttle (duoplet sparker)</option>
             <option value="!-!.#¶#.$*$+$¶%*%+%-%.%/%:&+&-&;'¶'/'<(¶(-(.(/(:(;*)***-*.*/+)+*+¶+-+/+:+;¶*¶+¶-¶<-*-+-.-/-:-;-<.%.*.+.-/$/&/*/+/¶/.///;/<:&:+:/:;;&;¶;-;/;;<!<&<-</<;<<=!=&=-=/>&>¶>->/?&?+?/?;?<@$@&@*@+@¶@.@/@;@<A%A*A+A-B*B+B.B/B:B;B<C*C+C-C<D)D*D¶D-D/D:D;E)E*E-E.E/G¶G-G.G/G:G;H¶H/H<I+I-I;J*J+J-J.J/J:K*K+K¶L¶L.M-M.">P10 domino fountain</option>
             <option value="!&!'#&#'%$%%%&%'%(%)&#&*'$'%'&')'*)&*#*&+&¶&¶)¶*-!-&-).!.&.*/&/)/*:&;#;&<&>$>%>&>)>*?#?*@$@%@&@'@(@)B&B'C&C'">P4 domino sparker</option>
+            <option value="!'!(#%#&#'#.#/$$$)$/%$%%%&%'%(%*%¶%-%.&%&*&¶'$'%'&')'+(#(%(&(')&)')-*!*&*'*¶*.+!+&+'+¶+.¶&¶'¶--#-%-&-'.$.%.&.).+/%/*/¶:$:%:&:':(:*:¶:-:.;$;);/<%<&<'<.</='=(">P7 domino sparker</option>
             <option value="!#!$#$$!&!&$'$'%($(%('((*#*(+#+)¶$¶(¶)-(-)">P6 blonker</option>
+            <option value="!&!'!¶!-#$#'#+#-$+%#%)%*%+&#&&&(&¶&-'*'+'.($(%(&('(((¶(-)!)()*)+*!*#*$*%*&*(*++&+(+*¶$¶)-$-%">P9 dot sparker</option>
+            <option value="!#!$###%#'#($%$'$)%$%%%'%)&!&&&'&(&*&+'!'$'%')'¶($()(*(+(¶))*(***+*¶+'+(+*+-¶¶¶--(-)">P8 domino sparker</option>
             <option value="!$!%!'!(#%#'$'%$%'%)%*&#&$&%&'&)'!'&''')(#($(()%)&)'*%">P6 thumb</option>
             <option value="!)!*#(#+$)$*%&%'%(%+%¶%-&&&)&.'(')'+'¶'-()(+)%)&)))**$*%*&¶'-'.!.'/!/':';'=$=%=&>%>&>)>*?)?+@(@)@+@¶@-A&A)A.B&B'B(B+B¶B-C)C*D(D+E)E*">P6 domino fountain</option>
             <option value="!#!&!'###$#'$!$#$$$%$&'!'#'$'%'&(#($(')#)&)'">P5 domino sparker</option>
+            <option value="!'#'$¶$-$.%%%'%(%¶%-%.%/%:%;&#&$&%&&&'&(&)&+&<'!'+'<'=(#($(%(&('(+(¶(<(>)')>*%*.*:*;*<*=+%+&+.+/¶;¶<-.-/-:-<..">P4 pipsquirter</option>
+            <option value="!#!$###%$%%$%%%'%(&%&'&('!'#'%(%(&('(()#))*%*&*'*(+$+%¶$¶%-&-'-(/):':);';(">P3 eater</option>
+            <option value="!'!($#$&$)%#%$%%%&%'&#&$&(&*'*($(&('((())#)'*%+!+$+%+&+'+(+)¶#¶%¶*-&-'-(-)/&/':$:&;#;)<$<(<)>&>(?'">P4 domino sparker</option>
+            <option value="!##!#$%!%%&#&%&'&)&*'$'(')'+(&(+)')()))**)+&+)¶'¶(¶)-)-*.*/)/+:):*">P3 eater alternate</option>
             <option value="!#!$!%#'$!$'%&&#&$'#(#)#">P3 caterer</option>
+            <option value="!$!%!&#!$!$'%#%&%(&%&('&''">Alternate p3 caterer</option>
+            <option value="!(!)!.!/#)#.$#$$$&$'$($/$:$;$=$>%#%$%&%;%=%>'#'$'%'<'='>(!(%(+(<(?)!)#)))+)>)?*'*(+'+(¶'¶(-)-+.+">Smaller queen bee stablization</option>
+            <option value="!:!;#;$;$=%<%=%H%I&-&.&H'-'.'F'H(F(G*$*@*A+!+$+@+B¶#¶$¶A<E=D=F>EA!A#A?AEAFB!B#B>B@BEC>C?CFCGCHDHFBFCGAGCHAI?I@IAJ%J&J>JBJCK%K(K)K>K?K@KAKDL&L'L(L*L-LALCLDM*M+M¶M-M>M?MAN&N'N(N)N:N?NAO&O)O+O¶O-O.O/O:O=O?OAOBP*P¶P=P>Q.R-R.">G-to-LWSS</option>
             <option value="!;#/#:#;$.%.%/)+)¶)-***+*-*.+*+++-+.¶*¶+¶¶¶-¶.-)-*-.-/<-<.<E<F=E>>>C>E?=???C?D@=@>@@A=A>A@AAB=B>B@C=C?D>I#I$J!J$K$">P30 G to LWSS</option>
+            <option value="!<#:#;$;$<&'&(&*&+'''('*(*)$)%)*)¶*$*%*+*¶¶D-+-¶-D-F.&.'.+.¶.G.H.N/G/H/M/O:=:G:H:M:O;>;D;F;N<<<=<><D=!=#='=(>#>$>%>&>'>+>¶>K>L>P>Q?#?$?&?'?¶?-?K?L?P?Q@#@$@&@'@+@;@L@M@N@O@PA$A%A&A;AMAOB:B;B=BEC=C>CCCECMCNCOD:DDDEE:E;F&F'F(F/F:G&G'G(G/G:G;GNH%H)HMHOI$I*J%J)K&K'K(LLMKMLMMNJNKNLNMNNOIOJONOOPAQ<QAQBQCQDR<RBRCRDRES-S.SBSESKSLSMT-T.TBTCTDTETKTLTMU&U'UAUBUCUDV&V'VA">P30 LCM device</option>
+            <option value="!G!O#E#G#O#P#Q$F$G$R%Q%S&Q&S'R¶b¶c-b-c;M;N<L<N=L>K>L>T>U?T?UA]A^A`B]B^B`BaBbCcD]D^D`DaDbE[E_E`FZF]GHGYG[G^G_GaHHHIHJHZH^H`HaIKIRISITI^JJJKJTJ]J^KTKUKYK[K_K`LYLZL^LaM_M`QEQFRFSFSHTGTHWUWVXUXWYWZWZX]L]M]O^%^M^O_$_&_/_:_N_S_T`$`&`:`S`Ta#a$a&a'a:a<b¶b;b<c#c$c&c'c+c-d$d&d'd¶e!f!f#f*f/f:g)g+g/g:gNgOh%h&h)h¶hMhPhThUi%i&i*i+iNiOiTiUk=k>l¶l-l=l?m+m-m?n-n?n@">Universal LCM device</option>
             <option value="!(!*#+#=$'$+$;$<$=%+%:&(&+&:&;'!'#'$')'*'+(#($(%¶#¶$¶%¶.-!-#-$---/.-.//.:':(:>:?;&;(;>;@<&<@=%=&=@=A">45-degree MWSS to G</option>
             <option value="!)!+#($($¶%(&(&+'(')'*(!(#)!*#*$*%+%¶#¶$-#-(-).$.(.)/#/$">135-degree MWSS to G</option>
             <option value="¢W¢X£W£X§^¨]¨_©^©_ª^°j°k±j±lµl¿l¿mÂ`ÂaÃ_ÃbÄ`Äa">HF crazy catalyst</option>
             <option value="GpGqGwHqHuHvHwIoItJoJpJtJuLoLpMnMpMsMtNnNoNsNtRsSjSrStTiTkTrTtUjUkUqUrUtUuVjVpVsWqWsXpXqXsXuXvYoYrYtYvZoZpZt[p[r[t]o]r]s^o^p">HF pusher catalyst</option>
             <option value="isitjtktkvlulvlzmym{nzn{ozqsqtrsrtw£w¤xwxxx£x¥ywy|y}y¥zxz|z}z¥z¦{y|w|y|z|{|||}}v}x}}~v~x~{¡w¡{¡|">HF pusher + glider</option>
             <option value="údúeúmûdûlûnüaübüdümünýaýdýeýfýmþbþcþgÿdÿeÿfÿgÿvÿwĀdĀvābādāfāgākālāpāqāwāxāyĂbĂcĂfĂlĂpĂyăfăhăjălănăpărĄgĄhĄjĄkĄmĄoĄqĄrąmąoĆmĆoćn">HF to beehive</option>
+            <option value="!*!.!/#)#+#.$)$+$:%*%¶%-%.%/%:&¶'+'/':(*(/(:)*)+¶!¶#-#.#.%/$/%:*;);+;;;<<*<:<<<==$=%=;>#>%?#@!@#">HF to 2 beehives</option>
             <option value="!N!O#N$L$N%L%M):*:*;*<+=+D+E+F¶<¶=¶F-E-F-G.N.O/N/O<!<#=#>#>%?$?%D#D$E#E$FJFKGJGKK¶L+L-M+M¶YDYEZDZE">Block keeper (Hershel input)</option>
+            <option value="!$#!#$$#$$&?&A'?'@'B(B)?)@)A)C)D)F*>*A*C*E*F+>+?.=/</>:<:?;!;#;=;><!<#=@=A>@>B?B@<@=@B@CA<B=B>B?C?">Glider to block converter</option>
             <option value="!&!>#$#&#<#=#>$%$&$;%;%<&!&#'#(#(%)$)%):*(*)*/*;+'+*+/+;¶(¶)¶:¶?¶@-$-%-?-A.#.%.A/#///A/B:!:#:.:/;.;:@-@.A-A.K+K¶K-L-M-M.">Syringe (G to H)</option>
             <option value="!_#]#^#_$'$)$*$[%'%(%*%S%T%[%]&S&U'T*(*a*b+!+#+'+++¶+-+X+Y+a+b¶!¶#¶&¶-¶X¶Y-'--.(.).+.¶.O.P/O/P;_;`<_<a=G=H=a>G>H>a>b>i?g?h?i@D@E@K@L@fADAEAKALAfAgBVBWCWDWDYEXEYEeFdFfGdGfHeHjHkIXIYIjIlJPJQJWJYJlJvKPKWKlKmKuKwLNLPLVLWLtLxMNMOMsMwNrNvO?O@OqOuP?P@PrPtQsRHRIRbRcRoSHSISPSQSbScSnSpTPTQTnToUrUsVrVtWDWmWnWtXCXEXmXnXtXuYCYDYKYLZK[L[M[N[U]N]U]V]W^G^H^X_H_W_X`H`JaIaJajakbjbkeGeHfHgHgJhIhJmHmInHnIofogpfpgtQuPuRvPvQ¤`¤a¥`¥a">Constant block keeper</option>
             <option value="!;!=#>$>%;%>&<&=&>())()**'*(***++#+$+*++¶#¶$¶%¶*¶+-!-$-%-*-+-¶.!.#.$/#;+<)<*<+<¶=#=%=(=¶=;==>!>(>+>:?!?)?*?+?:@!@%@:@=A!A#A$A:A;A<">Frontrake</option>
@@ -213,7 +274,7 @@
         <button id="import">Import</button>
         <button id="edit">Edit</button>
         <button id="clearpart">Clear</button>
-        <button id="copy">Copy</button>
+        <button id="duplicate">Duplicate</button>
         <button id="move">Move</button>
         <button id="tile">Tile</button>
     </div>
@@ -223,7 +284,7 @@
         <input id="reset" type="checkbox" checked>
         <label for="reset">Reset generation counter and back button on change</label>
         <br>
-        <input id="track" type="checkbox">
+        <input id="track" type="checkbox" checked>
         <label for="track">Show previous cells</label>
     </details>
     <details id="source">
@@ -245,7 +306,7 @@ let saveB      = document.querySelector("#save");
 let importB    = document.querySelector("#import");
 let editB      = document.querySelector("#edit");
 let clearPartB = document.querySelector("#clearpart");
-let copyB      = document.querySelector("#copy");
+let duplicateB = document.querySelector("#duplicate");
 let moveB      = document.querySelector("#move");
 let tileB      = document.querySelector("#tile");
 let speedCount = document.querySelector("#speed-counter");
@@ -258,20 +319,21 @@ let canvas     = document.querySelector("canvas");
 let c = canvas.getContext("2d");
 
 let boxes = new Map(), newBoxes = new Map(), possibleNew = new Map(), prevCells = new Map();
-let savedBoard = new Map(), placingBoard = null, generations = 0;
+let savedBoards = {main: [], redo: [], periodBoard: new Map()}, placingBoard = null, generations = 0;
 let [minX, minY, maxX, maxY, xOff, yOff] = [Infinity, Infinity, -Infinity, -Infinity, 0, 0];
-let chooseStage = null, numW = 227*1, numH = 125*1, w, h;
+let chooseStage = null, maxToSave = 10, numW = 227*1, numH = 125*1, w, h;
 
 
 canvas.setAttribute("width", (w = numW*boxSize+1) + "px");
 canvas.setAttribute("height", (h = numH*boxSize+1) + "px");
 
-let MapCompressor = (function() {
+const MapCompressor = (function() {
     const chars = "!#$%&'()*+¶-./:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª¯°±µ¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯʰʱʲʳʴʵʶʷʸʹʺʻʼʽˀˁ˂˃˄˅˪˫˭ˮ˵˶˸˹˺˻˼˽˾ͱͲͳʹ͵ͶͷͻͼͽͿ΄΅Ά·ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяѐёђѓєѕіїјљњћќѝўџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱѲѳѴѵѶѷѸѹѺѻѼѽѾѿҀҁ҂ҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӁӂӃӄӅӆӇӈӉӊӋӌӍӎӏӐӑӒӓӔӕӖӗӘәӚӛӜӝӞӟӠӡӢӣӤӥӦӧӨөӪӫӬӭӮӯӰӱӲӳӴӵӶӷӸӹӺӻӼӽӾӿԀԁԂԃԄԅԆԇԈԉԊԋԌԍԎԏԐԑԒԓ";
-    const RLErow = /[\dob$]{0,69}[ob$!]/gi;
-    const startRLE = /^x ?= ?\d+, ?y ?= ?\d+, ?rule ?= ?b3\/s23 *\n?\r?/i;
-    const extras = /x ?= ?\d+, ?y ?= ?\d+, ?rule ?= ?b3\/s23\n?\r?|\n\r?| |!/gi;
-    const RLEpiece = /(\d+)([ob$])/gi;
+    const RLErow = /[\dabcdeo.$]{0,69}[abcdeo.$!]/gi;
+    const startRLE = /x ?= ?\d+, ?y ?= ?\d+, ?rule ?= ?(b3\/s23|lifehistory) *\r?\n?\r?/i;
+    const extras = /([^]*x ?= ?\d+, ?y ?= ?\d+, ?rule ?= ?(b3\/s23|lifehistory))?\r?\n?\r?| |![^]*/gi;
+    const RLEpiece = /(\d+)([abcdeo.$])/gi;
+    const emptyRows = /\${2,}/gi;
 
     function compressMap(mapToCompress) {
         let result = "";
@@ -294,8 +356,8 @@ let MapCompressor = (function() {
             for (let y = 0; y < RLE.length; y++) {
                 let row = RLE[y];
                 for (let x = 0; x < row.length; x++) {
-                    if (row[x] === "o") {
-                        result.set(`${x} ${y}`, {x, y}); 
+                    if ("aceo".includes(row[x])) {
+                        result.set(`${x} ${y}`, {x, y});
                     }
                 }
             }
@@ -345,16 +407,20 @@ let MapCompressor = (function() {
                     curCountingChar = nextChar;
                 }
             }
-            if (curCount === 1) {
-                result += curCountingChar;
-            } else if (curCount) {
-                result += "" + curCount + curCountingChar;
+            if (curCountingChar === "o") {
+                if (curCount === 1) {
+                    result += curCountingChar;
+                } else if (curCount) {
+                    result += "" + curCount + curCountingChar;
+                }
             }
             curCount = 0;
             curCountingChar = "";
             result += y < maxY? "$" : "";
         }
         result += "!";
+
+        result = result.replace(emptyRows, match => `${match.length}$`);
 
         // Create the header line
         let headerLine = "x = " + (maxX - minX + 1) +  ", y = " + (maxY - minY + 1) + ", rule = B3/S23";
@@ -367,231 +433,6 @@ let MapCompressor = (function() {
     
     return {compress: compressMap, decompress: decompressMap, toRLE: mapToRLE}; 
 })();
-
-function isIn(x, y, x2, y2, w, h) {
-    switch(arguments.length) {
-        case 3:
-            return x >= -x2 && y >= -x2 && x <= x2 && y <= x2;
-        case 4:
-            return x >= -x2 && y >= -y2 && x <= x2 && y <= y2;
-        case 5:
-            return x >= x2 && y >= y2 && x <= w + x2 && y <= w + y2;
-        case 6:
-            return x >= x2 && y >= y2 && x <= w + x2 && y <= h + y2;
-        default:
-            return false;
-    }
-}
-
-function drawBoard(board) {
-    c.fillStyle = "#111111";
-    c.fillRect(0, 0, numW * boxSize, numH * boxSize);
-
-    for(let x = 0; x < numW; x++) {
-        for(let y = 0; y < numH; y++) {
-            let [newX, newY] = [x + xOff, y + yOff];
-            let drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
-            if (drawPlacingBoard? placingBoard.has(`${newX} ${newY}`) : board.has(`${x} ${y}`)) {
-                c.fillStyle = "#308aff";
-                c.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
-            }
-        }
-    }
-    
-    c.fillStyle = "#333";
-    for(let y = 0; y <= numH; y++) {
-        c.fillRect(0, y * boxSize, w, boxSize/6);
-    }
-    for(let x = 0; x <= numW; x++) {
-        c.fillRect(x * boxSize, 0, boxSize/6, h);
-    }
-
-    c.fillStyle = "#f02";
-    let lineSize = boxSize/3;
-    if (chooseStage === 1) {
-        c.fillRect(minX * boxSize - lineSize/2, 0, lineSize, h);
-        c.fillRect(0, minY * boxSize - lineSize/2, w, lineSize);
-    } else if (chooseStage === 2) {
-        let x1 = minX * boxSize, x2 = maxX * boxSize;
-        let y1 = minY * boxSize, y2 = maxY * boxSize;
-        c.fillRect(x1, y1, x2-x1, lineSize);
-        c.fillRect(x1, y1, lineSize, y2-y1);
-        c.fillRect(x1, y2, x2-x1+lineSize, lineSize);
-        c.fillRect(x2, y1, lineSize, y2-y1+lineSize);
-    }
-}
-
-function saveBoard(board, zoneX, zoneY, zoneW, zoneH) {
-    let argNum = arguments.length;
-    savedBoard.clear();
-    board.forEach(({x, y}, key) => {
-        if (argNum < 5 || isIn(x, y, zoneX, zoneY, zoneW, zoneH)) {
-            savedBoard.set(key, {x, y});
-        }
-    });
-}
-
-function updateSpeedCounter() {
-    let speed = runSpeed.value, perSecond = Math.round(200 / -speed);
-    speedCount.textContent = `Speed: ${speed < 0? `${perSecond}/s` : `x${Math.max(speed, 1)}`}`;
-}
-
-function updateGenCounter() {
-    genCounter.textContent = `Generation ${generations}`;
-}
-
-function updateAfterChange() {
-    if (resetGens.checked) {
-        generations = 0;
-        updateGenCounter();
-        saveBoard(boxes);
-    }
-    drawBoard(boxes);
-}
-
-function mouseCellLocation(event, canvas, round) {
-    let func = round? "round" : "floor";
-    let rect = canvas.getBoundingClientRect();
-    let x = Math[func]((event.clientX - rect.left) / boxSize);
-    let y = Math[func]((event.clientY - rect.top ) / boxSize);
-    return {x, y};
-}
-
-function toggle(event, canvas) {
-    if (placingBoard || chooseStage) { return; }
-    let {x, y} = mouseCellLocation(event, canvas);
-    
-    if (boxes.has(`${x} ${y}`)) {
-        boxes.delete(`${x} ${y}`);
-    } else {
-        boxes.set(`${x} ${y}`, {x: x, y: y});
-    }
-    updateAfterChange();
-}
-
-let positions = [
-    {x: -1, y: -1},
-    {x: +0, y: -1},
-    {x: +1, y: -1},
-    {x: -1, y: +0},
-    {x: +1, y: +0},
-    {x: -1, y: +1},
-    {x: +0, y: +1},
-    {x: +1, y: +1}
-];
-
-function countLiveNeighbors(i, j) {
-    let count = 0;
-
-    positions.forEach(pos => {
-        let x = i+pos.x, y = j+pos.y;
-        
-        if(x in boxes && boxes[x][y]) {
-            count++;
-        }
-    });
-    
-    return count;
-}
-
-function next() {
-    newBoxes.clear();
-    possibleNew.clear();
-
-    boxes.forEach(pos => {
-        let neighbors = 0;
-        for (let i = positions.length; i-- > 0;) {
-            let x = pos.x + positions[i].x;
-            let y = pos.y + positions[i].y;
-            
-            if (boxes.has(`${x} ${y}`)) {
-                neighbors++;
-            } else if (possibleNew.has(`${x} ${y}`)) {
-                possibleNew.get(`${x} ${y}`).neighbors++;
-            } else {
-                possibleNew.set(`${x} ${y}`, {x: x, y: y, neighbors: 1});
-            }
-        }
-        
-        if (neighbors >= 2 && neighbors <= 3) {
-            newBoxes.set(`${pos.x} ${pos.y}`, {x: pos.x, y: pos.y});
-        }
-    });
-
-    possibleNew.forEach(pos => {
-        if (pos.neighbors === 3) {
-            newBoxes.set(`${pos.x} ${pos.y}`, {x: pos.x, y: pos.y});
-        }
-    });
-    
-    [boxes, newBoxes] = [newBoxes, boxes];
-    generations++;
-    updateGenCounter();
-    drawBoard(boxes);
-}
-
-function randomize() {
-    boxes.clear();
-    for(let x = 0; x < numW; x++) {
-        for(let y = 0; y < numH; y++) {
-            if (Math.random() < 0.5) {
-                boxes.set(`${x} ${y}`, {x: x, y: y});
-            }
-        }
-    }
-    updateAfterChange();
-}
-
-function clear() {
-    boxes.clear();
-    updateAfterChange();
-}
-
-let running = false;
-let curTimer = null;
-function run() {
-    if(running) {
-        let times = Math.max(runSpeed.value, 1);
-        for (let i = 0; i < times; i++) {
-            next();
-        }
-        if (runSpeed.value > 0) {
-            curTimer = setTimeout(run, 0);
-        } else {
-            curTimer = setTimeout(run, -runSpeed.value * 5);
-        }
-    }
-}
-
-function startRunning() {
-    running = true;
-    
-    startB.textContent = "Stop";
-    startB.id = "stop";
-    startB.onclick = stopRunning;
-    
-    run();
-}
-
-function stopRunning() {
-    clearTimeout(curTimer);
-    running = false;
-    
-    startB.textContent = "Start";
-    startB.id = "start";
-    startB.onclick = startRunning;
-}
-
-function resetBoard() {
-    boxes.clear();
-    function setEachCell(value, key) {
-        boxes.set(key, {x: value.x, y: value.y});
-    }
-    savedBoard.forEach(setEachCell);
-    generations = 0;
-    updateGenCounter();
-    drawBoard(boxes);
-}
 
 function chooseBoard() {
     placingBoard = null;
@@ -618,7 +459,7 @@ function chooseBoard() {
         function handleMove(event) {
             check();
             updateCoords(event);
-            drawBoard(boxes);
+            drawBoard();
         };
         function handleClick(event) {
             check();
@@ -639,7 +480,7 @@ function chooseBoard() {
                     }
                 }
                 chooseStage = null;
-                drawBoard(boxes);
+                drawBoard();
                 canvas.removeEventListener("mousemove", handleMove);
                 canvas.removeEventListener("click", handleClick);
                 resolve(board);
@@ -668,7 +509,7 @@ function placeBoard(board, setMinMax = true) {
     placingBoard = board;
     chooseStage = null;
     xOff = 0; yOff = 0;
-    drawBoard(boxes);
+    drawBoard();
 
     return new Promise((resolve, reject) => {
         function check() {
@@ -702,7 +543,7 @@ function placeBoard(board, setMinMax = true) {
                     curMinX = Math.min(curMinX, x);
                     curMinY = Math.min(curMinY, y);
                 });
-                placingBoard.clear();
+                placingBoard = new Map();
                 newBoard.forEach(({x, y}) => {
                     let newX = x + minX - curMinX, newY = y + minY - curMinY;
                     placingBoard.set(`${newX} ${newY}`, {x: newX, y: newY});
@@ -721,7 +562,7 @@ function placeBoard(board, setMinMax = true) {
                     curMinX = Math.min(curMinX, x);
                     curMinY = Math.min(curMinY, y);
                 });
-                placingBoard.clear();
+                placingBoard = new Map();
                 newBoard.forEach(({x, y}) => {
                     let newX = x + minX - curMinX, newY = y + minY - curMinY;
                     placingBoard.set(`${newX} ${newY}`, {x: newX, y: newY});
@@ -744,12 +585,12 @@ function placeBoard(board, setMinMax = true) {
                 placingBoard = newBoard;
                 event.preventDefault();
             }
-            drawBoard(boxes);
+            drawBoard();
         }
         function handleMove(event) {
             check();
             updateCoords(event);
-            drawBoard(boxes);
+            drawBoard();
         };
         function handleClick(event) {
             if (!check()) return;
@@ -776,6 +617,221 @@ function placeBoard(board, setMinMax = true) {
     });
 }
 
+function drawBoard() {
+    c.fillStyle = "#111111";
+    c.fillRect(0, 0, numW * boxSize, numH * boxSize);
+
+    if (trackPrev.checked) {
+        c.fillStyle = "#000069";
+        prevCells.forEach(({x, y}) => {
+            c.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+        });
+    }
+
+    c.fillStyle = "#308aff";
+    for (let x = 0; x < numW; x++) {
+        for (let y = 0; y < numH; y++) {
+            let [newX, newY] = [x + xOff, y + yOff];
+            let drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
+            if (drawPlacingBoard? placingBoard.has(`${newX} ${newY}`) : boxes.has(`${x} ${y}`)) {
+                c.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+            }
+        }
+    }
+    
+    c.fillStyle = "#333";
+    for (let y = 0; y <= numH; y++) {
+        c.fillRect(0, y * boxSize, w, boxSize/6);
+    }
+    for (let x = 0; x <= numW; x++) {
+        c.fillRect(x * boxSize, 0, boxSize/6, h);
+    }
+
+    c.fillStyle = "#f02";
+    let lineSize = boxSize/3;
+    if (chooseStage === 1) {
+        c.fillRect(minX * boxSize - lineSize/2, 0, lineSize, h);
+        c.fillRect(0, minY * boxSize - lineSize/2, w, lineSize);
+    } else if (chooseStage === 2) {
+        let x1 = minX * boxSize, x2 = maxX * boxSize;
+        let y1 = minY * boxSize, y2 = maxY * boxSize;
+        c.fillRect(x1, y1, x2-x1, lineSize);
+        c.fillRect(x1, y1, lineSize, y2-y1);
+        c.fillRect(x1, y2, x2-x1+lineSize, lineSize);
+        c.fillRect(x2, y1, lineSize, y2-y1+lineSize);
+    }
+}
+
+function saveBoard() {
+    if (savedBoards.main.length < maxToSave) {
+        savedBoards.main.unshift(new Map());
+    } else {
+        for (let i = savedBoards.main.length; i-- > 1;) {
+            savedBoards.main[i] = savedBoards.main[i - 1];
+        }
+        savedBoards.main[0] = new Map();
+    }
+    boxes.forEach((value, key) => {
+        savedBoards.main[0].set(key, value);
+    });
+    savedBoards.redo.length = 0;
+}
+
+function updateSpeedCounter() {
+    let speed = Number(runSpeed.value);
+    speedCount.textContent = `Speed: ${speed < 0? `${102 + speed}/s` : `x${Math.max(speed, 1)}`}`;
+}
+
+function updateGenCounter() {
+    genCounter.textContent = `Generation ${generations}`;
+}
+
+function updateAfterChange() {
+    if (resetGens.checked) {
+        generations = 0;
+        updateGenCounter();
+        saveBoard();
+    }
+    prevCells = new Map();
+    boxes.forEach((value, key) => {
+        prevCells.set(key, value);
+    });
+    drawBoard();
+}
+
+function mouseCellLocation(event, canvas, round) {
+    let func = round? "round" : "floor";
+    let rect = canvas.getBoundingClientRect();
+    let x = Math[func]((event.clientX - rect.left) / boxSize);
+    let y = Math[func]((event.clientY - rect.top ) / boxSize);
+    return {x, y};
+}
+
+function toggle(event, canvas) {
+    if (placingBoard || chooseStage) { return; }
+    let {x, y} = mouseCellLocation(event, canvas);
+    
+    if (boxes.has(`${x} ${y}`)) {
+        boxes.delete(`${x} ${y}`);
+    } else {
+        boxes.set(`${x} ${y}`, {x, y});
+    }
+    updateAfterChange();
+}
+
+let neighborPositions = [
+    {x: -1, y: -1},
+    {x: +0, y: -1},
+    {x: +1, y: -1},
+    {x: -1, y: +0},
+    {x: +1, y: +0},
+    {x: -1, y: +1},
+    {x: +0, y: +1},
+    {x: +1, y: +1}
+];
+
+function next() {
+    newBoxes.clear();
+    possibleNew.clear();
+    let positions = neighborPositions;
+
+    boxes.forEach(({x, y}, key) => {
+        let neighbors = 0;
+        for (let i = positions.length; i-- > 0; ) {
+            let neighborX = x + positions[i].x;
+            let neighborY = y + positions[i].y;
+            let neighborKey = `${neighborX} ${neighborY}`;
+            
+            if (boxes.has(neighborKey)) {
+                neighbors++;
+            } else if (possibleNew.has(neighborKey)) {
+                possibleNew.get(neighborKey).neighbors++;
+            } else {
+                possibleNew.set(neighborKey, {x: neighborX, y: neighborY, neighbors: 1});
+            }
+        }
+        
+        if (neighbors >= 2 && neighbors <= 3) {
+            newBoxes.set(key, {x, y});
+        }
+    });
+
+    possibleNew.forEach(({x, y, neighbors}, key) => {
+        if (neighbors === 3) {
+            newBoxes.set(key, {x, y});
+            prevCells.set(key, {x, y});
+        }
+    });
+    
+    [boxes, newBoxes] = [newBoxes, boxes];
+    generations++;
+    updateGenCounter();
+    drawBoard();
+}
+
+function randomize() {
+    boxes.clear();
+    for (let x = 0; x < numW; x++) {
+        for (let y = 0; y < numH; y++) {
+            if (Math.random() < 0.5) {
+                boxes.set(`${x} ${y}`, {x, y});
+            }
+        }
+    }
+    updateAfterChange();
+}
+
+function clear() {
+    boxes.clear();
+    updateAfterChange();
+}
+
+let running = false;
+let curTimer = null;
+function run() {
+    if(running) {
+        let speed = Number(runSpeed.value);
+        let times = Math.max(speed, 1);
+        for (let i = 0; i < times; i++) {
+            next();
+        }
+        if (speed > 0) {
+            curTimer = setTimeout(run, 0);
+        } else {
+            curTimer = setTimeout(run, 1000 / (102 + speed));
+        }
+    }
+}
+
+function startRunning() {
+    running = true;
+    
+    startB.textContent = "Stop";
+    startB.id = "stop";
+    startB.onclick = stopRunning;
+    
+    run();
+}
+
+function stopRunning() {
+    clearTimeout(curTimer);
+    running = false;
+    
+    startB.textContent = "Start";
+    startB.id = "start";
+    startB.onclick = startRunning;
+}
+
+function resetBoard() {
+    boxes.clear();
+    savedBoards.main[0].forEach((value, key) => {
+        boxes.set(key, value);
+    });
+    generations = 0;
+    updateGenCounter();
+    drawBoard();
+}
+
 function add() {
     let options = document.querySelectorAll("#pattern > option");
     let str = Array.from(options).find(el => el.selected)?.value;
@@ -788,6 +844,22 @@ function save() {
     chooseBoard().then(board => {
         let name = prompt("What should this pattern be called?");
         if (name) {
+            minX = minY = Infinity;
+            if (board.size > 0) {
+                board.forEach(({x, y}) => {
+                    minX = Math.min(minX, x);
+                    minY = Math.min(minY, y);
+                });
+            } else {
+                minX = minY = 0;
+            }
+            let adjustedBoard = new Map();
+            board.forEach(({x, y}) => {
+                x -= minX; y -= minY;
+                adjustedBoard.set(`${x} ${y}`, {x, y});
+            });
+            board = adjustedBoard;
+
             let compressed = MapCompressor.compress(board);
             let RLE = MapCompressor.toRLE(board);
             console.log("The compressed string is", compressed);
@@ -806,8 +878,6 @@ function importBoard() {
         placeBoard(MapCompressor.decompress(str), true).catch(() => {});
     }
 }
-
-// function edit
 
 function clearPart() {
     chooseBoard().then(() => {
@@ -832,7 +902,7 @@ function move() {
     }, () => {});
 }
 
-function copy() {
+function duplicate() {
     chooseBoard().then(board => {
         placeBoard(board, false).catch(() => {});
     }, () => {});
@@ -859,14 +929,25 @@ function tile() {
 }
 
 document.addEventListener("keyup", function(event) {
-    event.target.blur();
-
     let key = event.key.toLowerCase();
+    if ((event.ctrlKey || event.metaKey) && key === "z") {
+        if (event.shiftKey) {
+            if (savedBoards.redo.length > 0) {
+                savedBoards.main.unshift(savedBoards.redo.shift());
+                resetBoard();
+            }
+        } else {
+            savedBoards.redo.unshift(savedBoards.main.shift());
+            resetBoard();
+        }
+    } else if (event.ctrlKey || event.metaKey || event.altKey) return;
+    event.target.blur();
     
-    for(let i = 0; i < buttons.length; i++) {
-        if(buttons[i].id[0].toLowerCase() === key) {
+    for (let i = 0; i < buttons.length; i++) {
+        let button = buttons[i].id.toLowerCase();
+        if(button !== "clear" && button[0] === key) {
             buttons[i].click();
-           break;
+            break;
         }
     }
 });
@@ -884,16 +965,15 @@ backB.addEventListener("click", resetBoard);
 addB.addEventListener("click", add);
 saveB.addEventListener("click", save);
 importB.addEventListener("click", importBoard);
-// editB.addEventListener("click", edit);
 clearPartB.addEventListener("click", clearPart);
-copyB.addEventListener("click", copy);
+duplicateB.addEventListener("click", duplicate);
 moveB.addEventListener("click", move);
 tileB.addEventListener("click", tile);
-runSpeed.addEventListener("input", () => { updateSpeedCounter(); })
+trackPrev.addEventListener("change", () => { drawBoard(); });
+runSpeed.addEventListener("input", () => { updateSpeedCounter(); });
 
 updateSpeedCounter();
 randomize();
-drawBoard(boxes);
         </script>
     </body>
 </html>
