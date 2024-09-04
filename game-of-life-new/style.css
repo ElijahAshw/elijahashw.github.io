@@ -1,0 +1,137 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #111111;
+    color: #ccc;
+}
+
+canvas {
+    background: #efefef;
+    cursor: pointer;
+}
+
+textarea {
+    width: 620px;
+    height: 51px;
+    color: #000;
+    font-family: monospace;
+}
+
+textarea::placeholder {
+    color: #888;
+    font-style: italic;
+}
+
+canvas, i {
+    display: block;
+}
+
+#seperator {
+    display: block;
+    height: 50px;
+}
+
+.input-wrapper {
+    display: inline;
+    position: relative;
+}
+
+.input-wrapper > input + label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+button, select, input {
+    border-radius: 4px;
+    border: 1px solid black;
+    cursor: pointer;
+    background-color: #777;
+}
+
+select {
+    background-color: #333;
+    color: inherit;
+}
+
+button.underline::first-letter {
+    text-decoration: underline;
+}
+
+button {
+    margin-right: 2px;
+    box-shadow: 1px 1px 0px #888;
+}
+
+button:active {
+    box-shadow: 0px 0px 0px #888;
+    transform: translate(1px, 1px);
+}
+
+#counter {
+    display: inline;
+    font-family: sans-serif;
+}
+
+#next {
+    background: #aee;
+}
+
+#randomize {
+    background: #e0f;
+}
+
+#clear {
+    background: #ff0;
+}
+
+#start {
+    background: #0cf600;
+}
+
+#stop {
+    background: #ff511c;
+}
+
+#back {
+    background: #00ffa6;
+}
+
+#part-button-wrapper {
+    margin-left: 20px;
+    margin-top: 9px;
+    border-radius: 6px;
+    border: solid 1.5px #555;
+    padding: 1px 2px 3px 3px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+#part-button-wrapper button {
+    background: #80bbff;
+}
+
+#source {
+    margin-top: 20px;
+}
+
+#spacer {
+    height: 70px;
+    visibility: hidden;
+}
+
+:link {
+    color: #5a5aff;
+}
+
+:visited {
+    color: #a352ec;
+}
+
+:link:active, :visited:active {
+    color: #ff090d;
+}
