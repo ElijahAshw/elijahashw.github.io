@@ -211,12 +211,12 @@ button:not([data-valid="false"] .create):active{
 
 [data-flag-mode="true"] > .block[data-game-over="false"]:not([data-clicked="true"]):not([data-flagged="true"]) {
     background-size: contain;
-    background-image: url("../images/unset_flag.png");
+    background-image: url("./images/unset_flag.png");
 }
 
 .block[data-flagged="true"] {
     background-size: contain;
-    background-image: url("../images/flag.png");
+    background-image: url("./images/flag.png");
 }
 
 .block[data-game-over="true"][data-bomb="true"]:not([data-clicked="true"]) {
@@ -226,7 +226,7 @@ button:not([data-valid="false"] .create):active{
 
 .block[data-game-over="true"][data-flagged="true"][data-bomb="false"]:not([data-clicked="true"]) {
     background-size: contain;
-    background-image: url("../images/false_flag.png");
+    background-image: url("./images/false_flag.png");
 }
 
 .block[data-bombs="1"] {
