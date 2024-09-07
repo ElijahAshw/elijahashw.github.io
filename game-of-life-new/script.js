@@ -14,6 +14,8 @@ let clearPartB = document.querySelector("#clearpart");
 let duplicateB = document.querySelector("#duplicate");
 let moveB      = document.querySelector("#move");
 let tileB      = document.querySelector("#tile");
+let copyB      = document.querySelector("#copy"); // Copy doesn't erase previous pattern
+let periodB    = document.querySelector("#period");
 let speedCount = document.querySelector("#speed-counter");
 let genCounter = document.querySelector("#counter");
 let runSpeed   = document.querySelector("#speed");
@@ -139,6 +141,73 @@ const MapCompressor = (function() {
     return {compress: compressMap, decompress: decompressMap, toRLE: mapToRLE}; 
 })();
 
+const BinaryCompressor = (function() {
+    const chars = "!#$%&'()*+,-./:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª¯°±µ¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯʰʱʲʳʴʵʶʷʸʹʺʻʼʽˀˁ˂˃˄˅˪˫˭ˮ˵˶˸˹˺˻˼˽˾ͱͲͳʹ͵ͶͷͻͼͽͿ΄΅Ά·ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяѐёђѓєѕіїјљњћќѝўџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱѲѳѴѵѶѷѸѹѺѻѼѽѾѿҀҁ҂ҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӁӂӃӄӅӆӇӈӉӊӋӌӍӎӏӐӑӒӓӔӕӖӗӘәӚӛӜӝӞӟӠӡӢӣӤӥӦӧӨөӪӫӬӭӮӯӰӱӲӳӴӵӶӷӸӹӺӻӼӽӾӿԀԁԂԃԄԅԆԇԈԉԊԋԌԍԎԏԐԑԒԓ";
+    
+    function compress(from) {
+        let result = "";
+        let curCount = 0;
+        let curCountingChar = "";
+        let extra = 0;
+        let jump = Math.floor(log(chars.length)/log(2));
+        for (let i = 0, l = from.length; i < l; i += jump) {
+            let indexOfNextChar = 0;
+            for (let j = 0; j < jump; j++) {
+                if (i + j < l) {
+                    let curValue = Number(from[i + j]);
+                    indexOfNextChar += curValue << j;
+                } else {
+                    extra++;
+                }
+            }
+            let nextChar = chars[indexOfNextChar];
+            if (nextChar === curCountingChar) {
+                curCount++;
+            } else {
+                if (curCount === 1) {
+                    result += curCountingChar;
+                } else if (curCount) {
+                    result += "" + curCount + curCountingChar;
+                }
+                curCount = 1;
+                curCountingChar = nextChar;
+            }
+        }
+        
+        if (curCount === 1) {
+            result += curCountingChar;
+        } else if (curCount) {
+            result += "" + curCount + curCountingChar;
+        }
+        
+        return extra+","+result;
+    }
+    
+    function decompress(from) {
+        let lengthPattern = /^(\d+),/g;
+        let extras = Number(lengthPattern.exec(from)[1]);
+        from = from.slice(lengthPattern.lastIndex, from.length);
+        
+        let result = "";
+        let jump = Math.floor(log(chars.length)/log(2));
+        let pattern = /(\d*)(\D)/g;
+        for (let i = 0, next; (next = pattern.exec(from)); i++) {
+            let curCharRepeatCount = Number(next[1]) || 1;
+            let curIndex = chars.indexOf(next[2]);
+            let nextSeq = "";
+            for (let j = 0; j < jump; j++) {
+                let curValue = (curIndex >> j) & 1;
+                nextSeq += curValue;
+            }
+            result += nextSeq.repeat(curCharRepeatCount);
+        }
+        
+        return result.slice(0, result.length - extras);
+    }
+    
+    return {compress: compress, decompress: decompress};
+})();
+
 function chooseBoard() {
     placingBoard = null;
     chooseStage = 1;
@@ -196,7 +265,7 @@ function chooseBoard() {
     });
 }
 
-function placeBoard(board, setMinMax = true) {
+function placeBoard(board, setMinMax = true, clearSquare = true) {
     if (setMinMax) {
         minX = minY = Infinity;
         maxX = maxY = -Infinity;
@@ -302,7 +371,9 @@ function placeBoard(board, setMinMax = true) {
             updateCoords(event);
             for (let x = minX; x <= maxX; x++) {
                 for (let y = minY; y <= maxY; y++) {
-                    boxes.delete(`${x - xOff} ${y - yOff}`);
+                    if (clearSquare) {
+                        boxes.delete(`${x - xOff} ${y - yOff}`);
+                    }
                     if (placingBoard.has(`${x} ${y}`)) {
                         boxes.set(`${x - xOff} ${y - yOff}`, {x: x - xOff, y: y - yOff});
                     }
@@ -464,7 +535,9 @@ function next() {
     possibleNew.forEach(({x, y, neighbors}, key) => {
         if (neighbors === 3) {
             newBoxes.set(key, {x, y});
-            prevCells.set(key, {x, y});
+            if (x >= 0 && y >= 0 && x <= numW && y <= numH) {
+                prevCells.set(key, {x, y});
+            }
         }
     });
     
@@ -633,6 +706,24 @@ function tile() {
     }, () => {});
 }
 
+function copy() {
+    chooseBoard().then(board => {
+        placeBoard(board, false, false).catch(() => {});
+    }, () => {});
+}
+
+function determinePeriod() {
+    chooseBoard().then(() => {
+        alert("This button is in progress.");
+        if (true) { return ;}
+        
+        let boardString = "";
+        let runFast = false;
+
+        
+    }, () => {});
+}
+
 document.addEventListener("keyup", function(event) {
     let key = event.key.toLowerCase();
     if ((event.ctrlKey || event.metaKey) && key === "z") {
@@ -659,7 +750,7 @@ document.addEventListener("keyup", function(event) {
 
 window.addEventListener("beforeunload", event => {
     event.preventDefault();
-    //event.returnValue = "Any unsaved changes will be lost!";
+    event.returnValue = "Any unsaved changes will be lost!";
 });
 
 nextB.addEventListener("click", next);
@@ -674,6 +765,8 @@ clearPartB.addEventListener("click", clearPart);
 duplicateB.addEventListener("click", duplicate);
 moveB.addEventListener("click", move);
 tileB.addEventListener("click", tile);
+copyB.addEventListener("click", copy);
+periodB.addEventListener("click", determinePeriod);
 trackPrev.addEventListener("change", () => { drawBoard(); });
 runSpeed.addEventListener("input", () => { updateSpeedCounter(); });
 
