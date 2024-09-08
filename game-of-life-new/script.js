@@ -1,29 +1,37 @@
 let boxSize = 6;
 /* Variables */
-let buttons    = document.querySelectorAll("button");
-let nextB      = document.querySelector("#next");
-let randB      = document.querySelector("#randomize");
-let clearB     = document.querySelector("#clear");
-let startB     = document.querySelector("#start");
-let backB      = document.querySelector("#back");
-let addB       = document.querySelector("#add");
-let saveB      = document.querySelector("#save");
-let importB    = document.querySelector("#import");
-let editB      = document.querySelector("#edit");
-let clearPartB = document.querySelector("#clearpart");
-let duplicateB = document.querySelector("#duplicate");
-let moveB      = document.querySelector("#move");
-let tileB      = document.querySelector("#tile");
-let copyB      = document.querySelector("#copy"); // Copy doesn't erase previous pattern
-let periodB    = document.querySelector("#period");
-let speedCount = document.querySelector("#speed-counter");
-let genCounter = document.querySelector("#counter");
-let runSpeed   = document.querySelector("#speed");
-let pattern    = document.querySelector("#pattern");
-let resetGens  = document.querySelector("#reset");
-let trackPrev  = document.querySelector("#track");
-let canvas     = document.querySelector("canvas");
-let c = canvas.getContext("2d");
+const buttons = document.querySelectorAll("body > button, #part-button-wrapper > button");
+const nextB = document.querySelector("#next");
+const randB = document.querySelector("#randomize");
+const clearB = document.querySelector("#clear");
+const startB = document.querySelector("#start");
+const backB = document.querySelector("#back");
+const addB = document.querySelector("#add");
+const saveB = document.querySelector("#save");
+const importB = document.querySelector("#import");
+const editB = document.querySelector("#edit");
+const clearPartB = document.querySelector("#clearpart");
+const duplicateB = document.querySelector("#duplicate");
+const moveB = document.querySelector("#move");
+const tileB = document.querySelector("#tile");
+const copyB = document.querySelector("#copy"); // Copy doesn't erase previous pattern
+const periodB = document.querySelector("#period");
+const speedCount = document.querySelector("#speed-counter");
+const genCounter = document.querySelector("#counter");
+const runSpeed = document.querySelector("#speed");
+const pattern = document.querySelector("#pattern");
+const resetGens = document.querySelector("#reset");
+const trackPrev = document.querySelector("#track");
+const periodDialog = document.querySelector("#fastModeDialog");
+const fastModeB = document.querySelector("#chooseFast");
+const slowModeB = document.querySelector("#chooseSlow");
+const calcPeriodDialog = document.querySelector("#periodDialog");
+const cancelB = document.querySelector("#cancel");
+const periodResultDialog = document.querySelector("#periodResult");
+const closeB = document.querySelector("#close");
+const periodResults = document.querySelectorAll("#periodResult > div.result");
+const canvas = document.querySelector("canvas");
+const cx = canvas.getContext("2d");
 
 let boxes = new Map(), newBoxes = new Map(), possibleNew = new Map(), prevCells = new Map();
 let savedBoards = {main: [], redo: [], periodBoard: new Map()}, placingBoard = null, generations = 0;
@@ -142,22 +150,19 @@ const MapCompressor = (function() {
 })();
 
 const BinaryCompressor = (function() {
-    const chars = "!#$%&'()*+,-./:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª¯°±µ¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯʰʱʲʳʴʵʶʷʸʹʺʻʼʽˀˁ˂˃˄˅˪˫˭ˮ˵˶˸˹˺˻˼˽˾ͱͲͳʹ͵ͶͷͻͼͽͿ΄΅Ά·ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяѐёђѓєѕіїјљњћќѝўџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱѲѳѴѵѶѷѸѹѺѻѼѽѾѿҀҁ҂ҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӁӂӃӄӅӆӇӈӉӊӋӌӍӎӏӐӑӒӓӔӕӖӗӘәӚӛӜӝӞӟӠӡӢӣӤӥӦӧӨөӪӫӬӭӮӯӰӱӲӳӴӵӶӷӸӹӺӻӼӽӾӿԀԁԂԃԄԅԆԇԈԉԊԋԌԍԎԏԐԑԒԓ";
+    const chars = "!#$%&'()*+¶-./:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª¯°±µ¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯʰʱʲʳʴʵʶʷʸʹʺʻʼʽˀˁ˂˃˄˅˪˫˭ˮ˵˶˸˹˺˻˼˽˾ͱͲͳʹ͵ͶͷͻͼͽͿ΄΅Ά·ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяѐёђѓєѕіїјљњћќѝўџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱѲѳѴѵѶѷѸѹѺѻѼѽѾѿҀҁ҂ҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӁӂӃӄӅӆӇӈӉӊӋӌӍӎӏӐӑӒӓӔӕӖӗӘәӚӛӜӝӞӟӠӡӢӣӤӥӦӧӨөӪӫӬӭӮӯӰӱӲӳӴӵӶӷӸӹӺӻӼӽӾӿԀԁԂԃԄԅԆԇԈԉԊԋԌԍԎԏԐԑԒԓ";
     
     function compress(from) {
         let result = "";
         let curCount = 0;
         let curCountingChar = "";
-        let extra = 0;
-        let jump = Math.floor(log(chars.length)/log(2));
+        let jump = Math.floor(Math.log(chars.length) / Math.log(2));
         for (let i = 0, l = from.length; i < l; i += jump) {
             let indexOfNextChar = 0;
             for (let j = 0; j < jump; j++) {
                 if (i + j < l) {
                     let curValue = Number(from[i + j]);
                     indexOfNextChar += curValue << j;
-                } else {
-                    extra++;
                 }
             }
             let nextChar = chars[indexOfNextChar];
@@ -180,32 +185,10 @@ const BinaryCompressor = (function() {
             result += "" + curCount + curCountingChar;
         }
         
-        return extra+","+result;
+        return `${result}`;
     }
     
-    function decompress(from) {
-        let lengthPattern = /^(\d+),/g;
-        let extras = Number(lengthPattern.exec(from)[1]);
-        from = from.slice(lengthPattern.lastIndex, from.length);
-        
-        let result = "";
-        let jump = Math.floor(log(chars.length)/log(2));
-        let pattern = /(\d*)(\D)/g;
-        for (let i = 0, next; (next = pattern.exec(from)); i++) {
-            let curCharRepeatCount = Number(next[1]) || 1;
-            let curIndex = chars.indexOf(next[2]);
-            let nextSeq = "";
-            for (let j = 0; j < jump; j++) {
-                let curValue = (curIndex >> j) & 1;
-                nextSeq += curValue;
-            }
-            result += nextSeq.repeat(curCharRepeatCount);
-        }
-        
-        return result.slice(0, result.length - extras);
-    }
-    
-    return {compress: compress, decompress: decompress};
+    return {compress};
 })();
 
 function chooseBoard() {
@@ -394,47 +377,47 @@ function placeBoard(board, setMinMax = true, clearSquare = true) {
 }
 
 function drawBoard() {
-    c.fillStyle = "#111111";
-    c.fillRect(0, 0, numW * boxSize, numH * boxSize);
+    cx.fillStyle = "#111111";
+    cx.fillRect(0, 0, numW * boxSize, numH * boxSize);
 
     if (trackPrev.checked) {
-        c.fillStyle = "#000069";
+        cx.fillStyle = "#000069";
         prevCells.forEach(({x, y}) => {
-            c.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+            cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
         });
     }
 
-    c.fillStyle = "#308aff";
+    cx.fillStyle = "#308aff";
     for (let x = 0; x < numW; x++) {
         for (let y = 0; y < numH; y++) {
             let [newX, newY] = [x + xOff, y + yOff];
             let drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
             if (drawPlacingBoard? placingBoard.has(`${newX} ${newY}`) : boxes.has(`${x} ${y}`)) {
-                c.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+                cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
             }
         }
     }
     
-    c.fillStyle = "#333";
+    cx.fillStyle = "#333";
     for (let y = 0; y <= numH; y++) {
-        c.fillRect(0, y * boxSize, w, boxSize/6);
+        cx.fillRect(0, y * boxSize, w, boxSize/6);
     }
     for (let x = 0; x <= numW; x++) {
-        c.fillRect(x * boxSize, 0, boxSize/6, h);
+        cx.fillRect(x * boxSize, 0, boxSize/6, h);
     }
 
-    c.fillStyle = "#f02";
+    cx.fillStyle = "#f02";
     let lineSize = boxSize/3;
     if (chooseStage === 1) {
-        c.fillRect(minX * boxSize - lineSize/2, 0, lineSize, h);
-        c.fillRect(0, minY * boxSize - lineSize/2, w, lineSize);
+        cx.fillRect(minX * boxSize - lineSize/2, 0, lineSize, h);
+        cx.fillRect(0, minY * boxSize - lineSize/2, w, lineSize);
     } else if (chooseStage === 2) {
         let x1 = minX * boxSize, x2 = maxX * boxSize;
         let y1 = minY * boxSize, y2 = maxY * boxSize;
-        c.fillRect(x1, y1, x2-x1, lineSize);
-        c.fillRect(x1, y1, lineSize, y2-y1);
-        c.fillRect(x1, y2, x2-x1+lineSize, lineSize);
-        c.fillRect(x2, y1, lineSize, y2-y1+lineSize);
+        cx.fillRect(x1, y1, x2-x1, lineSize);
+        cx.fillRect(x1, y1, lineSize, y2-y1);
+        cx.fillRect(x1, y2, x2-x1+lineSize, lineSize);
+        cx.fillRect(x2, y1, lineSize, y2-y1+lineSize);
     }
 }
 
@@ -481,6 +464,28 @@ function mouseCellLocation(event, canvas, round) {
     let x = Math[func]((event.clientX - rect.left) / boxSize);
     let y = Math[func]((event.clientY - rect.top ) / boxSize);
     return {x, y};
+}
+
+function getRegion(startX, startY, endX, endY) {
+    let result = new Map();
+    for (let x = startX; x <= endX; x++) {
+        for (let y = startY; y <= endY; y++) {
+            if (boxes.has(`${x} ${y}`)) {
+                result.set(`${x} ${y}`, {x, y});
+            }
+        }
+    }
+    return result;
+}
+
+function mapToBinaryString(inputMap, startX, startY, endX, endY) {
+    let result = "";
+    for (let x = startX; x <= endX; x++) {
+        for (let y = startY; y <= endY; y++) {
+            result += inputMap.has(`${x} ${y}`)? "1" : "0";
+        }
+    }
+    return result;
 }
 
 function toggle(event, canvas) {
@@ -712,15 +717,79 @@ function copy() {
     }, () => {});
 }
 
-function determinePeriod() {
-    chooseBoard().then(() => {
-        alert("This button is in progress.");
-        if (true) { return ;}
-        
-        let boardString = "";
-        let runFast = false;
 
-        
+function determinePeriod() {
+    chooseBoard().then(async () => {
+        let boardStrings = [];
+        let runFast = false;
+        let canceled = false;
+        let showPrevCells = trackPrev.checked;
+        let period = 0;
+
+        periodDialog.showModal();
+        runFast = await new Promise((resolve) => {
+            fastModeB.onclick = () => {
+                periodDialog.close();
+                resolve(true);
+            };
+            slowModeB.onclick = () => {
+                periodDialog.close();
+                resolve(false);
+            };
+        });
+
+        calcPeriodDialog.showModal();
+        period = await new Promise((resolve) => {
+            let timeOut = null;
+
+            cancelB.onclick = () => {
+                canceled = true;
+                clearTimeout(timeOut);
+                resolve("Canceled");
+            };
+
+            trackPrev.checked = false;
+            let checkRound = () => {
+                for (let i = 0; i < 30; i++) {
+                    let regionMap = getRegion(minX, minY, maxX, maxY);
+                    let regionString = mapToBinaryString(regionMap, minX, minY, maxX, maxY);
+                    let newBoardString = BinaryCompressor.compress(regionString);
+                    next();
+
+                    if (boardStrings.includes(newBoardString)) {
+                        resolve(period - boardStrings.indexOf(newBoardString));
+                        return;
+                    } else {
+                        period++;
+                    }
+
+                    if (!runFast || boardStrings.length === 0) {
+                        boardStrings.push(newBoardString);
+                    }
+                }
+                drawBoard();
+                if (!canceled) {
+                    timeOut = setTimeout(checkRound, 0);
+                }
+            };
+
+            checkRound();
+        });
+        calcPeriodDialog.close();
+        trackPrev.checked = showPrevCells;
+        resetBoard();
+        drawBoard();
+
+        closeB.onclick = () => { periodResultDialog.close(); };
+        periodResultDialog.showModal();
+        if (canceled) {
+            periodResults[0].style.display = "block";
+            periodResults[1].style.display = "none";
+        } else {
+            periodResults[1].textContent = `The period of this region is ${period}`;
+            periodResults[0].style.display = "none";
+            periodResults[1].style.display = "block";
+        }
     }, () => {});
 }
 
@@ -752,6 +821,8 @@ window.addEventListener("beforeunload", event => {
     event.preventDefault();
     event.returnValue = "Any unsaved changes will be lost!";
 });
+
+pattern.addEventListener("change", () => { pattern.blur(); });
 
 nextB.addEventListener("click", next);
 randB.addEventListener("click", randomize);

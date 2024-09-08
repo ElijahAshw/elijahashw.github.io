@@ -135,3 +135,20 @@ button:active {
 :link:active, :visited:active {
     color: #ff090d;
 }
+
+dialog {
+    text-align: center;
+    background: #111;
+    color: #eee;
+    border: 2px solid #444;
+    border-radius: 20px;
+}
+
+dialog h3 {
+    margin-top: 0px;
+}
+
+dialog#periodResult div {
+    margin: 0px;
+    padding: 0px;
+}
