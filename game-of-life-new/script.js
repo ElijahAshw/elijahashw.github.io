@@ -9,7 +9,6 @@ const backB = document.querySelector("#back");
 const addB = document.querySelector("#add");
 const saveB = document.querySelector("#save");
 const importB = document.querySelector("#import");
-const editB = document.querySelector("#edit");
 const clearPartB = document.querySelector("#clearpart");
 const duplicateB = document.querySelector("#duplicate");
 const moveB = document.querySelector("#move");
@@ -36,7 +35,7 @@ const cx = canvas.getContext("2d");
 let boxes = new Map(), newBoxes = new Map(), possibleNew = new Map(), prevCells = new Map();
 let savedBoards = {main: [], redo: [], periodBoard: new Map()}, placingBoard = null, generations = 0;
 let [minX, minY, maxX, maxY, xOff, yOff] = [Infinity, Infinity, -Infinity, -Infinity, 0, 0];
-let chooseStage = null, maxToSave = 10, numW = 227*1, numH = 125*1, w, h;
+let chooseStage = null, maxToSave = 20, numW = 227*1, numH = 125*1, w, h;
 
 
 canvas.setAttribute("width", (w = numW*boxSize+1) + "px");
