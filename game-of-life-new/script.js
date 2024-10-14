@@ -800,7 +800,7 @@ document.addEventListener("keyup", function(event) {
                 savedBoards.main.unshift(savedBoards.redo.shift());
                 resetBoard();
             }
-        } else {
+        } else if (savedBoards.main.length > 0) {
             savedBoards.redo.unshift(savedBoards.main.shift());
             resetBoard();
         }
