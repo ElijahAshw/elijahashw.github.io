@@ -13,10 +13,8 @@ const menuScale = scale * 3.4;
 const menuItemSize = scale * 2.65;
 const menuBorderWidth = menuItemSize * 4 / 53;
 const keyDelay = 0.2;
-const sqrt2 = Math.sqrt(2);
 const rotateSpeed = 1.75;
-const arrowKeys = trackKeys(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
-    "r", "b", "Escape", " ", "Enter"]);
+const arrowKeys = trackKeys(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "r", "b", "Escape", " ", "Enter"]);
 
    function trackKeys(keys) {
     let down = Object.create(null);
@@ -145,6 +143,7 @@ async function runGame(plans, parent, Display) {
         while(level < plans.length) {
             let status = await runLevel(new Level(plans[level]), level, wrapper, Display);
             levelStatus = levelStatus.slice();
+            console.log(staa);
             if (status === "won") {
                 levelStatus[level] = 2;
                 levelStatus[level + 1] = Math.max(1, levelStatus[level + 1]);
@@ -185,9 +184,8 @@ function elt(name, props, ...children) {
     return el;
 }
 
-function isEmpty(level, x, y) {
-    return level.rows[y] && 
-        (level.rows[y][x] === "empty" || level.rows[y][x] === "lava");
+function notWall(level, x, y) {
+    return ["empty", "lava", "spike"].includes(level.rows[y]?.[x]) || "";
 }
 
 function createGrid(level) {
@@ -197,21 +195,21 @@ function createGrid(level) {
     }, ...level.rows.map((row, y) => 
         elt("tr", {style: `height: ${scale}px;`}, 
             ...row.map((type, x) => elt("td", {
-                class: `${type} ${
-                    isEmpty(level, x, y - 1)? "top" : ""} ${
-                    isEmpty(level, x, y + 1)? "bottom" : ""} ${
-                    isEmpty(level, x - 1, y)? "left" : ""} ${
-                    isEmpty(level, x + 1, y)? "right" : ""}`, 
-                "data-number": (x + y)%2})))
+                class: `${type}${
+                    (notWall(level, x, y - 1) && " top") + 
+                    (notWall(level, x, y + 1) && " bottom") + 
+                    (notWall(level, x - 1, y) && " left") + 
+                    (notWall(level, x + 1, y) && " right")}`, 
+                "data-number": (x ^ y) & 1})))
     ));
-}
+} 
 
 function createActors(actors) {
     return elt("div", {}, ...actors.map(actor => {
         let rect = elt("div", {
             class: `actor ${actor.type}`});
         let size = actor.dispSize || actor.size;
-        let pos = actor.dispPosAdd? actor.pos.plus(actor.dispPosAdd) : actor.pos;
+        let pos = actor.dispPosAdd? actor.pos.add(actor.dispPosAdd) : actor.pos;
         rect.style.width = `${size.x * scale}px`;
         rect.style.height = `${size.y * scale}px`;
         rect.style.left = `${pos.x * scale}px`;
@@ -276,12 +274,20 @@ class Vec {
         this.y = y;
     }
 
-    plus(that) {
+    add(that) {
         return new Vec(this.x + that.x, this.y + that.y);
+    }
+
+    sub(that) {
+        return new Vec(this.x - that.x, this.y - that.y);
     }
 
     mult(factor) {
         return new Vec(this.x * factor, this.y * factor);
+    }
+
+    div(factor) {
+        return new Vec(this.x / factor, this.y / factor);
     }
 
     toString() { return `Vec [${this.x}, ${this.y}]`; }
@@ -493,8 +499,8 @@ class Key {
     }
 }
 Key.prototype.size = new Vec(1, 1);
-Key.prototype.dispPosAdd = new Vec((1 - 1 / sqrt2) / 2, (1 - 1 / sqrt2) / 2);
-Key.prototype.dispSize = new Vec(1 / sqrt2, 1 / sqrt2);
+Key.prototype.dispPosAdd = new Vec((1 - 1 / Math.SQRT2) / 2, (1 - 1 / Math.SQRT2) / 2);
+Key.prototype.dispSize = new Vec(1 / Math.SQRT2, 1 / Math.SQRT2);
 
 class Spike {
     constructor(pos, size, dir) {
@@ -507,11 +513,11 @@ class Spike {
 
     static create(pos, char) {
         if (char === "^") {
-            return new Spike(pos.plus(new Vec(0, 0.5)), new Vec(1, 0.5), "up");
+            return new Spike(pos.add(new Vec(0, 0.5)), new Vec(1, 0.5), "up");
         } else if (char === "v") {
             return new Spike(pos, new Vec(1, 0.5), "down");
         } else if (char === "<") {
-            return new Spike(pos.plus(new Vec(0.5, 0)), new Vec(0.5, 1), "left");
+            return new Spike(pos.add(new Vec(0.5, 0)), new Vec(0.5, 1), "left");
         } else if (char === ">") {
             return new Spike(pos, new Vec(0.5, 1), "right");
         }
@@ -588,6 +594,7 @@ class Portal {
     }
 
     collide(state, player) {
+        debugger;
         if (state.status.includes("locked") && this.passNum === Infinity) return state;
         let filtered = state.actors;
         if (this.passNum > 1) {
@@ -598,7 +605,7 @@ class Portal {
         }
         let status = state.status;
         if (!filtered.some(a => a.type.includes("player"))) {
-        status = status.replace("playing", "won");
+            status = status.replace("playing", "won");
         }
         return new State(state.level, filtered, status, state.dead);
     }
@@ -626,9 +633,9 @@ class Player {
 
     static create(pos, char) {
         let size = Player.prototype.size;
-        pos = pos.plus(new Vec((1 - size.x) / 2, 1 - size.y));
+        pos = pos.add(new Vec((1 - size.x) / 2, 1 - size.y));
         if (char !== char.toLowerCase()) {
-            pos = pos.plus(new Vec(0.5, 0));
+            pos = pos.add(new Vec(0.5, 0));
             char = char.toLowerCase();
         }
         if (char === "n") {
@@ -654,7 +661,7 @@ class Player {
         if (keys.ArrowRight) xSpeed += this.xSpeed;
         if (this.speed.x && !xSpeed) xSpeed = this.speed.x;
         let pos = this.pos;
-        let movedX = pos.plus(new Vec(xSpeed * time, 0));
+        let movedX = pos.add(new Vec(xSpeed * time, 0));
         let touch = state.level.touches(movedX, this.size, "wall");
         if (!touch) {
             pos = movedX;
@@ -666,11 +673,11 @@ class Player {
 
         let newJumpSpeed = this.jumpSpeed, newGravity = this.gravity;
         let ySpeed = this.speed.y + time * this.gravity;
-        let movedY = pos.plus(new Vec(0, ySpeed * time));
+        let movedY = pos.add(new Vec(0, ySpeed * time));
         touch = state.level.touches(movedY, this.size, "wall");
         if (!touch) {
             pos = movedY;
-        } else if (keys.ArrowUp && ySpeed * this.gravity < 0) {
+        } else if (keys.ArrowUp && (ySpeed > 0 ^ this.gravity < 0)) {
             if (ySpeed > 0) pos = new Vec(pos.x, touch.pos.y - this.size.y);
             else pos = new Vec(pos.x, touch.pos.y + touch.size.y);
             ySpeed = -this.jumpSpeed * this.toggle;
@@ -723,15 +730,16 @@ class Player {
   }*/
 
     collide(state, that) {
-        let thisNewPos, thatNewPos;
-        let thisNewSpeed = this.speed, thatNewSpeed = that.speed;
+        debugger;
+        let prevSide = that.prevPos.sub(this.prevPos);
+        let diff = that.pos.sub(this.pos);
+        let widthAdj = prevSide.x < 0? that.size.x : prevSide.x > 0? -this.size.x : 0;
+        let heightAdj = prevSide.y < 0? that.size.y : prevSide.y > 0? -this.size.y : 0;
+        let adjust = new Vec(widthAdj, heightAdj);
+        let move = diff.add(adjust).mult(0.5);
 
-        let prevPosSide = Math.sign(this.prevPos.y - that.prevPos.y);
-        
-        
-
-        state = state.replaceActor(this, this.set("pos", thisNewPos).set("speed", thisNewSpeed));
-        state = state.replaceActor(that, that.set("pos", thatNewPos).set("speed", thatNewSpeed));
+        state = state.replaceActor(this, this.set("pos", this.pos.add(move)));
+        state = state.replaceActor(that, that.set("pos", that.pos.add(move.mult(-1))));
         return state;
     }
   
@@ -863,27 +871,34 @@ class State {
 
         if (!newState.status.includes("playing")) return newState;
 
-        let players = newState.players;
+        let playerMoved = false;
+        let loopCount = 0;
+        do {
+            let players = newState.players;
+            playerMoved = false;
+            loopCount++;
 
-        for (let i = 0, l = players.length; i < l; i++) {
-            let player = players[i];
-            if (this.level.touches(player.pos, player.size, "lava")) {
-                return new State(this.level, actors, 
-                    newState.status.replace("playing", "lost"), player);
-            }
-        }
-
-        for (let i = players.length; i-- > 0;) {
-            let numPlayers = newState.numPlayers;
-            for (let j = newState.actors.length; j-- > 0;) {
-                let actor = newState.actors[j];
-                if (numPlayers !== newState.numPlayers) break;
-                let player = newState.players[i];
-                if (actor !== player && actorOverlap(actor, player)) {
-                    newState = actor.collide(newState, player);
+            for (let i = 0, l = players.length; i < l; i++) {
+                let player = players[i];
+                if (this.level.touches(player.pos, player.size, "lava")) {
+                    return new State(this.level, actors, 
+                        newState.status.replace("playing", "lost"), player);
                 }
             }
-        }
+
+            for (let i = players.length; i-- > 0;) {
+                let numPlayers = newState.numPlayers;
+                for (let j = newState.actors.length; j-- > 0;) {
+                    let actor = newState.actors[j];
+                    if (numPlayers !== newState.numPlayers) break;
+                    let player = newState.players[i];
+                    if (actor !== player && actorOverlap(actor, player)) {
+                        playerMoved = true;
+                        newState = actor.collide(newState, player);
+                    }
+                }
+            }
+        } while (playerMoved && loopCount < 400);
 
         return newState;
     }

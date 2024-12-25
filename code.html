@@ -36,16 +36,16 @@
 <body>
 <script>
 let shapes = {
-    circle:   {code: String(0xbeb-0xa69).padStart(3, 0), card: 22, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAALpJREFUOE+1lN0JwlAMRs9dRKdQRHfQh0K7hqN0DQUfdAdFdIq6iPKBgVCqtbcxrzc5Nz9fkgi29IVXAgWwACZvvwdwBQ7Aviu2CzgDamDZk/wF2AJ379cGroHjwC5sgJPFeKAyuw2EmfvcMvXA8w9lfvpP5a/0aEANYJeZnYVVGpQBBRN0jGnqlQEbJ41cqCQ1NeAzl9KKS38DhpccPpRw2ai3ocIWMHz1BA09Diap0PPldRp2YEctzQtQqCgV417DYAAAAABJRU5ErkJggg=="}, 
-    plus:     {code: String(0xda5-0xb83).padStart(3, 0), card:  6, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAENJREFUOE9jZMAN/uORA0kxYpPHKghVOGogRojRLwwJBT6ByEaVBjl71ECSggxr1I/AMMQVaISCgn45ZdSF8BAgK1IAMqEUDYkJc/kAAAAASUVORK5CYII="}, 
-    triangle: {code: String(0xef9-0xdda).padStart(3, 0), card:  3, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAOpJREFUOE/l1C1Mw0AYBuCnQc9iERCwSFDAFEgsKH4UkyBBgRySqQ0UWCQofhRILIQJLBZNQi7pkqbhdl2Zo+ra+94nl69fmxnzlY3Z84/BHXT/2M9d9Io9fMBSTfQRyyFbBFdwVxNs4r4MhvtzbI2IXmB7kCmPzRT6mKiIfmMaHzEwPD/EcUXwCCfF2thgv2I2gb5hrlwTAzdwmQA3cVUVDHU3WI2gt1j7bW/Yt7yApwi4iOdRwVB/hr1SsINWrB2pv80k3tHIgS/M4LMuGHL7aOfAAU6HvazUCQfZl3wxn5rPquB6Dl2nwB/CvB4V32LcQwAAAABJRU5ErkJggg=="}, 
-    hexagon:  {code: String(0xc57-0x913).padStart(3, 0), card: 10, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAJZJREFUOE9jZCAM9BkYGOqhyhoZGBgu4tPCiEeSh4GBoYGBgaEYTU0vVPwLNr24DMyCukoMh4WvGBgYQK6dhi6PbqAH1CALwiEBVnECavAOmHqYgWpQg6KINAhd2TKowbdgBq5gYGAIJ9MwmLaVDAwMEaMGUhSKo2E42NMh1bMeLL1QrXBAT4BUK76QDaZqAYtsMElVAADcoDAVLPLwlAAAAABJRU5ErkJggg=="}, 
-    tripoint: {code: String(0x62e-0x370).padStart(3, 0), card:  8, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAStJREFUOE+t1D0sBEEYBuDnlCgUlDQiVKIREaFQiEqC5gqlTqJQiAidRkPUGvFTCKVEolBoiKsolX4qKqGSiEyym2zW3u1yN93uvvPM7Mw3U9LgVmqwJw2WMYc9nOYMNoEFnOAwzibBZlxgJPp4iW2cpeAxLGI2el/BOD7CcxJcxmbGrK6xhi+sYjIjs4H1JNiH0LHtn2v6jlHcxzPcxfw/sbjbMcoBDL9wXicWd58O4C0GGwRWAhh2dQkzdaL72Enu8koEd/wRfol2P4C/CrsbW5gqiIYDEMrlOauwk0Y4LQc5aMgcpTPVzvIQbnLA4axMNbAfdzngQFamGtiDhxywNytTDezEYw7Yhaeia9iO1xwwlNdbUbAlvo5qoK34LAo2Idx7tdoVvtOBH9exL2GzmlpiAAAAAElFTkSuQmCC"}, 
-    square:   {code: String(0x324-0x126).padStart(3, 0), card: 15, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAACtJREFUOE9jZGBg+M9ARcA4aiDFoTkahhQHIcNoGI6GIRkhMJpsyAg0NC0ALIIUAaxCfxoAAAAASUVORK5CYII="}, 
-    star:     {code: String(0x642-0x46a).padStart(3, 0), card: 27, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAQlJREFUOE+l1L0uBUEUAODvPgWln1BI9DQ0NDSEBCVPQHlR+il5AkokhIaGhoZeoiB+St5CJplNNhN75+6aZndzzvl290zOtHS3lmLaWS69lUuI8Zd4HcnldwPuYjNCe9jqhObAIbwmwDDeqtAceIm5pPgK8zlwHQe5/mTiGzgsf+En+hqiX+gPtWVwBtcNwVncpGB4PsFyTfQUK0VNuiljeKwJjuOpCpzAfU1wEg9V4C2maoJ3mP4LXMVRTaxIX8Nxuinf6GkI/qC3DLYR5vQ/K8z7fm70zrGQvOUCi7nRq4oP4D0JDuKjKRjqwnG1E4FthOOscuV+uSh8jjejuSZ3CxZ9DP3ruH4BuDUkFdB019AAAAAASUVORK5CYII="}, 
-    moon:     {code: String(0x755-0x5b4).padStart(3, 0), card: 18, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAcFJREFUOE+tlL9rGmEYxz/PFCgEugiH4BBxkEAIgmBQAmYKzR9QXCImcEPoIDSZxE3cDEjJkCWVQiB0bEU6FLqIYCOUJuno5OJBmyWDSwfLIx5c3tw1J/jAwcs93+/n3h/fe4XgWgW2gTVgBfgD3MyfQJf4dBRQBQ4DXHdAE3jv1zeBr4EW8MIUx2IxcrkclmUxmUwYj8df2+32LjD1ar1AhX00QZFIhEajQbFYfDKh4XD4kEgk9kXks9t0gbrMX+bMkskknU6HeDz+n62etcoi8k4HLvDCb88GgwHpdPo5mNvfE5EvCtTTfDBd5XKZZlP3PnR9F5EtBe4BHdPW6/XIZrOhaXPhhgLfAGemczp9dHhhwQUFvgVOlwQ8UKDm4YMJHI1GaPYWrF0FbgI/TWOr1aJUKi3C+wu8dGNzC2x43ZlMhn6/vwjwVEROXKD+t5rFR1WtVqnVamGgs8h4g63jK6BguiuVCvV6PRDqOM61ZVka6nsTqLPVPL4y3alUCtu2yefzRKPRWbvb7eI4zrlt20devd/11QCOn1mn3osat2+mzg+omnVgH9iZj/Xdb+AH8Am4DPpgEDDMQfhqlg78BxPyZTlK/M/iAAAAAElFTkSuQmCC"}, 
-    corner:   {code: String(0xe9c-0xb03).padStart(3, 0), card: 20, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAADNJREFUOE9jZGBg+M9AHGAkRhlI0aiBOENqNAyxB83wSjbEZBQGUrw8aiDlyWY0DOkUhgBb1RQLMtEIVAAAAABJRU5ErkJggg=="}, 
-    dimond:   {code: String(0x9df-0x692).padStart(3, 0), card: 12, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAJdJREFUOE/dk9ENgCAMRI9tHMh1jBrXcSDHMWeAYK1SY02M/YTycnelAc4VnHn4B7ABMMVoOgDLVUw1ywOAXgBGADxX6wzYRlVUpxVVUu0sLyUw2SPQUgTuYiiBmj0LlD05BgJr9qzQLYZXgEnBE8t8S9uHTXEdSplVLVfzt5ED0GLI9rRp1TaFb1xXz/plcp9F4S3o94ErKTgcvU7rMz8AAAAASUVORK5CYII="}, 
+    circle:   {code: String(0xbeb-0xa69bb).padStart(3, 0), card: 22, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAALpJREFUOE+1lN0JwlAMRs9dRKdQRHfQh0K7hqN0DQUfdAdFdIq6iPKBgVCqtbcxrzc5Nz9fkgi29IVXAgWwACZvvwdwBQ7Aviu2CzgDamDZk/wF2AJ379cGroHjwC5sgJPFeKAyuw2EmfvcMvXA8w9lfvpP5a/0aEANYJeZnYVVGpQBBRN0jGnqlQEbJ41cqCQ1NeAzl9KKS38DhpccPpRw2ai3ocIWMHz1BA09Diap0PPldRp2YEctzQtQqCgV417DYAAAAABJRU5ErkJggg=="}, 
+    plus:     {code: String(0xda5-0xb83bb).padStart(3, 0), card:  6, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAENJREFUOE9jZMAN/uORA0kxYpPHKghVOGogRojRLwwJBT6ByEaVBjl71ECSggxr1I/AMMQVaISCgn45ZdSF8BAgK1IAMqEUDYkJc/kAAAAASUVORK5CYII="}, 
+    triangle: {code: String(0x642-0x46a).padStart(3, 0).padStart(3, 0), card:  3, text: "!$!%!(!)!+!¶!/!<!=!>###&#(#)#*#¶#-#:#;#<#=#>$!$*$+$¶$-$/$:$<$=$>%!%$%%%(%)%+%-%;%=&$&(&)&¶&.&<&='$'(')'¶'<'>($((()(¶(.(:)()-);)<)=*!*#*%*(*)*¶*.*/*:*<*=*>+(+*+;+<+>¶!¶%¶+¶<¶=-#-$-(-¶-.-/-:-;-=->.!.#.$.&.).+.¶.-.../.:.;.=.>/$/&;)<!<#<$<'<(=!='=(>%>'>(>)>+?&?'@!@#@+A#A%A&", image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAOpJREFUOE/l1C1Mw0AYBuCnQc9iERCwSFDAFEgsKH4UkyBBgRySqQ0UWCQofhRILIQJLBZNQi7pkqbhdl2Zo+ra+94nl69fmxnzlY3Z84/BHXT/2M9d9Io9fMBSTfQRyyFbBFdwVxNs4r4MhvtzbI2IXmB7kCmPzRT6mKiIfmMaHzEwPD/EcUXwCCfF2thgv2I2gb5hrlwTAzdwmQA3cVUVDHU3WI2gt1j7bW/Yt7yApwi4iOdRwVB/hr1SsINWrB2pv80k3tHIgS/M4LMuGHL7aOfAAU6HvazUCQfZl3wxn5rPquB6Dl2nwB/CvB4V32LcQwAAAABJRU5ErkJggg=="}, 
+    hexagon:  {code: String(0xc57-0x913bb).padStart(3, 0), card: 10, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAJZJREFUOE9jZCAM9BkYGOqhyhoZGBgu4tPCiEeSh4GBoYGBgaEYTU0vVPwLNr24DMyCukoMh4WvGBgYQK6dhi6PbqAH1CALwiEBVnECavAOmHqYgWpQg6KINAhd2TKowbdgBq5gYGAIJ9MwmLaVDAwMEaMGUhSKo2E42NMh1bMeLL1QrXBAT4BUK76QDaZqAYtsMElVAADcoDAVLPLwlAAAAABJRU5ErkJggg=="}, 
+    tripoint: {code: String(0x62e-0x370bb).padStart(3, 0), card:  8, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAStJREFUOE+t1D0sBEEYBuDnlCgUlDQiVKIREaFQiEqC5gqlTqJQiAidRkPUGvFTCKVEolBoiKsolX4qKqGSiEyym2zW3u1yN93uvvPM7Mw3U9LgVmqwJw2WMYc9nOYMNoEFnOAwzibBZlxgJPp4iW2cpeAxLGI2el/BOD7CcxJcxmbGrK6xhi+sYjIjs4H1JNiH0LHtn2v6jlHcxzPcxfw/sbjbMcoBDL9wXicWd58O4C0GGwRWAhh2dQkzdaL72Enu8koEd/wRfol2P4C/CrsbW5gqiIYDEMrlOauwk0Y4LQc5aMgcpTPVzvIQbnLA4axMNbAfdzngQFamGtiDhxywNytTDezEYw7Yhaeia9iO1xwwlNdbUbAlvo5qoK34LAo2Idx7tdoVvtOBH9exL2GzmlpiAAAAAElFTkSuQmCC"}, 
+    square:   {code: String(0x324-0x126bb).padStart(3, 0), card: 15, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAACtJREFUOE9jZGBg+M9ARcA4aiDFoTkahhQHIcNoGI6GIRkhMJpsyAg0NC0ALIIUAaxCfxoAAAAASUVORK5CYII="}, 
+    star:     {code: String(0xef9-0xddabb).padStart(3, 0), card: 27, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAQlJREFUOE+l1L0uBUEUAODvPgWln1BI9DQ0NDSEBCVPQHlR+il5AkokhIaGhoZeoiB+St5CJplNNhN75+6aZndzzvl290zOtHS3lmLaWS69lUuI8Zd4HcnldwPuYjNCe9jqhObAIbwmwDDeqtAceIm5pPgK8zlwHQe5/mTiGzgsf+En+hqiX+gPtWVwBtcNwVncpGB4PsFyTfQUK0VNuiljeKwJjuOpCpzAfU1wEg9V4C2maoJ3mP4LXMVRTaxIX8Nxuinf6GkI/qC3DLYR5vQ/K8z7fm70zrGQvOUCi7nRq4oP4D0JDuKjKRjqwnG1E4FthOOscuV+uSh8jjejuSZ3CxZ9DP3ruH4BuDUkFdB019AAAAAASUVORK5CYII="}, 
+    moon:     {code: String(0x755-0x5b4bb).padStart(3, 0), card: 18, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAcFJREFUOE+tlL9rGmEYxz/PFCgEugiH4BBxkEAIgmBQAmYKzR9QXCImcEPoIDSZxE3cDEjJkCWVQiB0bEU6FLqIYCOUJuno5OJBmyWDSwfLIx5c3tw1J/jAwcs93+/n3h/fe4XgWgW2gTVgBfgD3MyfQJf4dBRQBQ4DXHdAE3jv1zeBr4EW8MIUx2IxcrkclmUxmUwYj8df2+32LjD1ar1AhX00QZFIhEajQbFYfDKh4XD4kEgk9kXks9t0gbrMX+bMkskknU6HeDz+n62etcoi8k4HLvDCb88GgwHpdPo5mNvfE5EvCtTTfDBd5XKZZlP3PnR9F5EtBe4BHdPW6/XIZrOhaXPhhgLfAGemczp9dHhhwQUFvgVOlwQ8UKDm4YMJHI1GaPYWrF0FbgI/TWOr1aJUKi3C+wu8dGNzC2x43ZlMhn6/vwjwVEROXKD+t5rFR1WtVqnVamGgs8h4g63jK6BguiuVCvV6PRDqOM61ZVka6nsTqLPVPL4y3alUCtu2yefzRKPRWbvb7eI4zrlt20devd/11QCOn1mn3osat2+mzg+omnVgH9iZj/Xdb+AH8Am4DPpgEDDMQfhqlg78BxPyZTlK/M/iAAAAAElFTkSuQmCC"}, 
+    corner:   {code: String(0xe9c-0xb03bb).padStart(3, 0), card: 20, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAADNJREFUOE9jZGBg+M9AHGAkRhlI0aiBOENqNAyxB83wSjbEZBQGUrw8aiDlyWY0DOkUhgBb1RQLMtEIVAAAAABJRU5ErkJggg=="}, 
+    dimond:   {code: String(0x9df-0x692bb).padStart(3, 0), card: 12, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAJdJREFUOE/dk9ENgCAMRI9tHMh1jBrXcSDHMWeAYK1SY02M/YTycnelAc4VnHn4B7ABMMVoOgDLVUw1ywOAXgBGADxX6wzYRlVUpxVVUu0sLyUw2SPQUgTuYiiBmj0LlD05BgJr9qzQLYZXgEnBE8t8S9uHTXEdSplVLVfzt5ED0GLI9rRp1TaFb1xXz/plcp9F4S3o94ErKTgcvU7rMz8AAAAASUVORK5CYII="}, 
 };
 
 function elt(type, props, ...children){
@@ -86,23 +86,32 @@ function check() {
     let selected = Array.from(shapeButtons).find(el => el.checked);
     let digits = Array.from(options).filter(el => el.selected);
     let enteredCode = digits.map(el => el.value).join("");
-    let text = "", color = "#000";
+    let text = "", color = "#000", obj = shapes[selected.value];
     if (shapes[selected.value].code === enteredCode) {
-        text = `That code is correct!\nNow take answer card #${shapes[selected.value].card} to learn where to look next.`;
-        color = "#00f";
+        if ("text" in obj) {
+            text = `Your soup is ready! Here it is:\n\n${obj.text}`;
+        } else {
+            text = `That code is correct!\nNow take answer card #${obj.card} to learn where to look next.`;
+        }
+        color = "#33f";
     } else {
         text = "Sorry, but that code is not correct!";
         color = "#f00";
     }
-    text = text.split("\n");
+    let lineArr = [];
+    for (let line of text.split("\n")) {
+        lineArr.push(line);
+        lineArr.push(elt("br"));
+    }
+    lineArr.pop();
+    
     let prevText = document.querySelectorAll("div.answer");
     for (let node of Array.from(prevText)) node.remove();
     setTimeout(() => {
         let prevText = document.querySelectorAll("div.answer");
         for (let node of Array.from(prevText)) node.remove();
         document.body.appendChild(
-            elt("div", {class: "answer", style: `color: ${color};`}, 
-                text[0], elt("br"), text[1] || ""));
+            elt("div", {class: "answer", style: `color: ${color};`}, ...lineArr));
     }, 100);
 }
 

@@ -3,50 +3,50 @@
 /* Universal Styles */
 * {
     box-sizing: border-box;
-  }
-  body {
+}
+body {
     background: #000;
-  }
-  
-  /* Main game styles */
-  .wrapper {
+}
+
+/* Main game styles */
+.wrapper {
     position: relative;
     background: #000;
     font-family: sans-serif;
     --wall-border-width: 2px;
-  }
-  .game {
+}
+.game {
     overflow: hidden;
     position: absolute;
-  }
-  .level-text {
+}
+.level-text {
     color: black;
     position: absolute;
     z-index: 999;
     font-weight: bold;
-  }
-  
-  /* Menu styles */
-  .menu {
+}
+
+/* Menu styles */
+.menu {
     position: absolute;
     overflow-y: auto;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-  }
-  .levels-wrapper {
+}
+.levels-wrapper {
     padding: 0;
     margin-bottom: -6px;
-  }
-  .menu-text {
+}
+.menu-text {
     color: black;
     position: absolute;
     z-index: 999;
     transform: translateY(-25%);
-  }
-  
-  /* Menu item styles */
-  .menu-item {
+}
+
+/* Menu item styles */
+.menu-item {
     box-sizing: content-box;
     background-color: #35a6ca;
     border-style: solid;
@@ -57,16 +57,16 @@
     font-weight: bold;
     line-height: 1.5em;
     color: black;
-  }
-  .menu-item.selected {
+}
+.menu-item.selected {
     border-style: dashed;
     border-color: white;
-  }
-  .menu-item[data-status="0"] {
+}
+.menu-item[data-status="0"] {
     color: transparent;
     background-color: #ca3535;
-  }
-  .menu-item[data-status="0"]::after {
+}
+.menu-item[data-status="0"]::after {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -74,39 +74,39 @@
     height: 100%;
     color: black;
     content: "🔒";
-  }
-  .menu-item[data-status="1"] {
+}
+.menu-item[data-status="1"] {
     background-color: #cac135;
-  }
-  .menu-item[data-status="2"] {
+}
+.menu-item[data-status="2"] {
     background-color: #35a6ca;
-  }
-  
-  /* End text styles */
-  .end {
+}
+
+/* End text styles */
+.end {
     color: white;
     position: absolute;
     top: 0px;
     left: 0px;
     z-index: 9999;
     text-align: center;
-  }
-  
-  /* End of level styles*/
-  .explode-wrapper {
+}
+
+/* End of level styles*/
+.explode-wrapper {
     position: absolute;
     left: 0px;
     top: 0px;
     background: #00000000;
-  }
-  .explode-dot {
+}
+.explode-dot {
     border-radius: 50%;
     background: white;
     position: absolute;
-  }
-  
-  /* Fade overlay styles */
-  .fade-overlay {
+}
+
+/* Fade overlay styles */
+.fade-overlay {
     z-index: 999999;
     background: black;
     position: fixed;
@@ -115,25 +115,25 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-  }
-  
-  /* Game level background styles */
-  .background {
+}
+
+/* Game level background styles */
+.background {
     background: #888;
     table-layout: fixed;
     border-spacing: 0;
-  }
-  .empty[data-number="0"] {
+}
+.empty[data-number="0"] {
     background: #080820;
-  }
-  .empty[data-number="1"] {
+}
+.empty[data-number="1"] {
     background: #10102c;
-  }
-  .wall {
+}
+.wall {
     position: relative;
     background: #b9852a;
-  }
-  .wall::before {
+}
+.wall::before {
     position: absolute;
     content: "";
     top: 0;
@@ -142,8 +142,8 @@
     height: 100%;
     background: #a5792b;
     transform: translateX(-50%);
-  }
-  .wall::after {
+}
+.wall::after {
     box-sizing: border-box;
     position: absolute;
     content: "";
@@ -152,127 +152,127 @@
     width: 100%;
     height: 100%;
     border: 0px solid #e7c181;
-  }
-  .wall.top::after {
+}
+.wall.top::after {
     border-top-width: var(--wall-border-width);
-  }
-  .wall.bottom::after {
+}
+.wall.bottom::after {
     border-bottom-width: var(--wall-border-width);
-  }
-  .wall.left::after {
+}
+.wall.left::after {
     border-left-width: var(--wall-border-width);
-  }
-  .wall.right::after {
+}
+.wall.right::after {
     border-right-width: var(--wall-border-width);
-  }
-  .lava {
+}
+.lava {
     background: #f44;
-  }
-  
-  /* Generic Actor styles */
-  .actor {
+}
+
+/* Generic Actor styles */
+.actor {
     position: absolute;
-  }
-  
-  /* Portal actor styles */
-  .portal {
+}
+
+/* Portal actor styles */
+.portal {
     opacity: 1;
-  }
-  .locked .portal[class~="Infinity"] {
+}
+.locked .portal[class~="Infinity"] {
     background: #055;
-  }
-  .portal[class~="Infinity"] {
+}
+.portal[class~="Infinity"] {
     background: #0ff;
-  }
-  .portal[class~="1"] {
+}
+.portal[class~="1"] {
     background: #f00;
-  }
-  
-  /* Teleporter actor styles */
-  .teleporter {
+}
+
+/* Teleporter actor styles */
+.teleporter {
     background: white;
-  }
-  .teleporter[class~="0"] {
+}
+.teleporter[class~="0"] {
     background: #db02fa;
-  }
-  .teleporter[class~="1"] {
+}
+.teleporter[class~="1"] {
     background: #02a1fa;
-  }
-  .teleporter[class~="2"] {
+}
+.teleporter[class~="2"] {
     background: #11ff32;
-  }
-  .teleporter[class~="3"] {
+}
+.teleporter[class~="3"] {
     background: #fff511;
-  }
-  .teleporter[class~="4"] {
+}
+.teleporter[class~="4"] {
     background: #3b5aff;
-  }
-  .teleporter[class~="5"] {
+}
+.teleporter[class~="5"] {
     background: #ff00cb;
-  }
-  .teleporter[class~="6"] {
+}
+.teleporter[class~="6"] {
     background: #fa3c06;
-  }
-  .teleporter[class~="7"] {
+}
+.teleporter[class~="7"] {
     background: #02fadc;
-  }
-  .teleporter[class~="8"] {
+}
+.teleporter[class~="8"] {
     background: #9ecc2e;
-  }
-  .teleporter[class~="9"] {
+}
+.teleporter[class~="9"] {
     background: #dcdcdc;
-  }
-  
-  /* Key actor styles */
-  .key {
+}
+
+/* Key actor styles */
+.key {
     background: #488a93;
-  }
-  .key.flash {
+}
+.key.flash {
     background: #84c6cf;
-  }
-  
-  /* Trampoline actor styles */
-  .trampoline {
+}
+
+/* Trampoline actor styles */
+.trampoline {
     background-color: #c8c8c8;
     border: 1px solid #484848;
     border-radius: 15%;
     background-size: contain;
     background-repeat: no-repeat;
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADMAAAAzCAYAAAA6oTAqAAAAAXNSR0IArs4c6QAAAQlJREFUaEPt2dsOgjAQBNDly9Uv15hANCrtTjtTGhxeeFkKZy8lhCVOdCwnsoQxs1bTlQErc13jtzN4eT5cXZkn4LI+zi0ipCAl5h2ypVcKUmF+QeQgBaYEkYLYmAxEBmJiEIgExMK0QOggBqYHQgX1YhgQGqgHw4RQQK0YBaQb1IJRQrpAKGYEpBmEYEZCmkBZzBEQGJTBHAmBQDXMDJA0qISZCZIC7WFmhFRBtTbLf4C/Iu/Ji+j3pi8YEcYkq1kMc2UqWXSbuc0+MuCZ8cx8Z4DeFfQF/dJkbGURkt+Afs8wiuOZ8dbsrRmbJM/MP80M1hvEaEWbER8PW8oYLF/jol2ZcbnG7vQAvls7NM7Ubg4AAAAASUVORK5CYII=");
-  }
-  .trampoline.bounce {
+}
+.trampoline.bounce {
     background-color: #fff;
     transform: translate(0%, 15%) scaleY(0.75);
-  }
-  
-  /* Player actor styles */
-  .player {
+}
+
+/* Player actor styles */
+.player {
     z-index: 10;
     border-radius: 12%;
     border: 0px solid transparent;
-  }
-  .player.n {
+}
+.player.n {
     background: #f2f2f2;
-  }
-  .player.u {
+}
+.player.u {
     background: #843fd7;
-  }
-  .player.y {
+}
+.player.y {
     background: #cdcb32;
-  }
-  .player.g {
+}
+.player.g {
     background: #5ccd32;
-  }
-  .player.r {
+}
+.player.r {
     background: #cd3232;
-  }
-  .player.s {
+}
+.player.s {
     background: #005a9e;
-  }
-  .player.w {
+}
+.player.w {
     background: #848484;
-  }
-  .player::after {
+}
+.player::after {
     border-radius: 50%;
     width: 40%;
     height: 40%;
@@ -282,50 +282,50 @@
     left: 50%;
     transform: translate(-50%, -50%);
     content: "";
-  }
-  .player.down::after {
+}
+.player.down::after {
     transform: translate(-50%, 0%);
-  }
-  .player.up::after {
+}
+.player.up::after {
     transform: translate(-50%, -100%);
-  }
-  .player.left::after {
+}
+.player.left::after {
     transform: translate(-100%, -50%);
-  }
-  .player.right::after {
+}
+.player.right::after {
     transform: translate(0%, -50%);
-  }
-  .player.left.down::after {
+}
+.player.left.down::after {
     transform: translate(-100%, 0%);
-  }
-  .player.left.up::after {
+}
+.player.left.up::after {
     transform: translate(-100%, -100%);
-  }
-  .player.right.down::after {
+}
+.player.right.down::after {
     transform: translate(0%, 0%);
-  }
-  .player.right.up::after {
+}
+.player.right.up::after {
     transform: translate(0%, -100%);
-  }
-  .lost .player::after {
+}
+.lost .player::after {
     display: none;
-  }
-  
-  /* Spike actor styles */
-  .spike {
+}
+
+/* Spike actor styles */
+.spike {
     background-size: contain;
     background-repeat: no-repeat;
     image-rendering: smooth;
-  }
-  .spike.up {
+}
+.spike.up {
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAZCAYAAABzVH1EAAAAAXNSR0IArs4c6QAAASJJREFUWEe1mEEOhSAMBdubfU+uN8PwI0aF0r7SsnIhmcybuJEJPKWUnZk38Br0uofBCKGU8iOinYg2Zj6Qu9Z3vQxUpEpUmSOrSq3hYZhFHku1ccOrrDAQkbZUEwmv8qgBM0wig6XCq6wyrCLfGvBi2sc+qAExVJHJUmFVIhgWEakGtNisyKSGmTEVMSy1XCWKoYloNcyLSUUMNUwMUQRYyl0lkjETsdYwLTYqAtRQGUMRx1JwlWiGJILWUBf7FnHUmDI6kYWlzFUyGCMRbw1zlYUaIuMlErCUWiWL8RVZraFWCagxZNwigUuJVTIZT5GoGmKVwBod4y+SsFRXJZvRRKJrdIsl1HgxOHGpu8r1UMfKOlsVyapxL3Y91L8vWec4AWNV7xPKZJu3AAAAAElFTkSuQmCC");
-  }
-  .spike.left {
+}
+.spike.left {
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAyCAYAAACpgnCWAAAAAXNSR0IArs4c6QAAANBJREFUWEft2OsNgzAMBGBns27W0RjNVX8E0SiA73yWWjUMcF8e4rBoVvi4+8PMnq3C6OFm9kZMiozhfQMS5CxcgtyFp5BoOIWg4RDChoeQbPglogqfIurwD6QqfEfcfeuvf0XF7LVSvpPj6quwaXepscuCVGGhFs5iIaTfG4tBCItRCIqlkCgmQe4wKXKGlSAj9rvIGu6m37NozVAXHw0PjUTj8tFwCGHDQ0g2fA131GjW1nCHnNsa7pDTwn4WsA3wfS3MtjK1ExSTIP8z3L0AhpPGa1hci2oAAAAASUVORK5CYII=");
-  }
-  .spike.right {
+}
+.spike.right {
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAyCAYAAACpgnCWAAAAAXNSR0IArs4c6QAAANRJREFUWEft1lEOgzAMA9D26DvZdrNMkwZCom0cx+Gr/CL5CSiWu5m9W2uv3vunFV3dzOyf/UNKsCtyPIccGyFybIXIMARJYxGExhgkjGUQGFMgLqZEplgFcsMqkROrRM56qkBu3adEpsWqQNzWziBu+PHlGQQOZ5BweAShwxEkHb5CZOEjRB5+RR7ZXY8ge9zByxmplfSpQxB3KHiPFEFojEHCWAaBMQXiYkpkjzvvD1je3+Nu+HrcbsscYTccWSuzrwqHM0g4PILQ4QiSDt/jjuqZLws0Jbo7jhE9AAAAAElFTkSuQmCC");
-  }
-  .spike.down {
+}
+.spike.down {
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAZCAYAAABzVH1EAAAAAXNSR0IArs4c6QAAASdJREFUWEe9mFEOhCAMBenN1pOvN2MDEaNA6Wtp1++N47xRE5dyzt+U0ifFHed16lAG5ZwLoMhEHcd14lAGFUhglZOIqkg0o4lEVTmIqN5ageUro4oELXbX+AfjKeJd5a7xEAlj3CLOVYYaAVVejF7Ea7GhRkCVF+Ml4lSFreFYZWDMRHarsDUcqwyMQWSziljDocqUwYlYq4g1HKpMGVMRYxW4xkYVlrES0VaBa2xUYRmsiLKKuoahypIhiaBV1DUMVZaMpQhYxVxDUUVkICJSFXMNRRWRIYoIVcSl0K+1xfcKxEBFuCriUgqRLQYkwlSBlkJFdhkakX4xtxqLZwVmwCLdYu41Jm8wFUMr0qrAS2lurWssE0Ml0qq0f0a0F4n+vrzBtIwfalDvE9bSQAkAAAAASUVORK5CYII=");
-  }
+}
