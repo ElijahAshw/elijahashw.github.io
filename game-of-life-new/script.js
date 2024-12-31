@@ -792,19 +792,37 @@ function determinePeriod() {
     }, () => {});
 }
 
-document.addEventListener("keyup", function(event) {
+document.addEventListener("keyup", async function(event) {
     let key = event.key.toLowerCase();
-    if ((event.ctrlKey || event.metaKey) && key === "z") {
-        if (event.shiftKey) {
+    if (event.ctrlKey || event.metaKey) {
+        if (key === "z" && savedBoards.main.length > 0) {
+            savedBoards.redo.unshift(savedBoards.main.shift());
+            resetBoard();
+        } else if (key === "y" || key === "z" && event.shiftKey) {
             if (savedBoards.redo.length > 0) {
                 savedBoards.main.unshift(savedBoards.redo.shift());
                 resetBoard();
             }
-        } else if (savedBoards.main.length > 0) {
-            savedBoards.redo.unshift(savedBoards.main.shift());
-            resetBoard();
+        } else if (key === "v") {
+            try {
+                let clipboardContents = await navigator.clipboard.read(), text = "";
+                for (let item of clipboardContents) {
+                    if (item.types.includes("text/plain")) {
+                        text = await (await item.getType("text/plain")).text();
+                        break;
+                    }
+                }
+                if (text) {
+                    console.log(text);
+                    placeBoard(MapCompressor.decompress(text), true).catch(() => {});
+                }
+            } catch (err) {
+                if (err instanceof DOMException) alert("Cannot read clipboard.");
+                else throw err;
+            }
         }
-    } else if (event.ctrlKey || event.metaKey || event.altKey) return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     event.target.blur();
     
     for (let i = 0; i < buttons.length; i++) {
