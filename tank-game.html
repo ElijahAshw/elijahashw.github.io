@@ -6,7 +6,7 @@
     <title>Tank game</title>
 </head>
 <body style="background-color: #000000;">
-    <canvas id="game-canvas"></canvas>
+    <canvas id="game-canvas" style="outline: 0px solid transparent !important;"></canvas>
     <!-- Credit to pamela for code to use ProcessingJS in a webpage 
      https://www.khanacademy.org/computer-programming/processingjs-inside-webpages-template/5157014494511104-->
 
@@ -362,7 +362,7 @@ let programCode = function(processingInstance) {
                     processingInstance.stroke(201, 201, 201);
                     processingInstance.fill(255, 255, 255);
                     processingInstance.strokeWeight(1.5);
-                    processingInstance.arc(x, y-h, s*2, s*2, 179, 0);
+                    processingInstance.arc(x, y-h, s*2, s*2, -Math.PI, 0);
                     processingInstance.fill(0, 0, 0, 0);
                     processingInstance.bezier(x, y-h-s, x+s*43/100, y-h-s*9/10, 
                         x+s/2, y-h-s*2/5, x+s*53/100, y-h);
@@ -2065,7 +2065,7 @@ let programCode = function(processingInstance) {
         turn = 1;
         let num = Math.floor(processingInstance.random(0, grounds.length*2));
 
-        let ground = grounds[num < grounds.length? num : 0];
+        ground = grounds[num < grounds.length? num : 0];
 
         if(num >= grounds.length) {
             let spot = processingInstance.random(0, 100000);
