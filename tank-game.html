@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tank game</title>
 </head>
-<body>
+<body style="background-color: #000000;">
     <canvas id="game-canvas"></canvas>
     <!-- Credit to pamela for code to use ProcessingJS in a webpage 
      https://www.khanacademy.org/computer-programming/processingjs-inside-webpages-template/5157014494511104-->
@@ -15,19 +15,20 @@
     <script src="https://cdn.jsdelivr.net/processing.js/1.4.8/processing.min.js"></script> 
     
 <script>
-let blueStart = false;
+let blueStart = false, restartCount = 0;
 let tank1Score = 0, tank2Score = 0;
 let flagImgs = Object.create(null);
-let width = 600, height = 500;
-let mouseIsPressed = false;
+// let width = 600, height = 500;
+// let mouseIsPressed = false;
 let canvas = document.querySelector("#game-canvas");
-canvas.setAttribute("width", width + "px");
-canvas.setAttribute("height", height + "px");
+// canvas.setAttribute("width", width + "px");
+// canvas.setAttribute("height", height + "px");
 
 let programCode = function(processingInstance) {
-    //with(processingInstance)
+    // with(processingInstance) 
     {
-    processingInstance.size(600, 500);
+    const width = 600, height = 500;
+    processingInstance.size(width, height);
 
     /**
      * 
@@ -44,32 +45,53 @@ let programCode = function(processingInstance) {
         numPlayers = 0 is a computer battle
     */
 
+
+    /** Define ".new" and deleak processingInstance.PVector.get **/
+    // Copyed from bob lyons program
+    //https://www.khanacademy.org/computer-programming/leak-free-particle-system/4684587452399616
+    /*
+    * Give every object a "new" method that works around
+    * the Khan Academy leak.
+    */
+    function whatNewDoes() {
+        let obj = Object.create(this.prototype);
+        return this.apply(obj, arguments) || obj;
+    }
+    Object.constructor.prototype.new = whatNewDoes;
+
+    function pGet() {
+        return processingInstance.PVector.new(this.x, this.y, this.z);
+    }
+    processingInstance.PVector.prototype.get = pGet;
+
     /** Define "myRect" **/
+    // Taken from my program https://www.khanacademy.org/computer-programming/myrect-a-better-rectangle/4561505013776384
     function myRectMode(mode) {
         // Idea to store mode on the 'myRectMode' function from bob lyons program https://www.khanacademy.org/computer-programming/handbook-of-collisions-and-interiors/5567955982876672
         myRectMode.mode = mode;
     }
     function myRect(x, y, w, h, r1, r2, r3, r4) {
-        // kappa and bezier points adapted from bob lyons program
+        // kappa and processingInstance.bezier points adapted from bob lyons program
         // https://www.khanacademy.org/computer-programming/bzier-circle-simple-as-1-2-3-4/1258627859
-        var kappa = 4 / 3 * (Math.SQRT2 - 1);
+        let kappa = 4 / 3 * (Math.SQRT2 - 1);
         
-        var sideMin = Math.min(Math.abs(w), Math.abs(h))/2;
-        r1 = Math.min(r1 ?? 0 , sideMin);
-        r2 = Math.min(r2 ?? r1, sideMin);
-        r3 = Math.min(r3 ?? r2, sideMin);
-        r4 = Math.min(r4 ?? r3, sideMin);
+        let ifNull = Object.constructor("a, b", "return a ?? b;");
+        let sideMin = Math.min(Math.abs(w), Math.abs(h))/2;
+        r1 = Math.min(ifNull(r1, 0 ), sideMin);
+        r2 = Math.min(ifNull(r2, r1), sideMin);
+        r3 = Math.min(ifNull(r3, r2), sideMin);
+        r4 = Math.min(ifNull(r4, r3), sideMin);
         
-        if (myRectMode.mode === processingInstance.CORNERS) {
-            // taken from println(rect)
+        if (myRectMode.mode === CORNERS) {
+            // taken from println(processingInstance.rect)
             w -= x;
             h -= y;
         } else if (myRectMode.mode === processingInstance.CENTER) {
-            // taken from println(rect)
+            // taken from println(processingInstance.rect)
             x -= w / 2;
             y -= h / 2;
-        } else if (myRectMode.mode === processingInstance.RADIUS) {
-            // taken from println(rect)
+        } else if (myRectMode.mode === RADIUS) {
+            // taken from println(processingInstance.rect)
             x -= w / 2;
             y -= h / 2;
             w *= 2;
@@ -110,8 +132,10 @@ let programCode = function(processingInstance) {
     }
 
     /** Define "skewImage" **/
-    function skewImage(img, skewFunction = (x => 10 - 10 * Math.sin(x * Math.PI * 2 / w))) {
+    let skewImage = function(img, skewFunction) {
         let w = img.width, h = img.height, maxSkew = 0;
+        skewFunction = skewFunction || 
+            function(x) { return 10 * (1 - Math.sin(x * Math.PI / (w / 2))); };
         for (let i = 0; i < w; i++) {
             maxSkew = Math.max(maxSkew, skewFunction(i));
         }
@@ -121,20 +145,20 @@ let programCode = function(processingInstance) {
             let curHeight = skewFunction(x);
             let floorY = Math.floor(curHeight);
             let fraction = curHeight - Math.floor(curHeight);
-            fraction = Math.round(fraction * 100000) / 100000;
+            fraction = Math.round(fraction*100000)/100000;
             for (let y = -1; y < h; y++) {
                 let curY = floorY + y;
                 let here = img.get(x, y) || 0xffffff;
                 let there = img.get(x, y + 1) || 0xffffff;
                 newImage.stroke(newImage.lerpColor(there, here, fraction));
-                newImage.point(x, curY + 1);
+                newImage.point(x, curY+1);
             }
         }
         return newImage;
-    }
+    };
 
     /** Variables **/
-    let Gravity = new processingInstance.PVector(0, 2.3);
+    let gravity = processingInstance.PVector.new(0, 2.3);
     let gameStarted = false;
     let gameEnd = false;
     let gameEnding = 300;
@@ -144,6 +168,7 @@ let programCode = function(processingInstance) {
     let gameScreens = [], lastShotScreens = [];
     let screens = gameScreens;
     blueStart = !blueStart;
+    tank1Score = tank1Score || 0; tank2Score = tank2Score || 0;
     let left = 124, right = 526;
     let tankStartRange = 25;
     let numMissiles = 0, pnumMissiles = 0;
@@ -153,7 +178,8 @@ let programCode = function(processingInstance) {
         defaultImageScale = 2.7;
     let imageX = defaultImageX, imageY = defaultImageY,
         imageScale = defaultImageScale;
-    let frameCount = 0;
+    flagImgs = flagImgs || Object.create(null);
+    restartCount = restartCount || 0;
     let tank1, tank2;
 
 
@@ -185,11 +211,11 @@ let programCode = function(processingInstance) {
 
     let ground = grounds[num < grounds.length? num : 0];
 
-    if (num >= grounds.length) {
+    if(num >= grounds.length) {
         let spot = processingInstance.random(0, 100000);
         
         for(let i = 0; i <= width; i++) {
-            let h = processingInstance.map(processingInstance.noise(spot + i/200), 0, 1, 0, 500);
+            let h = processingInstance.map(processingInstance.noise(spot+i/200), 0, 1, 0, 500);
             
             ground[i] = [i, Math.round(h)];
         }
@@ -206,18 +232,18 @@ let programCode = function(processingInstance) {
         let l = this.length;
         num = arguments.length < 2? l - ind : Math.max(num, 0);
         
-        for (let i = ind; i < l - num; i++) {
+        for(let i = ind; i < l - num; i++) {
             this[i] = this[i+num];
         }
         
-        for (let i = 0; i < num; i++) {
+        for(let i = 0; i < num; i++) {
             this.pop();
         }
     };
 
 
     function advanceTurn() {
-        if (gameEnd) {
+        if(gameEnd) {
             return;
         }
         
@@ -230,13 +256,13 @@ let programCode = function(processingInstance) {
         t1.menuOff = 0;
         turn = turn % 2 + 1;
         t2.refill();
-        if (++numTurns % 4 === (turn === 1? 3 : 2)) {
+        if(++numTurns % 4 === (turn === 1? 3 : 2)) {
             t2.dropBox();
         }
     }
 
     function checkTie() {
-        if (tank1.shots.length + tank2.shots.length + boxes.length +
+        if(tank1.shots.length + tank2.shots.length + boxes.length +
     missiles.length === 0 && tank1.life > 0 && tank2.life > 0) {
             won = "It's a tie!";
             gameEnd = true;
@@ -248,8 +274,8 @@ let programCode = function(processingInstance) {
         
         let constrainedIndex = processingInstance.constrain(i, 0, ground.length-1);
         
-        if (constrainedIndex !== i) {
-            let returnArray = new Array(2);
+        if(constrainedIndex !== i) {
+            let returnArray = Array.new(2);
             returnArray[0] = i;
             returnArray[1] = ground[constrainedIndex][1];
             return returnArray;
@@ -262,13 +288,13 @@ let programCode = function(processingInstance) {
         let g1 = accessG(Math.floor(x))[1];
         let g2 = accessG(Math.ceil(x) )[1];
         
-        return (g1 + g2) / 2;
+        return (g1+ g2)/2;
     }
 
     function checkSide(x1, y1, x2, y2, mX, mY) {
         let h = processingInstance.atan2(x2-x1, y2-y1) - processingInstance.atan2(mX-x1, mY-y1);
 
-        return (Math.abs(h) > 180? h + (h < 0? 360 : -360) : h) > 1;
+        return (processingInstance.abs(h) > 180? h + (h < 0? 360 : -360) : h) > 1;
     }
 
     function checkSide2(nodes, num1, num2, addX,addY, x,y) {
@@ -288,7 +314,7 @@ let programCode = function(processingInstance) {
     }
 
     function getCirclePoint(radius, angle) {
-        let obj = new Object();
+        let obj = Object.new();
         
         obj.x = processingInstance.cos(angle) * radius;
         obj.y = processingInstance.sin(angle) * radius;
@@ -318,7 +344,7 @@ let programCode = function(processingInstance) {
             this.x = processingInstance.constrain(Math.round(x+processingInstance.random(-100,100)), 10, width-10);
             this.y = 0;
             this.onGround = false;
-            this.type = this.types[Math.floor(processingInstance.random(0, this.types.length))];
+            this.type = this.types[Math.floor(Math.random() * this.types.length)];
         }
         
         // Normal methods
@@ -326,7 +352,7 @@ let programCode = function(processingInstance) {
             types: ["fire pillar","kamikaze","giant",
                 "add on","life inc"],
             draw: function() {
-                if (!this.onGround) {
+                if(!this.onGround) {
                     let s = 12, x = this.x, y = this.y, h = 20;
                     processingInstance.stroke(0, 0, 0);
                     processingInstance.strokeWeight(1);
@@ -336,7 +362,7 @@ let programCode = function(processingInstance) {
                     processingInstance.stroke(201, 201, 201);
                     processingInstance.fill(255, 255, 255);
                     processingInstance.strokeWeight(1.5);
-                    processingInstance.arc(x, y-h, s*2, s*2, -Math.PI, 0);
+                    processingInstance.arc(x, y-h, s*2, s*2, 179, 0);
                     processingInstance.fill(0, 0, 0, 0);
                     processingInstance.bezier(x, y-h-s, x+s*43/100, y-h-s*9/10, 
                         x+s/2, y-h-s*2/5, x+s*53/100, y-h);
@@ -348,28 +374,28 @@ let programCode = function(processingInstance) {
                 processingInstance.strokeWeight(1);
                 processingInstance.stroke(0, 135, 70);
                 processingInstance.fill(0, 201, 104);
-                myRect(this.x - 5, this.y, 10, -10);
-                processingInstance.line(this.x - 4, this.y - 9, this.x + 5, this.y);
-                processingInstance.line(this.x - 4, this.y, this.x + 5, this.y - 9);
+                processingInstance.rect(this.x-5, this.y, 10, -10);
+                processingInstance.line(this.x-4, this.y-9, this.x+5, this.y);
+                processingInstance.line(this.x-4, this.y, this.x+5, this.y-9);
                 
             },
             move: function() {
-                if (!this.onGround) {
+                if(!this.onGround) {
                     this.y += 1;
                 }
                 
-                if (this.y >= accessG(this.x)[1]) {
+                if(this.y >= accessG(this.x)[1]) {
                     this.y = accessG(this.x)[1];
                     this.onGround = true;
-                } else {
+                }else {
                     this.onGround = false;
                 }
             },
             collect: function(tank) {
-                if (tank.life > 0) {
-                    if (this.type === "life inc") {
+                if(tank.life > 0) {
+                    if(this.type === "life inc") {
                         tank.life = processingInstance.constrain(tank.life+150, 0, 500);
-                    } else {
+                    }else {
                         tank.shots.unshift(this.type);
                         tank.curShot = tank.shots[0] || "";
                     }
@@ -379,7 +405,7 @@ let programCode = function(processingInstance) {
             },
             inRange: function(tankX, tankWidth) {
                 let tankY = accessG(Math.round(tankX))[1];
-                let dst = Math.hypot(tankX - this.x, tankY - this.y);
+                let dst = processingInstance.dist(tankX, tankY, this.x, this.y);
                 return dst < tankWidth/2 + 10/2;
             },
             check: function() {
@@ -402,16 +428,16 @@ let programCode = function(processingInstance) {
     let Missile = (function() {
         // A function to draw an explosion (used in missileTypes)
         function drawExplosion() {
-            let curSize = this.exploding;
+            let size = this.exploding;
             
-            let minSize = Math.max(curSize / 2, 0);
+            let minSize = processingInstance.max(size/2, 0);
             
-            for(let r = 0; r < curSize - minSize; r+=1) {
+            for(let r = 0; r < size-minSize; r+=1) {
                 let c1 = processingInstance.color(255, 255, 0);
                 let c2 = processingInstance.color(255, 127, 0);
                 
                 processingInstance.noFill();
-                processingInstance.stroke(processingInstance.lerpColor(c1, c2, r/(curSize - minSize)));
+                processingInstance.stroke(processingInstance.lerpColor(c1, c2, r/(size-minSize)));
                 processingInstance.strokeWeight(1.1);
                 processingInstance.ellipse(0, 0, minSize+r, minSize+r);
             }
@@ -439,7 +465,7 @@ let programCode = function(processingInstance) {
                     }
                 },
                 calDist:function(other) {
-                    return Math.abs(this.position.x - other.x);
+                    return processingInstance.abs(this.position.x - other.x);
                 },
                 explode2:empty,
             },
@@ -462,7 +488,7 @@ let programCode = function(processingInstance) {
                         
                         let c1 = processingInstance.color(255, 208, 0);
                         let c2 = processingInstance.color(255, 149, 0);
-                        let num = Math.abs(add)/30;
+                        let num = processingInstance.abs(add)/30;
                         
                         processingInstance.stroke(processingInstance.lerpColor(c1, c2, num));
                         processingInstance.line(add, -y-screenShift, add, h-y-1.5);
@@ -486,7 +512,7 @@ let programCode = function(processingInstance) {
                     return 7.7;
                 },
                 calDist:function(other) {
-                    return Math.abs(this.position.x - other.x);
+                    return processingInstance.abs(this.position.x - other.x);
                 },
                 end:function() {
                     return this.pouring > 180;
@@ -497,15 +523,15 @@ let programCode = function(processingInstance) {
                     let x = Math.round(this.position.x);
                     
                     for(let i = 0; i < 3; i++) {
-                        let v = new processingInstance.PVector(0, 0.1);
-                        let p = new processingInstance.PVector(x, 0);
+                        let v = processingInstance.PVector.new(0, 0.1);
+                        let p = processingInstance.PVector.new(x, 0);
                         let t = "medium";
-                        let f = frameCount+i*20;
-                        let miss = new Missile(v, p, t, f);
+                        let f = processingInstance.frameCount+i*20;
+                        let miss = Missile.new(v, p, t, f);
                         try {
                             miss.advanceTurn = empty;
-                        } catch(err) {
-                            console.log(err);
+                        }catch(err) {
+                            println(err);
                         }
                         missiles.push(miss);
                     }
@@ -525,10 +551,10 @@ let programCode = function(processingInstance) {
             },
             "bounce volley": {
                 setUp:function() {
-                    let addMiss = new Array(0);
+                    let addMiss = Array.new(0);
                     
                     for(let i = 0; i < 19; i++) {
-                        addMiss.push(new Missile(this.velosity, this.position, "bounce small", frameCount+i*10));
+                        addMiss.push(Missile.new(this.velosity, this.position, "bounce small", processingInstance.frameCount+i*10));
                     }
                     
                     return addMiss;
@@ -536,10 +562,10 @@ let programCode = function(processingInstance) {
             },
             "super-volley": {
                 setUp:function() {
-                    let addMiss = new Array(0);
+                    let addMiss = Array.new(0);
                     
                     for(let i = 0; i < 19; i++) {
-                        addMiss.push(new Missile(this.velosity, this.position, "XXS", frameCount+i*10));
+                        addMiss.push(Missile.new(this.velosity, this.position, "XXS", processingInstance.frameCount+i*10));
                     }
                     
                     return addMiss;
@@ -564,12 +590,12 @@ let programCode = function(processingInstance) {
                     let newY = accessG(Math.round(this.position.x))[1];
                     this.position.y = newY;
                 },
-                explode2: empty,
+                explode2:empty,
                 end:function() {
-                    return Math.abs(this.rolling) >= 150 || this.position.x < 0 || this.position.x > width;
+                    return processingInstance.abs(this.rolling) >= 150 || this.position.x < 0 || this.position.x > width;
                 },
             },
-            "line drive": {
+            "processingInstance.line drive": {
                 setUp:function() {
                     this.moves = 0;
                 },
@@ -584,7 +610,7 @@ let programCode = function(processingInstance) {
                     this.position.add(vel);
                     this.moves += 0.5;
                     
-                    if (this.moves >= 7) {
+                    if(this.moves >= 7) {
                         this.exploded = true;
                         this.setSize();
                         this.advanceTurn();
@@ -609,14 +635,14 @@ let programCode = function(processingInstance) {
                         this.exploding = 0;
                         let x = this.position.x;
                         let v = this.velosity;
-                        let g = new processingInstance.PVector(1, 
+                        let g = processingInstance.PVector.new(1, 
                             accessG(Math.round(x)  )[1]-
                             accessG(Math.round(x)-1)[1]
                         );
                         let vMag = v.mag();
                         let gAngle = g.heading();
                         let angle = processingInstance.PVector.angleBetween(g, v);
-                        let resultV = new processingInstance.PVector(-vMag, 0);
+                        let resultV = processingInstance.PVector.new(-vMag, 0);
                         resultV.rotate(gAngle - angle);
                         resultV.mult(-1);
                         this.velosity = resultV.get();
@@ -631,10 +657,10 @@ let programCode = function(processingInstance) {
             },
             "volley": {
                 setUp:function() {
-                    let addMiss = new Array(0);
+                    let addMiss = Array.new(0);
                     
                     for(let i = 0; i < 5; i++) {
-                        addMiss.push(new Missile(this.velosity, this.position, "XS", frameCount+i*15));
+                        addMiss.push(Missile.new(this.velosity, this.position, "XS", processingInstance.frameCount+i*15));
                     }
                     
                     return addMiss;
@@ -642,12 +668,12 @@ let programCode = function(processingInstance) {
             },
             "triple": {
                 setUp:function() {
-                    let addMiss = new Array(0);
+                    let addMiss = Array.new(0);
                     
                     let gap = 7, num = 3;
                     let side = gap * (num - 1) / 2;
                     for(let i = -side; i <= side; i += gap) {
-                        addMiss.unshift(new Missile(processingInstance.PVector.rotate(this.velosity, i), this.position, "small"));
+                        addMiss.unshift(Missile.new(processingInstance.PVector.rotate(this.velosity, i), this.position, "small"));
                         
                         addMiss[0].advanceTurn = empty;
                     }
@@ -662,11 +688,11 @@ let programCode = function(processingInstance) {
             },
             "rocket": {
                 onHit:function() {
-                    let vel = new processingInstance.PVector(0, -20);
+                    let vel = processingInstance.PVector.new(0, -20);
                     let pos = processingInstance.PVector.add(this.position, vel);
                     
                     function addMissile(dir) {
-                        missiles.push(new Missile(processingInstance.PVector.rotate(vel, dir), pos, "XS"));
+                        missiles.push(Missile.new(processingInstance.PVector.rotate(vel, dir), pos, "XS"));
                     }
                     
                     function addMissiles(mult) {
@@ -687,10 +713,10 @@ let programCode = function(processingInstance) {
                     let x = Math.round(this.position.x);
                     
                     for(let i = 0; i < 6; i++) {
-                        let v = new processingInstance.PVector(0, 0.1);
+                        let v = processingInstance.PVector.new(0, 0.1);
                         let x2 = x-60+i*20;
-                        let p = new processingInstance.PVector(x2, 0);
-                        let miss = new Missile(v, p, "XS");
+                        let p = processingInstance.PVector.new(x2, 0);
+                        let miss = Missile.new(v, p, "XS");
                         missiles.push(miss);
                     }
                     
@@ -701,10 +727,10 @@ let programCode = function(processingInstance) {
                 onHit:function() {
                     let x = Math.round(this.position.x);
                     for(let i = 0; i < 6; i++) {
-                        let v = new processingInstance.PVector(0, 0.1);
+                        let v = processingInstance.PVector.new(0, 0.1);
                         let x2 = Math.round(x+processingInstance.random(-100,100));
-                        let p = new processingInstance.PVector(x2, 0);
-                        let miss = new Missile(v, p, "XS");
+                        let p = processingInstance.PVector.new(x2, 0);
+                        let miss = Missile.new(v, p, "XS");
                         missiles.push(miss);
                     }
                     return true;
@@ -743,19 +769,19 @@ let programCode = function(processingInstance) {
                         this.velosity.x *= -1;
                         this.exploded = false;
                         return "end";
-                    } else if (this.frameC < this.bounceTime && type === "ground") {
+                    } else if(this.frameC < this.bounceTime && type === "ground") {
                         this.exploded = false;
                         this.exploding = 0;
                         let x = this.position.x;
                         let v = this.velosity;
-                        let g = new processingInstance.PVector(1, 
+                        let g = processingInstance.PVector.new(1, 
                             accessG(Math.round(x)  )[1]-
                             accessG(Math.round(x)-1)[1]
                         );
                         let vMag = v.mag();
                         let gAngle = g.heading();
                         let angle = processingInstance.PVector.angleBetween(g, v);
-                        let resultV = new processingInstance.PVector(-vMag, 0);
+                        let resultV = processingInstance.PVector.new(-vMag, 0);
                         resultV.rotate(gAngle - angle);
                         resultV.mult(-1);
                         this.velosity = resultV.get();
@@ -800,17 +826,17 @@ let programCode = function(processingInstance) {
                     this.position.add(processingInstance.PVector.div(this.velosity, 2));
                     this.moves += 0.5;
                     
-                    let startX = Math.min(prevPos.x, this.position.x);
-                    let endX   = Math.max(prevPos.x, this.position.x);
+                    let startX = processingInstance.min(prevPos.x, this.position.x);
+                    let endX   = processingInstance.max(prevPos.x, this.position.x);
                     
                     for(let i = Math.round(startX); i <= endX; i++) {
-                        accessG(i)[1] = Math.max(accessG(i)[1], 
+                        accessG(i)[1] = processingInstance.max(accessG(i)[1], 
                             calcLinePosY(i, prevPos.x, prevPos.y,
                                 this.position.x, this.position.y)
                             );
                     }
                     
-                    if (this.moves >= 7) {
+                    if(this.moves >= 7) {
                         this.exploded = true;
                         this.setSize();
                         this.advanceTurn();
@@ -856,7 +882,7 @@ let programCode = function(processingInstance) {
                 advanceTurn:advanceTurn,
                 draw:drawExplosion,
                 move:function(m) {
-                    this.velosity.add(Gravity);
+                    this.velosity.add(gravity);
                     
                     let normVel = this.velosity.get();
                     normVel.normalize();
@@ -865,9 +891,9 @@ let programCode = function(processingInstance) {
                     for(let i = 0; i < velosityMag; i++) {
                         this.position.add(normVel);
                         let answer = this.check(m);
-                        if (answer === "end") {
+                        if(answer === "end") {
                             break;
-                        } else if (answer === true) {
+                        }else if(answer === true) {
                             this.advanceTurn();
                             break;
                         }
@@ -885,20 +911,20 @@ let programCode = function(processingInstance) {
                 calDist:function(other) {
                     let pos = this.position;
                     
-                    return Math.hypot(pos.x - other.x, pos.y - other.y);
+                    return processingInstance.dist(pos.x, pos.y, other.x, other.y);
                 },
                 hitBox:function(i) {
                     boxes.del(i, 1);
                 },
                 explode2:function() {
-                    let minSize = Math.min(-this.size/2, 0);
-                    let maxSize = Math.min(this.size/2, width);
+                    let minSize = processingInstance.min(-this.size/2, 0);
+                    let maxSize = processingInstance.min(this.size/2, width);
                     
                     for(let x = minSize; x < maxSize; x+=0.1) {
                         let y = this.calcCirclePos(this.position.x+x);
                         let xPos = Math.round(this.position.x)+Math.round(x);
-                        if (xPos > 0 && xPos < width) {
-                            accessG(xPos)[1]= Math.max(accessG(xPos)[1],y);
+                        if(xPos > 0 && xPos < width) {
+                            accessG(xPos)[1]= processingInstance.max(accessG(xPos)[1],y);
                         }
                     }
                 },
@@ -912,14 +938,15 @@ let programCode = function(processingInstance) {
         let rank = 1;
         for (let type in missileTypes) {
             if ("getRank" in missileTypes[type]) { continue; }
-            missileTypes[type].getRank = Function(`return ${ rank++ };`);
+            missileTypes[type].getRank = Object.constructor(
+                "return function() { return "+(rank++)+"; };")();
         }
         
         // Convert missileTypes from [type, actions] to [action, type]
         let actionTypes = Object.create(null);
         for (let type in missileTypes) {
             for(let func in missileTypes[type]) {
-                if (!(func in actionTypes)) {
+                if(!(func in actionTypes)) {
                     actionTypes[func] = {};
                 }
                 actionTypes[func][type] = missileTypes[type][func];
@@ -940,11 +967,59 @@ let programCode = function(processingInstance) {
             return empty;
         }
         
+        function hitTank(tank, x, y) {
+            let hitTank = false; 
+            
+            /* hit tank's hinge? */
+            let tHinge = tank.hinge;
+            hitTank |= processingInstance.dist(tHinge.x, tHinge.y, x, y) < 5;
+            
+            
+            /* hit tank's body? */
+            let w = tank.width;
+            let h = tank.height;
+            
+            let tankY = accessG(Math.round(tank.x))[1];
+            
+            let corners = [
+                [ w/2, h*-5/3],
+                [ w/2,      0],
+                [-w/2,      0],
+                [-w/2, h*-5/3],
+            ];
+            
+            rotate2D(corners, tank.angle);
+            
+            hitTank |= checkSide2(corners,0,1,tank.x,tankY,x,y)&&
+                checkSide2(corners,1,2,tank.x,tankY,x,y)&&
+                checkSide2(corners,2,3,tank.x,tankY,x,y)&&
+                checkSide2(corners,3,0,tank.x,tankY,x,y);
+            
+            /* hit tank's cannon? */
+            corners = [
+                [ w*2/3, -h/4],
+                [ w*2/3,  h/4],
+                [     0,  h/4],
+                [     0, -h/4],
+            ];
+            
+            rotate2D(corners, tank.angle+tank.gunAngle);
+            
+            let piv = tank.hinge;
+            
+            hitTank |= checkSide2(corners,0,1,piv.x,piv.y,x,y)&&
+                checkSide2(corners,1,2,piv.x,piv.y,x,y)&&
+                checkSide2(corners,2,3,piv.x,piv.y,x,y)&&
+                checkSide2(corners,3,0,piv.x,piv.y,x,y);
+            
+            return hitTank && "tank";
+        }
+        
         // Constructor
         function Missile(velosity, startPos, type, start, tank) {
             this.position = startPos.get();
             this.velosity = velosity.get();
-            this.start = start || frameCount;
+            this.start = start || processingInstance.frameCount;
             this.exploded = false;
             this.started = false;
             this.exploding = 0;
@@ -953,21 +1028,21 @@ let programCode = function(processingInstance) {
             this.frameC = 0;
             this.size = 0;
             
-            this.advanceTurn  = getMissProp(this.type, "advanceTurn" );
-            this.setSize      = getMissProp(this.type, "setSize"     );
-            this.drawExp      = getMissProp(this.type, "draw"        );
-            this.onHit        = getMissProp(this.type, "onHit"       );
-            this.moveFunc     = getMissProp(this.type, "move"        );
-            this.explode1     = getMissProp(this.type, "explode1"    );
-            this.calDist      = getMissProp(this.type, "calDist"     );
-            this.hitBox       = getMissProp(this.type, "hitBox"      );
-            this.explode2     = getMissProp(this.type, "explode2"    );
-            this.end          = getMissProp(this.type, "end"         );
-            this.getDivAmount = getMissProp(this.type, "getDivAmount");
+            this.advanceTurn = getMissProp(this.type, "advanceTurn");
+            this.setSize     = getMissProp(this.type, "setSize"    );
+            this.drawExp     = getMissProp(this.type, "draw"       );
+            this.onHit       = getMissProp(this.type, "onHit"      );
+            this.moveFunc    = getMissProp(this.type, "move"       );
+            this.explode1    = getMissProp(this.type, "explode1"   );
+            this.calDist     = getMissProp(this.type, "calDist"    );
+            this.hitBox      = getMissProp(this.type, "hitBox"     );
+            this.explode2    = getMissProp(this.type, "explode2"   );
+            this.end         = getMissProp(this.type, "end"        );
+            this.getDivAmount= getMissProp(this.type,"getDivAmount");
             
             let result = getMissProp(this.type,"setUp").call(this);
             
-            if (result) {
+            if(result) {
                 advanceTurn(tank1, tank2);
                 return result;
             }
@@ -1013,7 +1088,7 @@ let programCode = function(processingInstance) {
                     
                     processingInstance.fill(115, 115, 115);
                     processingInstance.noStroke();
-                    myRect(-10, -5/2, 15, 5, 10);
+                    processingInstance.rect(-10, -5/2, 15, 5, 10);
                 }
                 processingInstance.popMatrix();
             },
@@ -1022,40 +1097,40 @@ let programCode = function(processingInstance) {
                 let y = this.position.y;
                 let radius = this.exploding/2;
                 
-                return y + Math.sqrt(radius * radius - x * x);
+                return y + Math.sqrt(radius*radius - processingInstance.abs(x*x));
             },
             move: function(m) {
                 this.frameC++;
                 
-                if (this.start <= frameCount && !this.started) {
+                if (this.start <= processingInstance.frameCount && !this.started) {
                     this.started = true;
                     this.frameC = 0;
                 }
                 
                 if (this.started) {
-                    if (this.exploded) {
+                    if(this.exploded) {
                         return this.explode(m);
-                    } else {
+                    }else {
                         this.moveFunc(m);
                     }
                 }
             },
-            checkHit: function() {
-                let position = this.position;
-                let x = position.x;
-                let y = position.y;
-                
-                // hit ground?
-                let hitGround = y >= accessG(Math.round(x))[1] && "ground";
-                // hit tank1?
-                let hitTank1 = tank1.isInTank(x, y);
-                // hit tank2?
-                let hitTank2 = tank2.isInTank(x, y);
-                // hit either tank?
-                let hitTank = (hitTank1 || hitTank2) && "tank";
-                // hit any?
-                return hitGround || hitTank;
-            },
+            checkHit: (function(hitTank) {
+                return function() {
+                    let position = this.position;
+                    let x = position.x;
+                    let y = position.y;
+                    
+                    // hit ground?
+                    let hitGround = y >= accessG(Math.round(x))[1] && "ground";
+                    // hit tank1?
+                    let hitTank1 = hitTank(tank1, x, y);
+                    // hit tank2?
+                    let hitTank2 = hitTank(tank2, x, y);
+                    // hit any?
+                    return hitGround || hitTank1 || hitTank2;
+                };
+            })(hitTank),
             check: function(m) {
                 let pos = this.position;
                 
@@ -1069,7 +1144,7 @@ let programCode = function(processingInstance) {
                     let bx = boxes[b].x;
                     let by = boxes[b].y;
                     
-                    if (x > bx-5 && x < bx+5 && y > by-10 && y < by) {
+                    if(x > bx-5 && x < bx+5 && y > by-10 && y < by) {
                         this.hitBox(b);
                     }
                 }
@@ -1083,7 +1158,7 @@ let programCode = function(processingInstance) {
                         this.advanceTurn(tank1, tank2);
                         checkTie(tank1, tank2);
                         return "end";
-                    } else if (a === "end") {
+                    } else if(a === "end") {
                         return "end";
                     }
                     return this.exploded;
@@ -1101,10 +1176,10 @@ let programCode = function(processingInstance) {
                 let d2 = this.calDist(tank2.hinge);
                 
                 if (d1 < maxDist1 && !gameEnd) {
-                    tank1.life -= (maxDist1 - d1) / div;
+                    tank1.life -= (maxDist1-d1)/div;
                 }
                 if (d2 < maxDist2 && !gameEnd) {
-                    tank2.life -= (maxDist2 - d2) / div;
+                    tank2.life -= (maxDist2-d2)/div;
                 }
                 
                 for (let i = boxes.length; i-- > 0; ) {
@@ -1127,7 +1202,12 @@ let programCode = function(processingInstance) {
             },
             toString: function() {
                 let strProps = ["type", "size", "position", "velosity"];
-                return `Missile { ${strProps.map(prop => `${prop}: ${this[prop]}`).join(", ")} }`;
+                let propString = "";
+                for (let i = 0; i < strProps.length; i++) {
+                    let comma = i > 0? "," : "", prop = strProps[i];
+                    propString += comma+" "+prop+": "+this[prop];
+                }
+                return "Missile {"+propString+" }";
             },
         });
         
@@ -1170,10 +1250,10 @@ let programCode = function(processingInstance) {
             this.cannonLength = this.width*2/3;
             this.gunAngle = config.gunAngle;
             this.num = config.num;
-            this.shots = ["big","medium","small","over head","volley","super-volley","bounce volley","random rain","top burn","bounce","line drive","slicer","forest","rocket","triple","collect box"];
+            this.shots = ["big","medium","small","over head","volley","super-volley","bounce volley","random rain","top burn","bounce","processingInstance.line drive","slicer","forest","rocket","triple","collect box"];
             this.fuel = this.topFuel;
             this.curShot = this.shots[0];
-            this.angleConPos = new processingInstance.PVector(50, 0);
+            this.angleConPos = processingInstance.PVector.new(50, 0);
             this.angleConPos.rotate(this.gunAngle);
             this.otherWrapper = config.otherWrapper;
             this.playAI = config.playAI || false;
@@ -1215,17 +1295,17 @@ let programCode = function(processingInstance) {
                     return (-processingInstance.atan2(this.width,  
                     calcAvPixelHeight(this.x+this.width/2)-
                     calcAvPixelHeight(this.x-this.width/2)
-                            ) - Math.PI * 3 / 4) % (Math.PI * 2);
+                            ) - 180) % 360;
                 }
             },
             hinge: {
                 get:function() {
                     // the tanks height
-                    let tankHeight = new processingInstance.PVector(0, this.height*-5/3);
+                    let tankHeight = processingInstance.PVector.new(0, this.height*-5/3);
                     tankHeight.rotate(this.angle);
                     
                     // the cannons hinge
-                    let cannonHinge = new processingInstance.PVector(this.x, this.y);
+                    let cannonHinge = processingInstance.PVector.new(this.x, this.y);
                     cannonHinge.add(tankHeight);
                     
                     return cannonHinge;
@@ -1234,7 +1314,7 @@ let programCode = function(processingInstance) {
             cannonTip: {
                 get:function() {
                     // the tanks gun
-                    let gun = new processingInstance.PVector(this.cannonLength, 0);
+                    let gun = processingInstance.PVector.new(this.cannonLength, 0);
                     gun.rotate(this.angle+this.gunAngle);
                     
                     // add the hinge to get the tip of the gun
@@ -1261,7 +1341,7 @@ let programCode = function(processingInstance) {
             calcArc: function(numDots, addGravity) {
                 let angle = this.angle+this.gunAngle;
                 
-                let shotArc = new processingInstance.PVector(this.power, 0);
+                let shotArc = processingInstance.PVector.new(this.power, 0);
                 shotArc.rotate(angle);
                 
                 let dot = this.cannonTip;
@@ -1269,8 +1349,8 @@ let programCode = function(processingInstance) {
                 let dots = [];
                 
                 for(let i = 0; i < numDots; i++) {
-                    if (addGravity) {
-                        shotArc.add(Gravity);
+                    if(addGravity) {
+                        shotArc.add(gravity);
                     }
                     dot.add(shotArc);
                     
@@ -1294,31 +1374,31 @@ let programCode = function(processingInstance) {
                 });
             },
             dropBox: function() {
-                boxes.push(new Box(this.x));
+                boxes.push(Box.new(this.x));
             },
             fireMissile: function() {
-                if (this.shots.length === 0) {
+                if(this.shots.length === 0) {
                     return;
                 }
                 
-                let v = new processingInstance.PVector(this.power, 0);
+                let v = processingInstance.PVector.new(this.power, 0);
                 v.rotate(this.angle + this.gunAngle);
                 
-                missiles = missiles.concat(new Missile(v, 
+                missiles = missiles.concat(Missile.new(v, 
                     this.cannonTip, this.curShot, null, this));
                 
                 this.shots.del(this.shots.indexOf(this.curShot), 1);
                 this.curShot = this.shots[0] || "";
             },
             dropMissiles: function() {
-                let pos = new processingInstance.PVector(this.x, accessG(Math.round(this.x))[1]);
-                let blank = new processingInstance.PVector();
+                let pos = processingInstance.PVector.new(this.x, accessG(Math.round(this.x))[1]);
+                let blank = processingInstance.PVector.new();
                 
                 this.shots.push("rocket");
                 
                 missiles = missiles.concat(
                     this.shots.flatMap(function(shot) {
-                        return new Missile(blank, pos, shot, null, this);
+                        return Missile.new(blank, pos, shot, null, this);
                     })
                 );
                 
@@ -1335,8 +1415,8 @@ let programCode = function(processingInstance) {
                 
                 processingInstance.noStroke();
                 processingInstance.fill(this.color);
-                if (y+screenShift > height) {
-                    myRect(this.x-w/2, -screenShift, w, 6);
+                if(y+screenShift > height) {
+                    processingInstance.rect(this.x-w/2, -screenShift, w, 6);
                 }
                 
                 processingInstance.pushMatrix();
@@ -1349,7 +1429,7 @@ let programCode = function(processingInstance) {
                 let crumples = [5, 11, 6, 15, 7, 10, 5, 9, 
                                 11, 5, 6, 7 , 10, 5];
                 
-                if (this.life <= 0) {
+                if(this.life <= 0) {
                     processingInstance.beginShape();
                     processingInstance.vertex(-w/2, 0);
                     
@@ -1359,15 +1439,15 @@ let programCode = function(processingInstance) {
                     
                     processingInstance.vertex(w/2, 0);
                     processingInstance.endShape(processingInstance.CLOSE);
-                } else {
+                }else {
                     processingInstance.pushMatrix();
                     processingInstance.translate(0, -h2-h);
                     processingInstance.rotate(this.gunAngle);
-                    myRect(0, -h/4, w*2/3, h/2);
+                    processingInstance.rect(0, -h/4, w*2/3, h/2);
                     processingInstance.ellipse(0, 0, 10, 10);
                     processingInstance.popMatrix();
                     
-                    myRect(-w/2, -h2, w, -h);
+                    processingInstance.rect(-w/2, -h2, w, -h);
                     w = w*(3/4);
                     
                     processingInstance.stroke(120, 120, 120);
@@ -1389,18 +1469,18 @@ let programCode = function(processingInstance) {
                 processingInstance.stroke(this.color);
                 processingInstance.strokeWeight(this.side === turn? 4 : 2);
                 
-                if (this.side === 1) {
-                    myRect(10, 10, 250, 20);
+                if(this.side === 1) {
+                    processingInstance.rect(10, 10, 250, 20);
                     processingInstance.noStroke();
-                    myRect(10, 10, 250, 20);
+                    processingInstance.rect(10, 10, 250, 20);
                     processingInstance.fill(0, 255, 77);
-                    myRect(10, 10, this.life/2, 20);
-                } else if (this.side === 2) {
-                    myRect(width-10, 10, -250, 20);
+                    processingInstance.rect(10, 10, this.life/2, 20);
+                }else if(this.side === 2) {
+                    processingInstance.rect(width-10, 10, -250, 20);
                     processingInstance.noStroke();
-                    myRect(width-10, 10, -250, 20);
+                    processingInstance.rect(width-10, 10, -250, 20);
                     processingInstance.fill(0, 255, 77);
-                    myRect(width-10, 10, -this.life/2, 20);
+                    processingInstance.rect(width-10, 10, -this.life/2, 20);
                 }
             },
             refill: function() {
@@ -1415,10 +1495,10 @@ let programCode = function(processingInstance) {
                 let pX = x;
                 let pY = calcAvPixelHeight(pX);
                 let halfW = this.width/3;
-                let newX = processingInstance.constrain(x+per, halfW, 600 - halfW);
+                let newX = processingInstance.constrain(x+per, halfW, 600-halfW);
                 let tY = calcAvPixelHeight(newX);
-                let d = Math.hypot(newX - pX, tY - Math.max(tY, pY));
-                let newFuel = Math.max(fuel - d, 0);
+                let d = processingInstance.dist(newX, tY, pX, processingInstance.max(tY, pY));
+                let newFuel = processingInstance.max(fuel - d, 0);
                 return {x: newX, fuel: newFuel};
             },
             move: function(per) {
@@ -1426,7 +1506,7 @@ let programCode = function(processingInstance) {
                 this.x = result.x;
                 this.fuel = result.fuel;
                 
-                if (this.shots.length === 0 && this.fuel <= 0) {
+                if(this.shots.length === 0 && this.fuel <= 0) {
                     advanceTurn();
                 }
             },
@@ -1475,7 +1555,7 @@ let programCode = function(processingInstance) {
                 let x = -Math.abs(launchPoint.x - targ.x);
                 let y = launchPoint.y - targ.y;
                 if (x === 0 && y === 0) { return -Math.PI/2; }
-                let v = this.power, g = Gravity.y;
+                let v = this.power, g = gravity.y;
                 let angle = processingInstance.atan((v*v+
                     Math.sqrt(v*v*v*v-g*(g*x*x + 2*y*v*v)))/(g*x));
                 return this.x > targ.x? -angle+180 : angle;
@@ -1527,7 +1607,7 @@ let programCode = function(processingInstance) {
                             !closest.type.includes("life")) {
                             this.goForTank = true;
                         }
-                    } else if (!Box.prototype.types.includes(
+                    } else if(!Box.prototype.types.includes(
                                 Missile.findShot(this.shots))) {
                         let targetInRange = this.aimAtTarget(closest);
                         if (!doAction) { return; }
@@ -1574,7 +1654,7 @@ let programCode = function(processingInstance) {
                         this.fireMissile();
                     }
                 } else {
-                    this.move(Math.processingInstance.random() * width > this.x? 1 : -1);
+                    this.move(Math.random() * width > this.x? 1 : -1);
                 }
             },
             drawControls: function() {
@@ -1599,13 +1679,13 @@ let programCode = function(processingInstance) {
                 /* fuel bar */
                 let fuelPos = this.fuel/(this.topFuel/100);
                 processingInstance.fill(199, 199, 199, 200);
-                myRect(50+fuelPos, 380, 100-fuelPos, 17);
+                processingInstance.rect(50+fuelPos, 380, 100-fuelPos, 17);
                 processingInstance.fill(0, 171, 3, 200);
-                myRect(50, 380, fuelPos, 17);
+                processingInstance.rect(50, 380, fuelPos, 17);
                 
                 let shade = 0;
                 /* words for "no more shots" */
-                if (!this.shots.length) {
+                if(!this.shots.length) {
                     shade = 100;
                     
                     processingInstance.fill(0, 0, 0);
@@ -1616,7 +1696,7 @@ let programCode = function(processingInstance) {
                 
                 /* fire button */
                 processingInstance.fill(255, 140, 0, 255-shade);
-                myRect(215, 445, 40, 30, 10);
+                processingInstance.rect(215, 445, 40, 30, 10);
                 processingInstance.fill(0);
                 processingInstance.textAlign(processingInstance.CENTER, processingInstance.CENTER);
                 processingInstance.textSize(20);
@@ -1626,13 +1706,13 @@ let programCode = function(processingInstance) {
                 let message = "shot type: "+this.curShot;
                 processingInstance.fill(247, 255, 0, 255-shade);
                 processingInstance.textSize(17);
-                myRect(260, 445, processingInstance.textWidth(message)+14, 30, 10);
+                processingInstance.rect(260, 445, processingInstance.textWidth(message)+14, 30, 10);
                 processingInstance.fill(0);
                 processingInstance.textAlign(processingInstance.LEFT, processingInstance.CENTER);
                 processingInstance.text(message, 267, 460);
                 
                 /* words for "no fuel" */
-                if (this.fuel === 0) {
+                if(this.fuel === 0) {
                     processingInstance.fill(232, 217, 0);
                     processingInstance.textAlign(processingInstance.CENTER, processingInstance.CENTER);
                     processingInstance.textSize(20);
@@ -1651,26 +1731,26 @@ let programCode = function(processingInstance) {
                 processingInstance.ellipse(130+this.powerConPos-30, 460, 16, 16);
                 
                 /* shot menu */
-                if (this.displayMenu) {
-                    /* letiables */
+                if(this.displayMenu) {
+                    /* variables */
                     let space = this.menuButtonSpace;
                     let bHeight = this.menuButtonSize;
                     let off = this.menuOff;
                     let barWidth = this.scrollBarWidth;
                     let bWidth = this.menuButtonWidth;
                     let shotsHeight = this.heightOfShots;
-                    if (shotsHeight > height) {
+                    if(shotsHeight > height) {
                         bWidth -= barWidth;
                     }
                     let relX = this.menuButtonOff;
                     let bJump = this.buttonJump;
                     let menuX = width - this.menuSize;
                     
-                    /* menu processingInstance.background */
+                    /* menu background */
                     processingInstance.fill(0);
-                    myRect(menuX+5, 0, this.menuSize, height);
+                    processingInstance.rect(menuX+5, 0, this.menuSize, height);
                     processingInstance.fill(168);
-                    myRect(menuX, 0, 10, height);
+                    processingInstance.rect(menuX, 0, 10, height);
                     
                     /* shots */
                     processingInstance.textSize(this.menuButtonTextSize);
@@ -1680,24 +1760,24 @@ let programCode = function(processingInstance) {
                         let y = space+i*bJump-off;
                         
                         processingInstance.fill(171, 171, 171);
-                        myRect(menuX + relX, y, bWidth, bHeight, 20);
+                        processingInstance.rect(menuX + relX, y, bWidth, bHeight, 20);
                         processingInstance.fill(0);
                         processingInstance.text(this.shots[i], menuX+25, bHeight/2 + y);
                     }
                     
                     /* scroll bar */
-                    if (shotsHeight > height) {
+                    if(shotsHeight > height) {
                         processingInstance.fill(220);
-                        myRect(width, 0, -barWidth, height);
+                        processingInstance.rect(width, 0, -barWidth, height);
                         processingInstance.fill(170);
                         let fraction = height/shotsHeight;
                         
-                        myRect(width, off*fraction, -barWidth, height*fraction);
+                        processingInstance.rect(width, off*fraction, -barWidth, height*fraction);
                     }
                 }
             },
             moveControls: function() {
-                if (missiles.length) {
+                if(missiles.length) {
                     return;
                 }
                 if (this.playAI) {
@@ -1708,9 +1788,10 @@ let programCode = function(processingInstance) {
                         this.move(this.driveConPos / 50);
                     break;
                     case "angleCon":
-                        this.angleConPos.set(
-                            processingInstance.mouseX-500, processingInstance.mouseY-(height-80));
-                        this.angleConPos.setMag(50);
+                        this.angleConPos.x = processingInstance.mouseX-500;
+                        this.angleConPos.y = processingInstance.mouseY-(height-80);
+                        this.angleConPos.normalize();
+                        this.angleConPos.mult(50);
                         this.gunAngle = this.angleConPos.heading();
                     break;
                     case "powerCon":
@@ -1731,20 +1812,20 @@ let programCode = function(processingInstance) {
                 let rectLen = processingInstance.textWidth(
                     "shot type: "+this.curShot)+14;
                 
-                if (this.displayMenu) {
+                if(this.displayMenu) {
                     let menuX = width-this.menuSize;
                     
-                    if (x < menuX) {
+                    if(x < menuX) {
                         this.displayMenu = false;
                     }
                     
                     let buttonX = menuX+this.menuButtonOff;
                     let buttonW = this.menuButtonWidth;
-                    if (this.heightOfShots > height) {
+                    if(this.heightOfShots > height) {
                         buttonW -= this.scrollBarWidth;
                     }
                     
-                    if (processingInstance.mouseX > buttonX && x < buttonX + buttonW) {
+                    if(processingInstance.mouseX > buttonX && x < buttonX + buttonW) {
                         let space = this.menuButtonSpace;
                         let bHeight = this.menuButtonSize;
                         let bJump = space + bHeight;
@@ -1757,7 +1838,7 @@ let programCode = function(processingInstance) {
                         let clicked = isIn && 
                             shotInd < numShots && shotInd;
                         
-                        if (clicked !== false) {
+                        if(clicked !== false) {
                             this.curShot = this.shots[clicked];
                             
                             this.displayMenu = false;
@@ -1789,11 +1870,11 @@ let programCode = function(processingInstance) {
                             this.dragging = "menu";
                         }
                     }
-                } else if (Math.hypot(this.driveConPos + 100 - x, height - 80 - y) < 25/2) {
+                } else if (processingInstance.dist(x, y, 100+this.driveConPos, height-80) < 25/2) {
                     this.dragging = "driveCon";
-                } else if (Math.hypot(this.angleConPos.x + 500 - x, height - 80 + this.angleConPos.y - y) < 15) {
+                } else if (processingInstance.dist(x, y, 500+this.angleConPos.x, height-80+this.angleConPos.y) < 15) {
                     this.dragging = "angleCon";
-                } else if (Math.hypot(this.powerConPos + 100 - x, height - 40 - y) < 8) {
+                } else if (processingInstance.dist(x, y, 100+this.powerConPos, height-40) < 8) {
                     this.dragging = "powerCon";
                 }
             },
@@ -1808,56 +1889,11 @@ let programCode = function(processingInstance) {
             scroll: function(amount, x) {
                 if (this.playAI) { return; }
                 if (this.displayMenu) {
-                    if (x > width - this.menuSize) {
+                    if(x > width - this.menuSize) {
                         this.menuOff -= amount;
                     }
                     return true;
                 }
-            },
-            isInTank: function(x, y) {
-                let hitTank = false; 
-                
-                /* hit tank's hinge? */
-                let pivot = this.hinge;
-                hitTank ||= Math.hypot(pivot.x - x, pivot.y - y) < 5;
-                
-                
-                /* hit tank's body? */
-                let w = this.width;
-                let h = this.height;
-                
-                let tankY = accessG(Math.round(this.x))[1];
-                
-                let corners = [
-                    [ w/2, h*-5/3],
-                    [ w/2,      0],
-                    [-w/2,      0],
-                    [-w/2, h*-5/3],
-                ];
-                
-                rotate2D(corners, this.angle);
-                
-                hitTank ||= checkSide2(corners,0,1,this.x,tankY,x,y)&&
-                    checkSide2(corners,1,2,this.x,tankY,x,y)&&
-                    checkSide2(corners,2,3,this.x,tankY,x,y)&&
-                    checkSide2(corners,3,0,this.x,tankY,x,y);
-                
-                /* hit tank's cannon? */
-                corners = [
-                    [ w*2/3, -h/4],
-                    [ w*2/3,  h/4],
-                    [     0,  h/4],
-                    [     0, -h/4],
-                ];
-                
-                rotate2D(corners, this.angle + this.gunAngle);
-                
-                hitTank ||= checkSide2(corners,0,1,pivot.x,pivot.y,x,y)&&
-                    checkSide2(corners,1,2,pivot.x,pivot.y,x,y)&&
-                    checkSide2(corners,2,3,pivot.x,pivot.y,x,y)&&
-                    checkSide2(corners,3,0,pivot.x,pivot.y,x,y);
-                
-                return hitTank && "tank";
             },
         });
         
@@ -1869,10 +1905,10 @@ let programCode = function(processingInstance) {
     let tank1Wrapper = {value: null};
     let tank2Wrapper = {value: null};
 
-    tank1 = new Tank({side: 1, gunAngle: processingInstance.random(-180, 0), 
+    tank1 = Tank.new({side: 1, gunAngle:processingInstance.random(180, 0), 
         num: blueStart? 1 : 2, otherWrapper: tank2Wrapper, 
         playAI: numPlayers <= (blueStart? 0 : 1)});
-    tank2 = new Tank({side: 2, gunAngle: processingInstance.random(-180, 0), 
+    tank2 = Tank.new({side: 2, gunAngle:processingInstance.random(180, 0), 
         num: blueStart? 2 : 1, otherWrapper: tank1Wrapper, 
         playAI: numPlayers <= (blueStart? 1 : 0)});
 
@@ -1905,16 +1941,16 @@ let programCode = function(processingInstance) {
         // Winner
         processingInstance.noStroke();
         processingInstance.fill(0, 237, 237); // Light blue
-        myRect(50, 200, 250, 250); // Light blue background
+        processingInstance.rect(50, 200, 250, 250); // Light blue background
         
-        processingInstance.fill(105, 47, 0); // Sign color
-        myRect(175, 320, 110, 70, 6); // Sign body
-        myRect(225, 370, 10, 30); // Sign post
+        processingInstance.fill(105, 47, 0); // Sign processingInstance.color
+        processingInstance.rect(175, 320, 110, 70, 6); // Sign body
+        processingInstance.rect(225, 370, 10, 30); // Sign post
         
         processingInstance.fill(255, 255, 255);
         processingInstance.textSize(15);
-        processingInstance.text("Blue\n" + tank1Score, 206, 355); // Blue score text
-        processingInstance.text("Red\n" + tank2Score, 254, 355); // Red score text
+        processingInstance.text("Blue\n"+tank1Score, 206, 355); // Blue score processingInstance.text
+        processingInstance.text("Red\n"+tank2Score, 254, 355); // Red score processingInstance.text
         
         
         let x = 100;
@@ -1924,10 +1960,10 @@ let programCode = function(processingInstance) {
         processingInstance.strokeWeight(3);
         processingInstance.line(98, 251, 98, 400);
         
-        // Retrieve flag image
+        // Retrieve flag processingInstance.image
         let flag = flagImgs[won];
-        if (!flag) { // If we don't have this image, create it
-            flag = processingInstance.createGraphics(90, 50, processingInstance.JAVA2D); // New image
+        if (!flag) { // If we don't have this processingInstance.image, create it
+            flag = processingInstance.createGraphics(90, 50, processingInstance.JAVA2D); // New processingInstance.image
             if (won.toLowerCase().includes("blue")) { //  Backgrounds
                 flag.background(0, 106, 255); // Blue background
             } else if (won.toLowerCase().includes("red")) {
@@ -1935,12 +1971,13 @@ let programCode = function(processingInstance) {
             } else {
                 flag.background(0, 245, 0); // Default background
             }
-            flag.fill(0, 0, 0); // Text color
+            flag.fill(0, 0, 0); // Text processingInstance.color
             flag.textSize(15); // Text size
-            flag.textAlign(processingInstance.CENTER, processingInstance.CENTER); // Center text
-            flag.text(won, 45, 25); // Draw text
+            flag.textAlign(processingInstance.CENTER, processingInstance.CENTER); // Center processingInstance.text
+            flag.text(won, 45, 25); // Draw processingInstance.text
             // Add the wiggles to the flag
-            flag = skewImage(flag, x => 6 - 6 * Math.sin(x * Math.PI / 42));
+            flag = skewImage(flag, function(x) {
+                return 6 * (1 - Math.sin(x * Math.PI / 42)); });
             flagImgs[won] = flag; // Save the flag
         }
         processingInstance.imageMode(processingInstance.CENTER);
@@ -1948,15 +1985,15 @@ let programCode = function(processingInstance) {
         
         processingInstance.noStroke();
         processingInstance.fill(153, 69, 0);
-        myRect(50, 400, 250, 50); // Dirt
+        processingInstance.rect(50, 400, 250, 50); // Dirt
         
         // Buttons
         processingInstance.stroke(64, 64, 64);
         processingInstance.strokeWeight(2);
         processingInstance.fill(143, 143, 143);
-        myRect(340, 200, 225, gameEnd? 60 : 80, 15);
+        processingInstance.rect(340, 200, 225, gameEnd? 60 : 80, 15);
         
-        // Button text
+        // Button processingInstance.text
         processingInstance.fill(0, 0, 0);
         processingInstance.textSize(35);
         if (gameEnd) { processingInstance.text("Restart", 340+225/2, 230); }
@@ -1975,26 +2012,68 @@ let programCode = function(processingInstance) {
         let x = imageX, y = imageY;
         let w = width/imageScale/2, h = height/imageScale/2;
         
-        if (processingInstance.mouseX>x-w && processingInstance.mouseX<x+w && processingInstance.mouseY>y-h && processingInstance.mouseY<y+h) {
-            if (mouseButton === processingInstance.RIGHT) {
-                if (imageScale === defaultImageScale) {
+        if(processingInstance.mouseX>x-w && processingInstance.mouseX<x+w && processingInstance.mouseY>y-h && processingInstance.mouseY<y+h) {
+            if(mouseButton === processingInstance.RIGHT) {
+                if(imageScale === defaultImageScale) {
                     imageX = width/2; imageY = height/2;
                     imageScale = 1;
-                } else {
+                }else {
                     imageX = defaultImageX; imageY = defaultImageY;
                     imageScale = defaultImageScale;
                 }
-            } else {
+            }else {
                 screens = screens === gameScreens?
                     lastShotScreens : gameScreens;
                 screenNum = 0;
             }
         }
-        else if (processingInstance.mouseX > 340 && processingInstance.mouseY > 200 && processingInstance.mouseX < 340 + 225 && processingInstance.mouseY < 200 + (gameEnd? 60 : 80)) {
-            if (gameEnd) {
-                Program.restart();
-            } else {
+        else if(processingInstance.mouseX > 340 && processingInstance.mouseY > 200 && processingInstance.mouseX < 340 + 225 && processingInstance.mouseY < 200 + (gameEnd? 60 : 80)) {
+            if(gameEnd) {
+                restart();
+            }else {
                 gameStarted = true;
+            }
+        }
+    }
+
+    function restart() {
+        gameEnd = false;
+        gameStarting = 60;
+        gameEnding = 60;
+        screenShift = 0;
+        tank1Score = 0;
+        tank2Score = 0;
+        missiles.length = 0;
+        boxes.length = 0;
+        gameScreens.length = 0;
+        lastShotScreens.length = 0;
+        screens = gameScreens;
+
+        let tank1Wrapper = {value: null};
+        let tank2Wrapper = {value: null};
+
+        tank1 = Tank.new({side: 1, gunAngle:processingInstance.random(180, 0), 
+            num: blueStart? 1 : 2, otherWrapper: tank2Wrapper, 
+            playAI: numPlayers <= (blueStart? 0 : 1)});
+        tank2 = Tank.new({side: 2, gunAngle:processingInstance.random(180, 0), 
+            num: blueStart? 2 : 1, otherWrapper: tank1Wrapper, 
+            playAI: numPlayers <= (blueStart? 1 : 0)});
+
+        tank1Wrapper.value = tank1;
+        tank2Wrapper.value = tank2;
+
+        turn = 1;
+        let num = Math.floor(processingInstance.random(0, grounds.length*2));
+
+        let ground = grounds[num < grounds.length? num : 0];
+
+        if(num >= grounds.length) {
+            let spot = processingInstance.random(0, 100000);
+            
+            for(let i = 0; i <= width; i++) {
+                let h = processingInstance.map(processingInstance.noise(spot+i/200), 0, 1, 0, 500);
+                
+                ground[i] = [i, Math.round(h)];
             }
         }
     }
@@ -2008,11 +2087,11 @@ let programCode = function(processingInstance) {
         tank1.drawLife();
         tank2.drawLife();
         
-        if (numMissiles !== 0) {
+        if(numMissiles !== 0) {
             let screen = processingInstance.get();
             gameScreens    .push(screen);
             lastShotScreens.push(screen);
-        } else if (!gameEnd) {
+        }else if(!gameEnd) {
             lastShotScreens.length = 0;
         }
     }
@@ -2022,7 +2101,7 @@ let programCode = function(processingInstance) {
     processingInstance.mousePressed = function() {
         cMouseX = processingInstance.mouseX;
         cMouseY = processingInstance.mouseY;
-        if (!gameStarted || gameEnd) {
+        if(!gameStarted || gameEnd) {
             return;
         }
         shouldDrag = true;
@@ -2031,19 +2110,19 @@ let programCode = function(processingInstance) {
     };
 
     processingInstance.mouseOut = processingInstance.mouseReleased = function() {
-        if (!gameStarted || gameEnd) {
+        if(!gameStarted || gameEnd) {
             return;
         }
         shouldDrag = false;
         let thisTank = turn === 1? tank1 : tank2;
         thisTank.mouseReleased();
     };
-    
-    canvas.addEventListener("click", () => {
-        if (Math.hypot(processingInstance.mouseX - cMouseX, processingInstance.mouseY - cMouseY) > 10) {
+
+    processingInstance.mouseClicked = function() {
+        if(processingInstance.dist(processingInstance.mouseX, processingInstance.mouseY, cMouseX, cMouseY) > 10) {
             return;
         }
-        if (!gameStarted) {
+        if(!gameStarted) {
             checkButtons();
             return;
         } else if (gameEnd || missiles.length) {
@@ -2051,31 +2130,26 @@ let programCode = function(processingInstance) {
         }
         let thisTank = turn === 1? tank1 : tank2;
         thisTank.click(processingInstance.mouseX, processingInstance.mouseY);
-    });
-
-    canvas.addEventListener("mousemove", event => {
-        console.log(event);
-    });
+    };
 
     processingInstance.mouseDragged = function() {
         if (!shouldDrag) { return; }
-        if (!(tank1.mouseDragged() || tank2.mouseDragged() || !gameStarted)) {
+        if(!(tank1.mouseDragged() || tank2.mouseDragged() || !gameStarted)) {
             screenShift += processingInstance.mouseY-processingInstance.pmouseY;
         }
     };
 
     processingInstance.mouseScrolled = function() {
         let thisTank = turn === 1? tank1 : tank2;
-        if (!thisTank.scroll(mouseScroll * 100, processingInstance.mouseX)) {
-            screenShift += mouseScroll * 100;
+        if (!thisTank.scroll(processingInstance.mouseScroll * 100, processingInstance.mouseX)) {
+            screenShift += processingInstance.mouseScroll * 100;
         }
     };
 
-    
+
     /** Game loop **/
-    function update() {
-        frameCount++;
-        if (gameStarted) {
+    processingInstance.draw = function() {
+        if(gameStarted) {
             processingInstance.background(0, 237, 237);
             
             processingInstance.translate(0, screenShift);
@@ -2101,8 +2175,8 @@ let programCode = function(processingInstance) {
             
             let t1 = blueStart? tank1 : tank2;
             let t2 = blueStart? tank2 : tank1;
-            if (!gameEnd && numMissiles === 0) {
-                if (t2.life <= 0) {
+            if(!gameEnd && numMissiles === 0) {
+                if(t2.life <= 0) {
                     t2.life = 0;
                     
                     if (t1.life <= 0) {
@@ -2128,15 +2202,15 @@ let programCode = function(processingInstance) {
                 }
             }
             
-            if (gameEnd) {
+            if(gameEnd) {
                 gameEnding--;
                 
                 recordScreenAndDrawLives();
                 
-                if (gameEnding <= 0) {
+                if(gameEnding <= 0) {
                     gameStarted = false;
                 }
-            } else if (missiles.length === 0 && !gameEnd) {
+            }else if(missiles.length === 0 && !gameEnd) {
                 let curTank = turn === 1? tank1 : tank2;
                 
                 curTank.drawArc();
@@ -2145,19 +2219,19 @@ let programCode = function(processingInstance) {
                 
                 curTank.drawControls();
                 curTank.moveControls();
-            } else {
+            }else {
                 recordScreenAndDrawLives();
             }
             
             checkTie(tank1, tank2);
             
             pnumMissiles = numMissiles;
-        } else {
+        }else {
             processingInstance.background(0);
             drawScreen();
         }
         // Some code to be uncommented when the code might not work
-        //*
+        /*
         processingInstance.stroke(255, 0, 0);
         processingInstance.strokeWeight(50);
         processingInstance.point(30, 470);
@@ -2166,20 +2240,9 @@ let programCode = function(processingInstance) {
         processingInstance.textAlign(processingInstance.CENTER, processingInstance.CENTER);
         processingInstance.text("BUGS!", 30, 470);
         //*/
-        setTimeout(update, 15);
-    }
-    setTimeout(update, 15);
+    };
 
-    for (let name of ["mouseScrolled", "mouseDragged", "mouseClicked", "mouseOut", "mouseReleased", "mousePressed"]) {
-        let prevFunc = processingInstance[name];
-        processingInstance[name] = function() {
-            try {
-                prevFunc();
-            } catch(err) {
-                console.log(err);
-            }
-        };
-    }
+
     }
 };
 

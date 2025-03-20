@@ -797,7 +797,6 @@ let neighborPositions = [
 ];
 
 function next() {
-    const startTime = Date.now();
     newBoxes.clear();
     possibleNew.clear();
   
@@ -841,7 +840,6 @@ function next() {
     generations++;
     updateGenCounter();
     drawBoard();
-    console.log("Next took", Date.now() - startTime);
 }
 
 function randomize() {
@@ -1088,8 +1086,8 @@ document.addEventListener("keyup", async function(event) {
     let key = event.key.toLowerCase();
     if (event.ctrlKey || event.metaKey) {
         if (key === "z" && !event.shiftKey && savedBoards.main.length > 0) {
-            savedBoards.redo.unshift(savedBoards.main.shift());
             resetBoard();
+            savedBoards.redo.unshift(savedBoards.main.shift());
         } else if (key === "y" || key === "z" && event.shiftKey) {
             if (savedBoards.redo.length > 0) {
                 savedBoards.main.unshift(savedBoards.redo.shift());

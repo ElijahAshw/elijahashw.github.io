@@ -15,6 +15,7 @@ const moveB = document.querySelector("#move");
 const tileB = document.querySelector("#tile");
 const copyB = document.querySelector("#copy"); // Copy doesn't erase previous pattern
 const periodB = document.querySelector("#period");
+const advanceB = document.querySelector("#advance");
 const speedCount = document.querySelector("#speed-counter");
 const genCounter = document.querySelector("#counter");
 const runSpeed = document.querySelector("#speed");
@@ -511,7 +512,6 @@ let neighborPositions = [
 ];
 
 function next() {
-    const startTime = Date.now();
     newBoxes.clear();
     possibleNew.clear();
     let positions = neighborPositions;
@@ -550,7 +550,6 @@ function next() {
     generations++;
     updateGenCounter();
     drawBoard();
-    console.log("Next took", Date.now() - startTime);
 }
 
 function randomize() {
@@ -794,12 +793,36 @@ function determinePeriod() {
     }, () => {});
 }
 
+function advanceSection() {
+    chooseBoard().then(async () => {
+        let previousBoard = new Map();
+        boxes.forEach((value, key) => {
+            previousBoard.set(key, value);
+        });
+
+        next();
+        for (let x = minX; x <= maxX; x++) {
+            for (let y = minY; y <= maxY; y++) {
+                previousBoard.delete(`${x} ${y}`);
+                if (boxes.has(`${x} ${y}`)) previousBoard.set(`${x} ${y}`, {x, y});
+                else previousBoard.delete(`${x} ${y}`);
+            }
+        }
+
+        boxes.clear();
+        previousBoard.forEach((value, key) => {
+            boxes.set(key, value);
+        });
+        updateAfterChange();
+    });
+}
+
 document.addEventListener("keyup", async function(event) {
     let key = event.key.toLowerCase();
     if (event.ctrlKey || event.metaKey) {
         if (key === "z" && !event.shiftKey && savedBoards.main.length > 0) {
-            savedBoards.redo.unshift(savedBoards.main.shift());
             resetBoard();
+            savedBoards.redo.unshift(savedBoards.main.shift());
         } else if (key === "y" || key === "z" && event.shiftKey) {
             if (savedBoards.redo.length > 0) {
                 savedBoards.main.unshift(savedBoards.redo.shift());
@@ -832,6 +855,8 @@ document.addEventListener("keyup", async function(event) {
         if(button !== "clear" && button[0] === key) {
             buttons[i].click();
             break;
+        } else if (button === "advance" && key === "e") {
+            buttons[i].click();
         }
     }
 });
@@ -857,6 +882,7 @@ moveB.addEventListener("click", move);
 tileB.addEventListener("click", tile);
 copyB.addEventListener("click", copy);
 periodB.addEventListener("click", determinePeriod);
+advanceB.addEventListener("click", advanceSection);
 trackPrev.addEventListener("change", () => { drawBoard(); });
 runSpeed.addEventListener("input", () => { updateSpeedCounter(); });
 
