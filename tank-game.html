@@ -15,7 +15,7 @@
     <script src="https://cdn.jsdelivr.net/processing.js/1.4.8/processing.min.js"></script> 
     
 <script>
-let blueStart = false, restartCount = 0;
+let blueStart = false;
 let tank1Score = 0, tank2Score = 0;
 let flagImgs = Object.create(null);
 // let width = 600, height = 500;
@@ -24,11 +24,11 @@ let canvas = document.querySelector("#game-canvas");
 // canvas.setAttribute("width", width + "px");
 // canvas.setAttribute("height", height + "px");
 
-let programCode = function(processingInstance) {
-    // with(processingInstance) 
-    {
+const programCode = function(processingInstance) {
+
     const width = 600, height = 500;
     processingInstance.size(width, height);
+    processingInstance.angleMode = "radians";
 
     /**
      * 
@@ -53,16 +53,19 @@ let programCode = function(processingInstance) {
     * Give every object a "new" method that works around
     * the Khan Academy leak.
     */
-    function whatNewDoes() {
-        let obj = Object.create(this.prototype);
-        return this.apply(obj, arguments) || obj;
+    function whatNewDoes(...args) {
+        return new this(...args);
     }
     Object.constructor.prototype.new = whatNewDoes;
 
-    function pGet() {
-        return processingInstance.PVector.new(this.x, this.y, this.z);
+    // Patch
+    function cos(angle) {
+        return Math.cos(angle);
     }
-    processingInstance.PVector.prototype.get = pGet;
+
+    function sin(angle) {
+        return Math.sin(angle);
+    }
 
     /** Define "myRect" **/
     // Taken from my program https://www.khanacademy.org/computer-programming/myrect-a-better-rectangle/4561505013776384
@@ -168,7 +171,6 @@ let programCode = function(processingInstance) {
     let gameScreens = [], lastShotScreens = [];
     let screens = gameScreens;
     blueStart = !blueStart;
-    tank1Score = tank1Score || 0; tank2Score = tank2Score || 0;
     let left = 124, right = 526;
     let tankStartRange = 25;
     let numMissiles = 0, pnumMissiles = 0;
@@ -178,8 +180,6 @@ let programCode = function(processingInstance) {
         defaultImageScale = 2.7;
     let imageX = defaultImageX, imageY = defaultImageY,
         imageScale = defaultImageScale;
-    flagImgs = flagImgs || Object.create(null);
-    restartCount = restartCount || 0;
     let tank1, tank2;
 
 
@@ -215,7 +215,7 @@ let programCode = function(processingInstance) {
         let spot = processingInstance.random(0, 100000);
         
         for(let i = 0; i <= width; i++) {
-            let h = processingInstance.map(processingInstance.noise(spot+i/200), 0, 1, 0, 500);
+            let h = processingInstance.noise(spot+i/200) * 500;
             
             ground[i] = [i, Math.round(h)];
         }
@@ -292,9 +292,9 @@ let programCode = function(processingInstance) {
     }
 
     function checkSide(x1, y1, x2, y2, mX, mY) {
-        let h = processingInstance.atan2(x2-x1, y2-y1) - processingInstance.atan2(mX-x1, mY-y1);
-
-        return (processingInstance.abs(h) > 180? h + (h < 0? 360 : -360) : h) > 1;
+        let h = Math.atan2(x2 - x1, y2 - y1) - Math.atan2(mX - x1, mY - y1);
+        h *= 180 / Math.PI;
+        return (Math.abs(h) > 180? h + (h < 0? 360 : -360) : h) > 1;
     }
 
     function checkSide2(nodes, num1, num2, addX,addY, x,y) {
@@ -302,8 +302,8 @@ let programCode = function(processingInstance) {
     }
 
     function rotate2D(nodes, theta) {
-        let cosTheta = processingInstance.cos(theta);
-        let sinTheta = processingInstance.sin(theta);
+        let cosTheta = cos(theta);
+        let sinTheta = sin(theta);
         
         for(let i = 0; i < nodes.length; i++) {
             let node = nodes[i], pnodeX = node[0];
@@ -316,8 +316,8 @@ let programCode = function(processingInstance) {
     function getCirclePoint(radius, angle) {
         let obj = Object.new();
         
-        obj.x = processingInstance.cos(angle) * radius;
-        obj.y = processingInstance.sin(angle) * radius;
+        obj.x = cos(angle) * radius;
+        obj.y = sin(angle) * radius;
         
         return obj;
     }
@@ -338,19 +338,18 @@ let programCode = function(processingInstance) {
 
 
     /** Box constructor **/
-    let Box = (function() {
+    const Box = (function() {
         // Constructor
         function Box(x) {
             this.x = processingInstance.constrain(Math.round(x+processingInstance.random(-100,100)), 10, width-10);
             this.y = 0;
             this.onGround = false;
+            this.types = ["fire pillar", "kamikaze", "giant", "add on", "life inc"];
             this.type = this.types[Math.floor(Math.random() * this.types.length)];
         }
         
         // Normal methods
         Object.assign(Box.prototype, {
-            types: ["fire pillar","kamikaze","giant",
-                "add on","life inc"],
             draw: function() {
                 if(!this.onGround) {
                     let s = 12, x = this.x, y = this.y, h = 20;
@@ -425,7 +424,7 @@ let programCode = function(processingInstance) {
 
 
     /** Missile constructor **/
-    let Missile = (function() {
+    const Missile = (function() {
         // A function to draw an explosion (used in missileTypes)
         function drawExplosion() {
             let size = this.exploding;
@@ -465,7 +464,7 @@ let programCode = function(processingInstance) {
                     }
                 },
                 calDist:function(other) {
-                    return processingInstance.abs(this.position.x - other.x);
+                    return Math.abs(this.position.x - other.x);
                 },
                 explode2:empty,
             },
@@ -488,7 +487,7 @@ let programCode = function(processingInstance) {
                         
                         let c1 = processingInstance.color(255, 208, 0);
                         let c2 = processingInstance.color(255, 149, 0);
-                        let num = processingInstance.abs(add)/30;
+                        let num = Math.abs(add)/30;
                         
                         processingInstance.stroke(processingInstance.lerpColor(c1, c2, num));
                         processingInstance.line(add, -y-screenShift, add, h-y-1.5);
@@ -512,7 +511,7 @@ let programCode = function(processingInstance) {
                     return 7.7;
                 },
                 calDist:function(other) {
-                    return processingInstance.abs(this.position.x - other.x);
+                    return Math.abs(this.position.x - other.x);
                 },
                 end:function() {
                     return this.pouring > 180;
@@ -592,10 +591,10 @@ let programCode = function(processingInstance) {
                 },
                 explode2:empty,
                 end:function() {
-                    return processingInstance.abs(this.rolling) >= 150 || this.position.x < 0 || this.position.x > width;
+                    return Math.abs(this.rolling) >= 150 || this.position.x < 0 || this.position.x > width;
                 },
             },
-            "processingInstance.line drive": {
+            "line drive": {
                 setUp:function() {
                     this.moves = 0;
                 },
@@ -853,7 +852,7 @@ let programCode = function(processingInstance) {
                 draw:function() {
                     let diameter = this.exploding;
                     processingInstance.rotate(this.exploding/1.1);
-                    
+
                     processingInstance.stroke(92);
                     processingInstance.strokeWeight(diameter * 0.02);
                     processingInstance.fill(120);
@@ -1097,7 +1096,7 @@ let programCode = function(processingInstance) {
                 let y = this.position.y;
                 let radius = this.exploding/2;
                 
-                return y + Math.sqrt(radius*radius - processingInstance.abs(x*x));
+                return y + Math.sqrt(radius*radius - x*x);
             },
             move: function(m) {
                 this.frameC++;
@@ -1216,7 +1215,7 @@ let programCode = function(processingInstance) {
 
 
     /** Tank constructor **/
-    let Tank = (function() {
+    const Tank = (function() {
         // Some starting properties to put directly on new tanks
         let values = {
             width: 40,
@@ -1250,7 +1249,7 @@ let programCode = function(processingInstance) {
             this.cannonLength = this.width*2/3;
             this.gunAngle = config.gunAngle;
             this.num = config.num;
-            this.shots = ["big","medium","small","over head","volley","super-volley","bounce volley","random rain","top burn","bounce","processingInstance.line drive","slicer","forest","rocket","triple","collect box"];
+            this.shots = ["big","medium","small","over head","volley","super-volley","bounce volley","random rain","top burn","bounce","line drive","slicer","forest","rocket","triple","collect box"];
             this.fuel = this.topFuel;
             this.curShot = this.shots[0];
             this.angleConPos = processingInstance.PVector.new(50, 0);
@@ -1556,9 +1555,10 @@ let programCode = function(processingInstance) {
                 let y = launchPoint.y - targ.y;
                 if (x === 0 && y === 0) { return -Math.PI/2; }
                 let v = this.power, g = gravity.y;
-                let angle = processingInstance.atan((v*v+
-                    Math.sqrt(v*v*v*v-g*(g*x*x + 2*y*v*v)))/(g*x));
-                return this.x > targ.x? -angle+180 : angle;
+                let angle = Math.atan((v*v+
+                    Math.sqrt(v*v*v*v - g*(g*x*x + 2*y*v*v)))/(g*x));
+                angle *= 180 / Math.PI;
+                return this.x > targ.x? -angle + 180 : angle;
             },
             aimAtTarget: function(targ) {
                 let inRange;
@@ -1566,7 +1566,8 @@ let programCode = function(processingInstance) {
                     let angle = this.getFireAngleToHit(targ);
                     let adjusted = (angle - this.angle - 360 * 2) % 360;
                     inRange = !Number.isNaN(angle);
-                    this.gunAngle = inRange? adjusted : 
+                    console.log(angle, adjusted, this.angle);
+                    this.gunAngle = inRange? angle : 
                         this.x > targ.x? -180 : 0;
                 }
                 return inRange;
@@ -1902,18 +1903,21 @@ let programCode = function(processingInstance) {
 
 
     /** Tanks **/
-    let tank1Wrapper = {value: null};
-    let tank2Wrapper = {value: null};
+    function defineTanks() {
+        let tank1Wrapper = {value: null};
+        let tank2Wrapper = {value: null};
 
-    tank1 = Tank.new({side: 1, gunAngle:processingInstance.random(180, 0), 
-        num: blueStart? 1 : 2, otherWrapper: tank2Wrapper, 
-        playAI: numPlayers <= (blueStart? 0 : 1)});
-    tank2 = Tank.new({side: 2, gunAngle:processingInstance.random(180, 0), 
-        num: blueStart? 2 : 1, otherWrapper: tank1Wrapper, 
-        playAI: numPlayers <= (blueStart? 1 : 0)});
+        tank1 = Tank.new({side: 1, gunAngle:processingInstance.random(180, 0), 
+            num: blueStart? 1 : 2, otherWrapper: tank2Wrapper, 
+            playAI: numPlayers <= (blueStart? 0 : 1)});
+        tank2 = Tank.new({side: 2, gunAngle:processingInstance.random(180, 0), 
+            num: blueStart? 2 : 1, otherWrapper: tank1Wrapper, 
+            playAI: numPlayers <= (blueStart? 1 : 0)});
 
-    tank1Wrapper.value = tank1;
-    tank2Wrapper.value = tank2;
+        tank1Wrapper.value = tank1;
+        tank2Wrapper.value = tank2;
+    }
+    defineTanks();
 
 
     /** Less global functions **/
@@ -2041,37 +2045,24 @@ let programCode = function(processingInstance) {
         gameStarting = 60;
         gameEnding = 60;
         screenShift = 0;
-        tank1Score = 0;
-        tank2Score = 0;
         missiles.length = 0;
         boxes.length = 0;
         gameScreens.length = 0;
         lastShotScreens.length = 0;
         screens = gameScreens;
-
-        let tank1Wrapper = {value: null};
-        let tank2Wrapper = {value: null};
-
-        tank1 = Tank.new({side: 1, gunAngle:processingInstance.random(180, 0), 
-            num: blueStart? 1 : 2, otherWrapper: tank2Wrapper, 
-            playAI: numPlayers <= (blueStart? 0 : 1)});
-        tank2 = Tank.new({side: 2, gunAngle:processingInstance.random(180, 0), 
-            num: blueStart? 2 : 1, otherWrapper: tank1Wrapper, 
-            playAI: numPlayers <= (blueStart? 1 : 0)});
-
-        tank1Wrapper.value = tank1;
-        tank2Wrapper.value = tank2;
-
+        blueStart = !blueStart;
         turn = 1;
+
+        defineTanks();
         let num = Math.floor(processingInstance.random(0, grounds.length*2));
 
-        ground = grounds[num < grounds.length? num : 0];
+        ground = grounds[num < grounds.length? num : 0].map(c => c.slice());
 
         if(num >= grounds.length) {
             let spot = processingInstance.random(0, 100000);
             
             for(let i = 0; i <= width; i++) {
-                let h = processingInstance.map(processingInstance.noise(spot+i/200), 0, 1, 0, 500);
+                let h = processingInstance.noise(spot+i/200) * 500;
                 
                 ground[i] = [i, Math.round(h)];
             }
@@ -2087,11 +2078,11 @@ let programCode = function(processingInstance) {
         tank1.drawLife();
         tank2.drawLife();
         
-        if(numMissiles !== 0) {
+        if (numMissiles !== 0) {
             let screen = processingInstance.get();
-            gameScreens    .push(screen);
+            gameScreens.push(screen);
             lastShotScreens.push(screen);
-        }else if(!gameEnd) {
+        } else if (!gameEnd) {
             lastShotScreens.length = 0;
         }
     }
@@ -2231,19 +2222,23 @@ let programCode = function(processingInstance) {
             drawScreen();
         }
         // Some code to be uncommented when the code might not work
-        /*
+        //*
+        processingInstance.pushMatrix();
+        processingInstance.translate(30, 470);
+        processingInstance.rotate(Math.PI / 2);
+
         processingInstance.stroke(255, 0, 0);
         processingInstance.strokeWeight(50);
-        processingInstance.point(30, 470);
+        processingInstance.point(0, 0);
         processingInstance.fill(0, 0, 0);
         processingInstance.textSize(14);
         processingInstance.textAlign(processingInstance.CENTER, processingInstance.CENTER);
-        processingInstance.text("BUGS!", 30, 470);
+        processingInstance.text("BUGS!", 0, 0);
+
+        processingInstance.popMatrix();
         //*/
     };
 
-
-    }
 };
 
 // More credit to pamela at the same program
