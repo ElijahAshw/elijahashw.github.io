@@ -27,6 +27,7 @@ let canvas = document.querySelector("#game-canvas");
 const programCode = function(processingInstance) {
 
     const width = 600, height = 500;
+    let pmouseY = 0, pmouseX = 0;
     processingInstance.size(width, height);
     processingInstance.angleMode = "radians";
 
@@ -58,14 +59,21 @@ const programCode = function(processingInstance) {
     }
     Object.constructor.prototype.new = whatNewDoes;
 
-    // Patch
-    function cos(angle) {
-        return Math.cos(angle);
-    }
+    // Lets redo some pvector stuff to use radians
+    processingInstance.PVector.prototype.heading = function() {
+        return Math.atan2(this.y, this.x);
+    };
 
-    function sin(angle) {
-        return Math.sin(angle);
-    }
+    processingInstance.PVector.angleBetween = function(v1, v2) {
+        return Math.acos(v1.dot(v2) / (v1.mag() * v2.mag()));
+    };
+
+    processingInstance.PVector.prototype.rotate = function(angle) {
+        let newHeading = this.heading() + angle;
+        let mag = this.mag();
+        this.x = Math.cos(newHeading) * mag;
+        this.y = Math.sin(newHeading) * mag;
+    };
 
     /** Define "myRect" **/
     // Taken from my program https://www.khanacademy.org/computer-programming/myrect-a-better-rectangle/4561505013776384
@@ -241,7 +249,6 @@ const programCode = function(processingInstance) {
         }
     };
 
-
     function advanceTurn() {
         if(gameEnd) {
             return;
@@ -291,35 +298,37 @@ const programCode = function(processingInstance) {
         return (g1+ g2)/2;
     }
 
-    function checkSide(x1, y1, x2, y2, mX, mY) {
-        let h = Math.atan2(x2 - x1, y2 - y1) - Math.atan2(mX - x1, mY - y1);
-        h *= 180 / Math.PI;
-        return (Math.abs(h) > 180? h + (h < 0? 360 : -360) : h) > 1;
-    }
-
-    function checkSide2(nodes, num1, num2, addX,addY, x,y) {
-        return checkSide(nodes[num1][0]+addX, nodes[num1][1]+addY, nodes[num2][0]+addX, nodes[num2][1]+addY, x, y);
+    // isInPolygon copied from Bob Lyon's program https://en.khanacademy.org/computer-programming/handbook-of-collisions-and-interiors/5567955982876672
+    function isInPolygon(x, y, poly) {
+        var isIn = false;
+        for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+            var xi = poly[i].x, yi = poly[i].y;
+            var xj = poly[j].x, yj = poly[j].y;
+            var intersect = yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi;
+            if (intersect) {
+                isIn = !isIn;
+            }
+        }
+        return isIn;
     }
 
     function rotate2D(nodes, theta) {
-        let cosTheta = cos(theta);
-        let sinTheta = sin(theta);
+        let cosTheta = Math.cos(theta);
+        let sinTheta = Math.sin(theta);
         
         for(let i = 0; i < nodes.length; i++) {
-            let node = nodes[i], pnodeX = node[0];
+            let node = nodes[i], pnodeX = node.x;
             
-            node[0] = cosTheta * node[0] - sinTheta * node[1];
-            node[1] = sinTheta * pnodeX  + cosTheta * node[1];
+            node.x = cosTheta * pnodeX - sinTheta * node.y;
+            node.y = sinTheta * pnodeX + cosTheta * node.y;
         }
     }
 
     function getCirclePoint(radius, angle) {
-        let obj = Object.new();
+        let x = Math.cos(angle) * radius;
+        let y = Math.sin(angle) * radius;
         
-        obj.x = cos(angle) * radius;
-        obj.y = sin(angle) * radius;
-        
-        return obj;
+        return {x, y};
     }
 
     function calcLinePosY(x, x1, y1, x2, y2) {
@@ -344,9 +353,10 @@ const programCode = function(processingInstance) {
             this.x = processingInstance.constrain(Math.round(x+processingInstance.random(-100,100)), 10, width-10);
             this.y = 0;
             this.onGround = false;
-            this.types = ["fire pillar", "kamikaze", "giant", "add on", "life inc"];
             this.type = this.types[Math.floor(Math.random() * this.types.length)];
         }
+
+        Box.prototype.types = ["fire pillar", "kamikaze", "giant", "add on", "life inc"];
         
         // Normal methods
         Object.assign(Box.prototype, {
@@ -862,9 +872,9 @@ const programCode = function(processingInstance) {
                     processingInstance.noFill();
                     
                     for(let i = 0; i < 360; i+=30) {
-                        let c1   = getCirclePoint(diameter/4.2, i+96);
-                        let c2   = getCirclePoint(diameter/2.3, i+40);
-                        let edge = getCirclePoint(diameter/2  , i   );
+                        let c1   = getCirclePoint(diameter/4.2, (i+96) * Math.PI/180);
+                        let c2   = getCirclePoint(diameter/2.3, (i+40) * Math.PI/180);
+                        let edge = getCirclePoint(diameter/2  , i * Math.PI/180);
                         
                         processingInstance.bezier(0,0,c1.x,c1.y,c2.x,c2.y,edge.x,edge.y);
                     }
@@ -971,7 +981,7 @@ const programCode = function(processingInstance) {
             
             /* hit tank's hinge? */
             let tHinge = tank.hinge;
-            hitTank |= processingInstance.dist(tHinge.x, tHinge.y, x, y) < 5;
+            hitTank ||= processingInstance.dist(tHinge.x, tHinge.y, x, y) < 5;
             
             
             /* hit tank's body? */
@@ -980,36 +990,39 @@ const programCode = function(processingInstance) {
             
             let tankY = accessG(Math.round(tank.x))[1];
             
-            let corners = [
-                [ w/2, h*-5/3],
-                [ w/2,      0],
-                [-w/2,      0],
-                [-w/2, h*-5/3],
+            let tankBodyCornerss = [
+                {x:  w/2, y: h*-5/3},
+                {x:  w/2, y:      0},
+                {x: -w/2, y:      0},
+                {x: -w/2, y: h*-5/3},
             ];
             
-            rotate2D(corners, tank.angle);
+            rotate2D(tankBodyCornerss, tank.angle);
+
+            tankBodyCornerss.forEach(function(corner) {
+                corner.x += tank.x;
+                corner.y += tankY;
+            });
             
-            hitTank |= checkSide2(corners,0,1,tank.x,tankY,x,y)&&
-                checkSide2(corners,1,2,tank.x,tankY,x,y)&&
-                checkSide2(corners,2,3,tank.x,tankY,x,y)&&
-                checkSide2(corners,3,0,tank.x,tankY,x,y);
+            hitTank ||= isInPolygon(x, y, tankBodyCornerss);
             
             /* hit tank's cannon? */
-            corners = [
-                [ w*2/3, -h/4],
-                [ w*2/3,  h/4],
-                [     0,  h/4],
-                [     0, -h/4],
+            let tankCannonCorners = [
+                {x: w*2/3, y: -h/4},
+                {x: w*2/3, y:  h/4},
+                {x:     0, y:  h/4},
+                {x:     0, y: -h/4},
             ];
             
-            rotate2D(corners, tank.angle+tank.gunAngle);
+            rotate2D(tankCannonCorners, tank.angle + tank.gunAngle);
             
-            let piv = tank.hinge;
+            let tankHinge = tank.hinge;
+            tankCannonCorners.forEach(function(corner) {
+                corner.x += tankHinge.x;
+                corner.y += tankHinge.y;
+            });
             
-            hitTank |= checkSide2(corners,0,1,piv.x,piv.y,x,y)&&
-                checkSide2(corners,1,2,piv.x,piv.y,x,y)&&
-                checkSide2(corners,2,3,piv.x,piv.y,x,y)&&
-                checkSide2(corners,3,0,piv.x,piv.y,x,y);
+            hitTank ||= isInPolygon(x, y, tankCannonCorners);
             
             return hitTank && "tank";
         }
@@ -1037,7 +1050,7 @@ const programCode = function(processingInstance) {
             this.hitBox      = getMissProp(this.type, "hitBox"     );
             this.explode2    = getMissProp(this.type, "explode2"   );
             this.end         = getMissProp(this.type, "end"        );
-            this.getDivAmount= getMissProp(this.type,"getDivAmount");
+            this.getDivAmount= getMissProp(this.type, "getDivAmount");
             
             let result = getMissProp(this.type,"setUp").call(this);
             
@@ -1267,8 +1280,8 @@ const programCode = function(processingInstance) {
                 },
                 set:function(angle) {
                     this._gunAngle = angle < 0? 
-                        angle > -180? angle : -180 : 
-                        angle > 90? 180 : 0;
+                        angle > -Math.PI? angle : -Math.PI : 
+                        angle > (Math.PI / 2)? Math.PI : 0;
                 }
             },
             power: {
@@ -1291,10 +1304,10 @@ const programCode = function(processingInstance) {
             },
             angle: {
                 get:function() {
-                    return (-processingInstance.atan2(this.width,  
+                    return (-Math.atan2(this.width,  
                     calcAvPixelHeight(this.x+this.width/2)-
                     calcAvPixelHeight(this.x-this.width/2)
-                            ) - 180) % 360;
+                            ) + Math.PI/2) % (Math.PI * 2);
                 }
             },
             hinge: {
@@ -1553,22 +1566,23 @@ const programCode = function(processingInstance) {
                 let launchPoint = this.cannonTip;
                 let x = -Math.abs(launchPoint.x - targ.x);
                 let y = launchPoint.y - targ.y;
-                if (x === 0 && y === 0) { return -Math.PI/2; }
+                if (x === 0 && y === 0) { return -Math.PI / 2; }
                 let v = this.power, g = gravity.y;
                 let angle = Math.atan((v*v+
                     Math.sqrt(v*v*v*v - g*(g*x*x + 2*y*v*v)))/(g*x));
-                angle *= 180 / Math.PI;
-                return this.x > targ.x? -angle + 180 : angle;
+                
+                return this.x > targ.x? -angle + Math.PI : angle;
             },
             aimAtTarget: function(targ) {
                 let inRange;
                 for (let i = 0; i < 20; i++) {
                     let angle = this.getFireAngleToHit(targ);
-                    let adjusted = (angle - this.angle - 360 * 2) % 360;
+                    let adjusted = (angle - this.angle) % (Math.PI * 2);
+                    adjusted = angle - this.angle;
                     inRange = !Number.isNaN(angle);
-                    console.log(angle, adjusted, this.angle);
-                    this.gunAngle = inRange? angle : 
-                        this.x > targ.x? -180 : 0;
+                    // console.log(angle, adjusted, this.angle);
+                    console.log(adjusted);
+                    this._gunAngle = inRange? adjusted : this.x > targ.x? -Math.PI : 0;
                 }
                 return inRange;
             },
@@ -1604,12 +1618,10 @@ const programCode = function(processingInstance) {
                     let closestDist = value.dist;
                     if (!closestDist.outOfFuel || this.fuel > 0) {
                         this.move(closest.x > this.x? 1 : -1);
-                        if (closest.inRange(this.x, this.width) && 
-                            !closest.type.includes("life")) {
+                        if (closest.inRange(this.x, this.width) && !closest.type.includes("life")) {
                             this.goForTank = true;
                         }
-                    } else if(!Box.prototype.types.includes(
-                                Missile.findShot(this.shots))) {
+                    } else if (!Box.prototype.types.includes(Missile.findShot(this.shots))) {
                         let targetInRange = this.aimAtTarget(closest);
                         if (!doAction) { return; }
                         if (targetInRange) {
@@ -1617,8 +1629,7 @@ const programCode = function(processingInstance) {
                             if (index > -1) {
                                 this.curShot = this.shots[index];
                             } else {
-                                this.curShot = Missile.findShot(
-                                    this.shots, true);
+                                this.curShot = Missile.findShot(this.shots, true);
                             }
                             this.fireMissile();
                         } else if (this.fuel > 0) {
@@ -1800,7 +1811,7 @@ const programCode = function(processingInstance) {
                         this.powerConPos = this.power * 3;
                     break;
                     case "menu":
-                        this.menuOff += processingInstance.pmouseY - processingInstance.mouseY;
+                        this.menuOff += pmouseY - processingInstance.mouseY;
                     break;
                     case "menuBar":
                         let fraction = this.heightOfShots / height;
@@ -1907,10 +1918,10 @@ const programCode = function(processingInstance) {
         let tank1Wrapper = {value: null};
         let tank2Wrapper = {value: null};
 
-        tank1 = Tank.new({side: 1, gunAngle:processingInstance.random(180, 0), 
+        tank1 = Tank.new({side: 1, gunAngle:processingInstance.random(Math.PI, 0), 
             num: blueStart? 1 : 2, otherWrapper: tank2Wrapper, 
             playAI: numPlayers <= (blueStart? 0 : 1)});
-        tank2 = Tank.new({side: 2, gunAngle:processingInstance.random(180, 0), 
+        tank2 = Tank.new({side: 2, gunAngle:processingInstance.random(Math.PI, 0), 
             num: blueStart? 2 : 1, otherWrapper: tank1Wrapper, 
             playAI: numPlayers <= (blueStart? 1 : 0)});
 
@@ -2017,7 +2028,7 @@ const programCode = function(processingInstance) {
         let w = width/imageScale/2, h = height/imageScale/2;
         
         if(processingInstance.mouseX>x-w && processingInstance.mouseX<x+w && processingInstance.mouseY>y-h && processingInstance.mouseY<y+h) {
-            if(mouseButton === processingInstance.RIGHT) {
+            if(processingInstance.mouseButton === processingInstance.RIGHT) {
                 if(imageScale === defaultImageScale) {
                     imageX = width/2; imageY = height/2;
                     imageScale = 1;
@@ -2217,12 +2228,15 @@ const programCode = function(processingInstance) {
             checkTie(tank1, tank2);
             
             pnumMissiles = numMissiles;
-        }else {
+        } else {
             processingInstance.background(0);
             drawScreen();
         }
+
+        pmouseX = processingInstance.mouseX;
+        pmouseY = processingInstance.mouseY;
         // Some code to be uncommented when the code might not work
-        //*
+        /*
         processingInstance.pushMatrix();
         processingInstance.translate(30, 470);
         processingInstance.rotate(Math.PI / 2);
