@@ -1,4 +1,4 @@
-/* A lot of the code ported from https://eloquentjavascript.net/ */
+/* A lot of the code ported from https://eloquentjavascript.net/16_game.html then modified */
 
 const playerXSpeed = 7;
 const gravity = 40;
