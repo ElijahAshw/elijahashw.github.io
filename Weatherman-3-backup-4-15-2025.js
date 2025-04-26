@@ -4,7 +4,7 @@
                 
          I have completed 100% of Khan Academy's 
         'Intro to JS' and have been programming 
-                    for 60 months.
+                  for 60 months.
     
           I would prefer to be placed in the
                       Advanced
@@ -22,17 +22,6 @@
 
 /** TODO:
    * Make more levels
-   * Create an option for text to be displayed on top of actors
-   * Prevent player from falling through the floor
-   * Add a cloud to the end screen
-   * Improve graphics for
-    - Ground
-    - Lava
-    - Portal?
-    - Player
-    - Enemies
-    - Snow
-    - Sun??
    * Submit!
 **///
 
@@ -41,12 +30,11 @@ var weatherTypes = ["sun", "small sun", "clouds", "light snow", "snow"];
 var screenNames = ["title", "info", "play", "end"];
 var blockSize = 20;
 // Foreward declarations
-var myRect, myRectMode, isInMyRect, Level, Screen;
+var myRect, myRectMode, isInMyRect, drawCharacter, Level, Screen;
 
 // Game state
 var gameState = {
     screen: screenNames[0],
-    weather: weatherTypes[2],
     level: 0,
 };
 
@@ -78,7 +66,7 @@ var allLevelsStored = [
         "#------------------------##sss#",
         "#------------------------#s#s#s",
         "#------#-----------------###s##",
-        "#-$----###sss##-<--#########s##",
+        "#-$----###sss##->--#########s##",
         "###############################",
         {text: "Hop up!", x: 84, y: 159},
         {text: "Avoid the lava.", x: 207, y: 158},
@@ -105,7 +93,7 @@ var allLevelsStored = [
         "############s########################",
         {text: "You need\nsnow again.", x: 53, y: 213},
         {text: "You won't fall through.", x: 212, y: 127},
-        {text: "Now you\nneed the\nsun.", x: 347, y: 117},
+        {text: "Now you\nneed the\nsun.", x: 347, y: 117, front: true},
         {text: "Use down to\nalign and get\nthrough the hole.", x: 344, y: 199},
         {text: "'r' to restart.", x: 344, y: 279},
         {text: "Snow can\nhold them still.", x: 451, y: 217},
@@ -149,6 +137,27 @@ var allLevelsStored = [
         {text: "Enemies walk on snow.\n Use this to your advantage.", x: 131, y: 108},
         ],
     /* Level 5 */ [
+        "#--#####---##",
+        "#--------->@#",
+        "#---$---#-###",
+        "#--####-#---#",
+        "#-------#-###",
+        "#---------#s#",
+        "#############",
+        {text: "Enemies can fall if what they're standing on falls.", x: 131, y: 152},
+        ],
+    /* Level 6 */ [
+        "-------##",
+        "-------##",
+        "--####-##",
+        "--#-@#-##",
+        "--#-##-##",
+        "--#----##",
+        "--#######",
+        "-$#######",
+        {text: "Good luck!", x: 113, y: 142},
+        ],
+    /* Level 7 */ [
         "ssssssssss----",
         "----@---s-----",
         "--------s--->-",
@@ -157,13 +166,25 @@ var allLevelsStored = [
         "$---sssssssss-",
         "##-##########-",
         "--------------",
-        {text: "Good luck!", x: 173, y: 108},
         ],
-    
+    /* Level 8 */ [
+        "---------#---------ssssssssssss#",
+        "------------------------------@#",
+        "-------------------------------#",
+        "-$-----------------------------#",
+        "#########----------------------#",
+        "<><><><><-----------sssssssss###",
+        "#########----------#############",
+        "##s#s#s##----------#s#s#s#s#s#s#",
+        "#s#s#s#s#----------##s#s#s#s#s##",
+        "##s#s#s##----------#s#s#s#s#s#s#",
+        "##########ss#ss#ss##############",
+        {text: "Random snow can form bridges.", x: 115, y: 232},
+        ],
 ];
 
 // And stored scenes and an object to hold loaded ones
-var gameScreens = {};
+var gameScreens = Object.create(null);
 var gameScreensStored = {
     "title": {
         run: function () {
@@ -216,7 +237,7 @@ var gameScreensStored = {
             
             textSize(20);
             textAlign(CENTER, TOP);
-            text("Use the arrow keys to move the player\naround. Wasd and/or spacebar also work.\nUse the selectors at the top of the screen\nto change the weather.\nUse this power well!\nYou can jump on top of snow. Hitting\nit from any other side will get rid of it.\nYou will learn more as you play.", width / 2, 100);
+            text("Use the arrow keys to move the player\naround. Wasd and/or spacebar also work.\nPress 'r' to restart. Use the selectors at the\ntop of the screen to change the weather.\nUse this power well!\nYou can jump on top of snow. Hitting\nit from any other side will get rid of it.\nYou will learn more as you play.", width / 2, 100);
         },
         buttons: [
             {x: 150, y: 300, w: 100, message: "Back", textSize: 33, 
@@ -424,6 +445,19 @@ var gameScreensStored = {
                 line(innerX, innerY, outerX, outerY);
             }
             
+            // Cloud
+            var x = 349, y = 21, s = 300;
+            var cloudWidth = s / 3;
+            var cloudHeight = s / 4;
+            
+            fill(138, 138, 138);
+            noStroke();
+            ellipse(x, y, cloudWidth , cloudHeight); // Center
+            ellipse(x - s / 6, y + cloudHeight / 6, 
+                cloudWidth , cloudHeight * 2 / 3); // Left
+            ellipse(x + s / 6, y + cloudHeight / 6, 
+                cloudWidth , cloudHeight * 2 / 3); // Right
+            
             // Title
             textSize(40);
             fill(0, 0, 0);
@@ -433,7 +467,7 @@ var gameScreensStored = {
             // Smaller message
             textSize(22);
             textAlign(CENTER, TOP);
-            var message = "Congrats! You used the weather to\nhelp you defeat your enemies and\ntraverse a challenging world!";
+            var message = "Congratulations! You used the weather\nto help you defeat your enemies\nand traverse a challenging world!";
             
             // Increase the line height
             message = message.split("\n");
@@ -453,38 +487,152 @@ var gameScreensStored = {
     },
 };
 
+// Bitmaps
+// My sister helped me with the player and portal graphics
+var bitmaps = bitmaps || Object.create(null); // Don't regenerate the bitmaps on restart
+var bitmapsStored = {
+    "dirt": {
+        colorMap: {
+            "1": color(122, 79, 0),
+            "2": color(156, 96, 0),
+        },
+        bitmap: [
+            "12112",
+            "11121",
+            "21111",
+            "21112",
+            "11211",
+            ]
+    },
+    "grass": {
+        colorMap: {
+            "1": color(122, 79, 0),
+            "2": color(156, 96, 0),
+            "3": color(57, 176, 63),
+            "4": color(94, 199, 99),
+        },
+        bitmap: [
+            "43434",
+            "11121",
+            "21111",
+            "21112",
+            "11211",
+            ]
+    },
+    "lava": {
+        colorMap: {
+            "1": color(255, 85, 0),
+            "2": color(255, 162, 0),
+        },
+        bitmap: [
+            "21121",
+            "22111",
+            "11112",
+            "11211",
+            "12121",
+            ]
+    },
+    // My sister helped me with the portal graphics
+    "portal": {
+        colorMap: {
+            "1": color(255, 0, 238),
+            "2": color(200, 0, 255),
+        },
+        bitmap: [
+            "211111",
+            "212221",
+            "212121",
+            "211121",
+            "222221",
+            "111111",
+            ]
+    },
+    "enemy": {
+        colorMap: {
+            "0": color(1, 0, 0, 0),
+            "1": color(255, 196, 0),
+            "2": color(11, 97, 0),
+        },
+        bitmap: [
+            "101101",
+            "122221",
+            "022220",
+            "022220",
+            "010010",
+            "110011",
+            ]
+    },
+    // My sister helped me with the player graphics
+    "player": {
+        colorMap: {
+            "0": color(1, 0, 0, 0),
+            "1": color(75, 91, 171),
+            "2": color(77, 166, 255),
+            "3": color(0, 255, 255),
+            "4": color(255, 223, 194),
+            "5": color(186, 97, 86),
+        },
+        bitmap: [
+            "554455",
+            "004400",
+            "433334",
+            "003300",
+            "022220",
+            "110011",
+            ]
+    },
+    "snow": {
+        colorMap: {
+            "1": color(255, 255, 255),
+            "2": color(219, 252, 255),
+            "3": color(191, 229, 255),
+        },
+        bitmap: [
+            "23323",
+            "31112",
+            "11111",
+            "11111",
+            "11111",
+            ]
+    },
+    "sun": {
+        colorMap: {
+            "1": color(255, 255, 0, 100),
+        },
+        bitmap: [
+            "1",
+            ]
+    },
+};
+
 /** Character constructers **/
 // From Bob Lyon, I have learned to like to use IIFEs to wrap constructors
 
 // Static characters are all characters that do not change
 var Static = (function() {
-    function Static(type, x, y, s) {
+    function Static(type, x, y, s, above) {
         this.type = type;
         this.x = x;
         this.y = y;
         this.s = s; // Size
+        this.above = above;
     }
     
     Static.prototype.draw = function() {
+        // rect can be used here, because I am not using radius
         if (this.type === "dirt") {
-            fill(122, 79, 0);
-            stroke(122, 79, 0);
-            strokeWeight(0.5);
-            myRect(this.x, this.y, this.s, this.s);
-        } else if (this.type === "lava") {
-            fill(255, 85, 0);
-            stroke(255, 85, 0);
-            strokeWeight(0.5);
-            myRect(this.x, this.y, this.s, this.s);
-        } else if (this.type === "portal") {
-            fill(255, 0, 238);
-            noStroke();
-            myRect(this.x, this.y, this.s, this.s);
+            if (this.above === "empty" || this.above === "portal") {
+                drawCharacter("grass", this.x, this.y);
+            } else {
+                drawCharacter(this.type, this.x, this.y);
+            }
+        } else if (this.type === "lava" || this.type === "portal") {
+            drawCharacter(this.type, this.x, this.y);
         } else { // Unknown type
             fill(255, 0, 0);
             stroke(0, 0, 0);
             strokeWeight(2);
-            myRect(this.x, this.y, this.s, this.s);
+            rect(this.x, this.y, this.s, this.s);
         }
     };
     
@@ -532,9 +680,7 @@ var Sun = (function() {
     };
     
     Sun.prototype.draw = function() {
-        fill(255, 255, 0, 100);
-        noStroke();
-        myRect(this.x, this.y, this.s, this.s);
+        drawCharacter(this.type, this.x, this.y);
     };
     
     return Sun;
@@ -596,9 +742,7 @@ var Snow = (function() {
     };
     
     Snow.prototype.draw = function() {
-        fill(255, 255, 255);
-        noStroke();
-        myRect(this.x, this.y, this.s, this.s);
+        drawCharacter(this.type, this.x, this.y);
     };
     
     return Snow;
@@ -613,13 +757,15 @@ var Player = (function() {
         this.yVelocity = 0;
         this.xSpeed = 140; // Pixels per second
         this.jumpSpeed = -360;
-        this.gravity = 20;
+        this.gravity = 20 / 0.015;
         this.type = "player";
         this.remove = false;
     }
     
     Player.prototype.update = function(secondsElapsed, keys, level) {
         // Test if we are on ground
+        // This being before x-movement allows the player to jump even as 
+        // they fall off an edge
         var onGround = level.touches(this.x, this.y + 1, "dirt");
         
         // X-direction movement {
@@ -655,23 +801,29 @@ var Player = (function() {
         this.previousY = this.y;
         
         // Apply gravity
-        this.yVelocity += this.gravity;
+        this.yVelocity += this.gravity * secondsElapsed;
         
         // Fall
         var yMotion = this.yVelocity * secondsElapsed;
-        var newY = this.y + yMotion;
-        // Test collision with ground
-        var touchY = level.touches(this.x, newY, "dirt");
-        if (touchY) {
-            if (yMotion > 0) {
-                this.y = touchY.y - blockSize;
-                this.yVelocity = 0;
+        // Prevent falling by more than a blockSize at once
+        // jumps is how many parts the y motion will be split into
+        var jumps = Math.ceil(Math.abs(yMotion) / blockSize);
+        for (var p = 0; p < jumps; p++) {
+            var newY = this.y + yMotion / jumps;
+            // Test collision with ground
+            var touchY = level.touches(this.x, newY, "dirt");
+            if (touchY) {
+                if (yMotion > 0) {
+                    this.y = touchY.y - blockSize;
+                    this.yVelocity = 0;
+                } else {
+                    this.y = touchY.y + blockSize;
+                    this.yVelocity = 0;
+                }
+                break; // We hit something, so we don't need to continue
             } else {
-                this.y = touchY.y + blockSize;
-                this.yVelocity = 0;
+                this.y = newY;
             }
-        } else {
-            this.y = newY;
         }
         
         // Jump?
@@ -730,9 +882,7 @@ var Player = (function() {
     };
     
     Player.prototype.draw = function() {
-        fill(26, 0, 255);
-        noStroke();
-        myRect(this.x, this.y, this.s, this.s);
+        drawCharacter(this.type, this.x, this.y);
     };
     
     return Player;
@@ -745,7 +895,7 @@ var Enemy = (function() {
         this.s = s; // Size
         this.previousY = y;
         this.yVelocity = 0;
-        this.gravity = 20; // Same as player
+        this.gravity = 20 / 0.015; // Same as player
         this.xSpeed = 40;
         this.type = "enemy";
         this.remove = false;
@@ -807,27 +957,32 @@ var Enemy = (function() {
         this.previousY = this.y;
         
         // Apply gravity
-        this.yVelocity += this.gravity;
+        this.yVelocity += this.gravity * secondsElapsed;
         
         // Fall
         var yMotion = this.yVelocity * secondsElapsed;
-        this.y += yMotion;
-        // Test collision with ground or some actors
-        var touchDirtY = level.touches(this.x, this.y, "dirt");
-        var touchActorY = level.touchesActors(this, ["snow", "enemy"]);
-        var touchY = touchDirtY || touchActorY;
-        if (touchY) {
-            if (yMotion > 0) {
-                // Falling, so go to the top of the object
-                this.y = touchY.y - blockSize;
-                this.yVelocity = 0;
+        // Prevent falling by more than a blockSize at once
+        // jumps is how many parts the y motion will be split into
+        var jumps = Math.ceil(Math.abs(yMotion) / blockSize);
+        for (var p = 0; p < jumps; p++) {
+            this.y += yMotion / jumps;
+            // Test collision with ground or some actors
+            var touchDirtY = level.touches(this.x, this.y, "dirt");
+            var touchActorY = level.touchesActors(this, ["snow", "enemy"]);
+            var touchY = touchDirtY || touchActorY;
+            if (touchY) {
+                if (yMotion > 0) {
+                    // Falling, so go to the top of the object
+                    this.y = touchY.y - blockSize;
+                    this.yVelocity = 0;
+                } else {
+                    // Jumping, to go to the bottom of the object
+                    this.y = touchY.y + blockSize;
+                    this.yVelocity = 0;
+                }
             } else {
-                // Jumping, to go to the bottom of the object
-                this.y = touchY.y + blockSize;
-                this.yVelocity = 0;
+                // We didn't hit anything when we fell, so there's nothing more to do here.
             }
-        } else {
-            // We didn't hit anything when we fell, so there's nothing more to do here.
         }
         // }
     };
@@ -843,9 +998,7 @@ var Enemy = (function() {
     Enemy.prototype.collide = function(actor) {};
     
     Enemy.prototype.draw = function() {
-        fill(255, 196, 0);
-        noStroke();
-        myRect(this.x, this.y, this.s, this.s);
+        drawCharacter(this.type, this.x, this.y);
     };
     
     return Enemy;
@@ -898,7 +1051,10 @@ var Level = (function() {
                 if (typeof type === "string" || type === undefined) {
                     // Don't make empty blocks
                     if (type !== "empty") {
-                        staticRow[x] = new Static(type, xPos, yPos, blockSize);
+                        // Useful for grass
+                        var above = y < 1? "dirt" : this.static[y - 1][x]? 
+                            this.static[y - 1][x].type : "empty";
+                        staticRow[x] = new Static(type, xPos, yPos, blockSize, above);
                     }
                 } else if (typeof type === "function") { // Actor, has a constructor
                     var newActor = new type(xPos, yPos, blockSize, plan[y][x]);
@@ -1036,26 +1192,47 @@ var Level = (function() {
         noStroke();
         myRect(0, 0, this.levelWidth * blockSize, this.levelHeight * blockSize);
         
+        // Compute the first and last visible blocks on the board
+        var firstX = Math.floor(-this.offsetX / blockSize);
+        var lastX = Math.ceil((-this.offsetX + width) / blockSize);
+        var firstY = Math.floor(-this.offsetY / blockSize);
+        var lastY = Math.ceil((-this.offsetY + width) / blockSize);
+        
         // Draw the static elements
         for (var y = 0; y < this.static.length; y++) {
             for (var x = 0; x < this.static[y].length; x++) {
-                if (this.static[y][x]) {
+                var invisible = x < firstX || x > lastX || y < firstY || y > lastY;
+                if (this.static[y][x] && !invisible) {
                     this.static[y][x].draw();
                 }
             }
         }
         
+        // Draw the less important text
         textAlign(CENTER, CENTER);
         for (var i = 0; i < this.text.length; i++) {
             var txt = this.text[i]; // Cannot redefine the text function
-            fill(0, 0, 0);
-            textSize(txt.size || 15);
-            text(txt.text, txt.x, txt.y);
+            if (!txt.front) {
+                fill(0, 0, 0);
+                textSize(txt.size || 15);
+                text(txt.text, txt.x, txt.y);
+            }
         }
         
         // Draw the active elements
         for (var i = 0; i < this.actors.length; i++) {
             this.actors[i].draw();
+        }
+        
+        // Draw the important text
+        textAlign(CENTER, CENTER);
+        for (var i = 0; i < this.text.length; i++) {
+            var txt = this.text[i]; // Cannot redefine the text function
+            if (txt.front) {
+                fill(0, 0, 0);
+                textSize(txt.size || 15);
+                text(txt.text, txt.x, txt.y);
+            }
         }
         
         popMatrix();
@@ -1161,7 +1338,7 @@ var Button = (function() {
         }
     };
     
-    Button.prototype.draw = function(mx, my, selected) {
+    Button.prototype.draw = function(mx, my, selected, selectable) {
         // Alignment
         textAlign(CENTER, CENTER);
         myRectMode(CORNER);
@@ -1177,7 +1354,7 @@ var Button = (function() {
         
         // Draw the button
         stroke(0, 0, 0);
-        strokeWeight(1);
+        strokeWeight(selectable? 1 : 2);
         myRect(this.x, this.y, this.w, this.h, this.r);
         
         // Draw the message, which might be a function
@@ -1259,12 +1436,12 @@ var Screen = (function() {
         this.runMain(this.keys, secondsElapsed, this.selectedButtons); 
         
         for (var i = 0; i < this.buttons.length; i++) {
-            this.buttons[i].draw(mx, my, false);
+            this.buttons[i].draw(mx, my, false, false);
         }
         
         for (var s = 0; s < this.buttonSets.length; s++) {
             for (var b = 0; b < this.buttonSets[s].length; b++) {
-                this.buttonSets[s][b].draw(mx, my, this.selectedButtons[s] === b);
+                this.buttonSets[s][b].draw(mx, my, this.selectedButtons[s] === b, true);
             }
         }
     };
@@ -1290,10 +1467,17 @@ var Screen = (function() {
     };
     
     Screen.switchTo = function(name) {
+        // Load the screen if it has not already been loaded
+        if (!(name in gameScreens) && name in gameScreensStored) {
+            gameScreens[name] = new Screen(gameScreensStored[name]);
+        } else if (!(name in gameScreensStored)) {
+            return;
+        }
+        
         var keys = gameScreens[gameState.screen].keys;
+        gameScreens[name].keys = keys;
         gameState.screen = name;
-        gameScreens[gameState.screen].keys = keys;
-        gameScreens[gameState.screen].onLoad();
+        gameScreens[name].onLoad();
     };
     
     return Screen;
@@ -1314,13 +1498,6 @@ function myRect(x, y, w, h, r1, r2, r3, r4) {
     // kappa and bezier points adapted from bob lyons program
     // https://www.khanacademy.org/computer-programming/bzier-circle-simple-as-1-2-3-4/1258627859
     var kappa = 4 / 3 * (Math.SQRT2 - 1);
-    
-    var ifNull = Object.constructor("a, b", "return a ?? b;");
-    var sideMin = Math.min(Math.abs(w), Math.abs(h))/2;
-    r1 = Math.min(ifNull(r1, 0 ), sideMin);
-    r2 = Math.min(ifNull(r2, r1), sideMin);
-    r3 = Math.min(ifNull(r3, r2), sideMin);
-    r4 = Math.min(ifNull(r4, r3), sideMin);
     
     if (myRectMode.mode === CORNERS) {
         // taken from println(rect)
@@ -1349,7 +1526,7 @@ function myRect(x, y, w, h, r1, r2, r3, r4) {
     }
     
     beginShape();
-    if (r1 === 0 && r2 === 0 && r3 === 0 && r4 === 0) {
+    if (arguments.length <= 4) {
         vertex(x, y + h / 2);
         vertex(x, y);
         vertex(x + w, y);
@@ -1357,6 +1534,13 @@ function myRect(x, y, w, h, r1, r2, r3, r4) {
         vertex(x, y + h);
         vertex(x, y + h / 2);
     } else {
+        var ifNull = Object.constructor("a, b", "return a ?? b;");
+        var sideMin = Math.min(Math.abs(w), Math.abs(h))/2;
+        r1 = Math.min(ifNull(r1, 0 ), sideMin);
+        r2 = Math.min(ifNull(r2, r1), sideMin);
+        r3 = Math.min(ifNull(r3, r2), sideMin);
+        r4 = Math.min(ifNull(r4, r3), sideMin);
+        
         vertex(x, y + h / 2);
         vertex(x, y + r1);
         bezierVertex(x, y - r1 * kappa + r1, x - r1 * kappa + r1, y, x + r1, y);
@@ -1371,7 +1555,7 @@ function myRect(x, y, w, h, r1, r2, r3, r4) {
     }
     endShape(CLOSE);
 }
-function isInMyRect(pointX, pointY, x, y, w, h, r1, r2, r3, r4) { // Not working
+function isInMyRect(pointX, pointY, x, y, w, h, r1, r2, r3, r4) {
     var px = pointX, py = pointY;
     var ifNull = Object.constructor("a, b", "return a ?? b;");
     var sideMin = min(abs(w), abs(h))/2;
@@ -1430,21 +1614,49 @@ function isInMyRect(pointX, pointY, x, y, w, h, r1, r2, r3, r4) { // Not working
     
     return result;
 }
-// } myRect function, I wrote this before the contest began. Link:
+// } myRect function, I (mostly) wrote this before the contest began. Link:
 // https://www.khanacademy.org/computer-programming/myrect-better-rectangle/4561505013776384
-// The rest of the code was written after the contest began.
+// The rest of my code was written after the contest began.
 
-/** Initalization, event handling, and game loop **/
-/* Initalize screens and levels to their constructors, also a bit of the gameState */
-function initalize() {
-    for (var i = 0; i < screenNames.length; i++) {
-        var name = screenNames[i];
-        if (name in gameScreensStored) {
-            gameScreens[name] = new Screen(gameScreensStored[name]);
+/** Bitmap drawing functions **/
+function drawCharacter(bitmapName, xPos, yPos) {
+    image(bitmaps[bitmapName], xPos, yPos);
+}
+
+function loadBitmaps() {
+    for (var name in bitmapsStored) {
+        if (!(name in bitmaps)) {
+            var bitmap = bitmapsStored[name].bitmap;
+            var colorMap = bitmapsStored[name].colorMap;
+            var blockHeight = blockSize / bitmap.length;
+            
+            // I think iterating backwards is faster because
+            // the array length is only read once.
+            background(255, 0, 0, 0);
+            strokeWeight(0.7); // Prevent gaps between pixels
+            for (var y = bitmap.length; y-- > 0;) { 
+                var blockWidth = blockSize / bitmap[y].length;
+                for (var x = bitmap[y].length; x-- > 0;) {
+                    var blockX = x * blockWidth, blockY =  y * blockHeight;
+                    var blockColor = colorMap[bitmap[y][x]]; // Reduce lookups
+                    fill(blockColor);
+                    stroke(blockColor);
+                    quad(blockX, blockY, 
+                        blockX + blockWidth, blockY, 
+                        blockX + blockWidth, blockY + blockHeight,
+                        blockX, blockY + blockHeight);
+                }
+            }
+            
+            bitmaps[name] = get(0, 0, blockSize, blockSize);
         }
     }
 }
-initalize();
+
+/** Initalization, event handling, and game loop **/
+loadBitmaps();
+
+Screen.switchTo(gameState.screen);
 
 mouseClicked = function() {
     gameScreens[gameState.screen].mouseClicked(mouseX, mouseY);
@@ -1472,5 +1684,3 @@ draw = function() {
         debug(error);
     }
 };
-
-// Screen.switchTo("play");
