@@ -12,21 +12,54 @@
                        
     
     TODO:
-     - Fill out statements above
-     - Save your entry as a spin-off of this program
-     - Have fun!
+     - Fill out statements above ✓
+     - Save your entry as a spin-off of this program ✓
+     - Have fun! ✓
      
 **/
 
-/** TODO:
-   * Write comment para about game; big picture, what did I create
-   * Submit!
-**/ //
-
 /** 
  *     Weatherman is a platformer where controlling the weather is a 
- * big part of how you win.
+ * key part of how you win.
+ *    Optimization has been a big part of the game. When I first added the 
+ * bitmap characters, the game slowed down unbearably. Preloading them has 
+ * made a big improvement, and further improvement came from putting all
+ * the static parts of the level into one large image. Next I timed my program,
+ * and was suprised to find that updating the actors (moving characters)
+ * took about four times as long as drawing them, so that is where I focused
+ * next. Improvements were found by subdividing the actors, so all the enemies 
+ * were in one place, the sun actors in another array, the snow seperate, and 
+ * the player(s?) in their own array. Also organizing each type of actor 
+ * into columns.
+ *     This game is, as far as I know, original. I came up with the idea one 
+ * day in early April, and began creating it from nothing but my previous 
+ * experience working on games.
+ *     Since this is a contest entry (and my first!), I tried to keep the 
+ * classes well defined and encapsulated. The result was a game that was 
+ * quite plesant to work on, and easy to understand (at least from my point 
+ * of view).
+ *     For this game, I designed a nice structure of screens, and events get 
+ * piped straight to those screens. Each screen stores buttons from the Button
+ * constructor, and connects the events to them as well. And the screen runs
+ * the run function that was passed in the config, allowing the programmer to 
+ * simply define a general run function and some configs for buttons, and
+ * the Screen takes care of creating the buttons and clicking them. The Screen
+ * constructor even has functionality for a set of options, made of buttons, 
+ * and for key controls for the buttons.
+ *     Beside the Screen class, another major class is the Level. This class 
+ * stores all the information about the level. This includes the types of the 
+ * static squares, the background image of all the static squares, and the 
+ * actors in a large data structure which helps with fast collision detection.
+ * You only need to create the Level object for the current level plan, store 
+ * so you can get it again, and call its run method. And checking for when it
+ * is finished, either by winning or losing.
+ *     Many of my good ideas about how to structure a game come from my
+ * experience working through the game design tutorial at https://eloquentjavascript.net/16_game.html which is a great resource that has taught me a ton.
+ *     Also thanks to Bob Lyon, who's great programs have taught and inspired
+ * me, and to whom I have many credits.
  *     
+ *     And now, on to the code of my biggest project to date!
+ *                       - ElijaKen
  **/
 
 /** Comment detailing the game's overall structure and interfaces **/
@@ -63,7 +96,7 @@ var screenNames = ["home", "info", "select", "play", "end"];
 var tutorialLevels = 7;
 var blockSize = Math.max(width / 20, height / 20);
 // Foreward declarations, to keep OhNoes happy
-var myRect, myRectMode, isInMyRect, bitmapsStored, Level, Screen, Static, ButtonArray;
+var myRect, myRectMode, isInMyRect, Level, Screen, Static, ButtonArray;
 
 // Game state
 var gameState = {
@@ -77,10 +110,21 @@ var lastMillis = 0;
 // Array for storing the positions of snow on the home screen
 var snowPositions = snowPositions || [];
 
+// Home screen level
+var homeScreenLevel;
+var homeScreenLevelStored = [
+    "----------------------------------------",
+    "---#------------------------------------",
+    "---#-#------------##---------------###--",
+    "--##-----------#-------------------#----",
+    "---##-------$-----------#--<--##-#-----@",
+    "#################ss#####################",
+    ];
+
 // Stored level plans and an array to hold Level objects
 var allLevels = [];
 var allLevelsStored = [
-    /* Charactor to block mapping:
+    /* Character to block mapping:
         "#": "dirt",
         "-": "empty",
         "s": "lava",
@@ -556,10 +600,15 @@ var gameScreensStored = {
                 snowPositions[i].y %= height * 1.025; // Wrap the snow around
             }
             
-            // Weatherman image
-            var bitmapObject = bitmapsStored.player;
-            Static.drawBitmap(bitmapObject.bitmap, bitmapObject.colorMap, 
-                width * 0.375, height * 0.4075, width * 0.25, height * 0.25);
+            // Home screen level
+            if (homeScreenLevel.state === "lose") {
+                homeScreenLevel = Level.new(homeScreenLevelStored);
+            } else if (homeScreenLevel.state === "win" && 
+                    gameState.screen === "home") {
+                Screen.switchTo("play");
+            }
+            
+            homeScreenLevel.run(keys, secondsElapsed, "clouds", false);
             
             // Title
             var titleText = "Weatherman";
@@ -570,13 +619,13 @@ var gameScreensStored = {
             noStroke();
             fill(158, 158, 158); // Slightly lighter than the background
             myRectMode(CENTER);
-            myRect(width / 2, height * 0.275, textWidth(titleText) + margin, 
+            myRect(width / 2, height * 0.2, textWidth(titleText) + margin, 
                 height * 0.12 + margin, width * 0.0375);
             
             // Draw the title
             fill(0, 0, 0);
             textAlign(CENTER, CENTER);
-            text(titleText, width / 2, height * 0.275);
+            text(titleText, width / 2, height * 0.2);
         },
         onLoad: function() {
             var snowCount = 50;
@@ -586,6 +635,7 @@ var gameScreensStored = {
                         {x: Math.random() * width, y: i * height * 1.025 / snowCount});
                 }
             }
+            homeScreenLevel = Level.new(homeScreenLevelStored);
         },
         buttons: [
             {x: width * 0.0875, y: height * 0.7125, w: width * 0.25, 
@@ -954,7 +1004,7 @@ var gameScreensStored = {
 // Bitmaps and button images
 // "cachedImages ||" is to prevent regenerating the cachedImages on restart
 var cachedImages = cachedImages || Object.create(null);
-// My sister helped me design the player and portal graphics
+// My younger sister helped me design the player and portal graphics
 var bitmapsStored = {
     "dirt": {
         colorMap: {
@@ -1363,7 +1413,8 @@ var Enemy = (function() {
         
         var touchWallX = level.touches(this.x, this.y, "dirt grate portal");
         var touchedActorX = level.touchesActors(this, ["snow", "enemy"]);
-        var touchX = touchWallX || touchedActorX; // touchX means a touch in the X direction
+        // touchX means a collision in the X direction
+        var touchX = touchWallX || touchedActorX;
         var turned = false;
         if (touchX) {
             if (oldX > touchX.x) {
@@ -1463,7 +1514,7 @@ var lettersToBlocks = {
 var Static = (function() {
     var Static = {}; // Initialize Static as an object so functions can be added
     
-    /*      When I switched to rendering bitmaps for the charactors, 
+    /*      When I switched to rendering bitmaps for the characters, 
         my program became very laggy. To fix this, I tried to optimize my level code,
         particularly the drawing code.
             I noticed that drawing images is faster than drawing bitmaps, 
@@ -1526,7 +1577,7 @@ var Static = (function() {
         // Convert block coordinates to pixels
         x = x * blockSize;
         y = y * blockSize;
-        // Optionally include the canvas to draw the charactor on
+        // Optionally include the canvas to draw the character on
         if (canvas) {
             canvas.image(cachedImages[bitmapName], x, y);
         } else {
@@ -1572,7 +1623,7 @@ var Static = (function() {
                 // Transparent background
                 background(1, 0, 0, 0);
                 
-                // Draw the charactor
+                // Draw the character
                 Static.drawBitmap(bitmap, colorMap, 0, 0, blockSize, blockSize);
                 
                 // Save it
