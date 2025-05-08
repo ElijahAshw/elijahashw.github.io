@@ -4,15 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tank game</title>
+    <style>
+        body {
+            background-color: #252525;
+        }
+
+        canvas {
+            outline: 0px solid transparent;
+        }
+    </style>
 </head>
-<body style="background-color: #000000;">
-    <canvas id="game-canvas" style="outline: 0px solid transparent !important;"></canvas>
+<body>
+    <canvas id="game-canvas"></canvas>
     <!-- Credit to pamela for code to use ProcessingJS in a webpage 
      https: //www.khanacademy.org/computer-programming/processingjs-inside-webpages-template/5157014494511104-->
 
     <!-- Include the processing.js library -->
-    <!-- See https: //khanacademy.zendesk.com/hc/en-us/articles/202260404-What-parts-of-ProcessingJS-does-Khan-Academy-support- for differences -->
-    <script src="https: //cdn.jsdelivr.net/processing.js/1.4.8/processing.min.js"></script> 
+    <!-- See https://khanacademy.zendesk.com/hc/en-us/articles/202260404-What-parts-of-ProcessingJS-does-Khan-Academy-support- for differences -->
+    <script src="https://cdn.jsdelivr.net/processing.js/1.4.8/processing.min.js"></script> 
     
 <script>
 let blueStart = false;
