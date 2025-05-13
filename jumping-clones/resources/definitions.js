@@ -16,7 +16,7 @@ const keyDelay = 0.2;
 const rotateSpeed = 1.75;
 const arrowKeys = trackKeys(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "r", "b", "Escape", " ", "Enter"]);
 
-   function trackKeys(keys) {
+function trackKeys(keys) {
     let down = Object.create(null);
     function track(event) {
         if (keys.includes(event.key)) {
@@ -48,8 +48,8 @@ function runAnimation(frameFunc) {
 
 function fade(wrapper, out) {
     let timePassed = 0;
-    let overlay = elt("div", {class: "fade-overlay"});
-    overlay.style.opacity = out? 0 : 1;
+    let overlay = elt("div", { class: "fade-overlay" });
+    overlay.style.opacity = out ? 0 : 1;
     wrapper.appendChild(overlay);
     return new Promise(resolve => {
         runAnimation(time => {
@@ -81,7 +81,7 @@ async function runLevel(level, levelNumber, wrapper, Display) {
                 state = state.update(time, arrowKeys);
                 display.syncState(state, ending);
             }
-            
+
             if (arrowKeys.r) {
                 resolve("lost");
                 return false;
@@ -135,12 +135,12 @@ async function runGame(plans, parent, Display) {
     let numL = plans.length;
     let item = "111";
     let levelStatus = [...item.padEnd(numL, "1").slice(0, numL)];
-    let wrapper = elt("div", {class: "wrapper"});
+    let wrapper = elt("div", { class: "wrapper" });
     parent.appendChild(wrapper);
     let level = 0;
-    for (;;) {
+    for (; ;) {
         level = await runMenu(plans, wrapper, level, levelStatus, Display);
-        while(level < plans.length) {
+        while (level < plans.length) {
             let status = await runLevel(new Level(plans[level]), level, wrapper, Display);
             levelStatus = levelStatus.slice();
             console.log(staa);
@@ -154,11 +154,13 @@ async function runGame(plans, parent, Display) {
         }
         level--;
         let endLevel = new Level(END_LEVEL);
-        let text = elt("p", 
-            {class: "end", 
+        let text = elt("p",
+            {
+                class: "end",
                 style: `line-height: ${scale}px;
                 font-size: ${scale * 2}px;
-                width: ${endLevel.width * scale}px;`}, 
+                width: ${endLevel.width * scale}px;`
+            },
             "Thanks for Playing");
         wrapper.appendChild(text);
         let status;
@@ -190,26 +192,27 @@ function notWall(level, x, y) {
 
 function createGrid(level) {
     return elt("table", {
-        class: "background", 
+        class: "background",
         style: `width: ${level.width * scale}px;`
-    }, ...level.rows.map((row, y) => 
-        elt("tr", {style: `height: ${scale}px;`}, 
+    }, ...level.rows.map((row, y) =>
+        elt("tr", { style: `height: ${scale}px;` },
             ...row.map((type, x) => elt("td", {
-                class: `${type}${
-                    (notWall(level, x, y - 1) && " top") + 
-                    (notWall(level, x, y + 1) && " bottom") + 
-                    (notWall(level, x - 1, y) && " left") + 
-                    (notWall(level, x + 1, y) && " right")}`, 
-                "data-number": (x ^ y) & 1})))
+                class: `${type}${(notWall(level, x, y - 1) && " top") +
+                    (notWall(level, x, y + 1) && " bottom") +
+                    (notWall(level, x - 1, y) && " left") +
+                    (notWall(level, x + 1, y) && " right")}`,
+                "data-number": (x ^ y) & 1
+            })))
     ));
-} 
+}
 
 function createActors(actors) {
     return elt("div", {}, ...actors.map(actor => {
         let rect = elt("div", {
-            class: `actor ${actor.type}`});
+            class: `actor ${actor.type}`
+        });
         let size = actor.dispSize || actor.size;
-        let pos = actor.dispPosAdd? actor.pos.add(actor.dispPosAdd) : actor.pos;
+        let pos = actor.dispPosAdd ? actor.pos.add(actor.dispPosAdd) : actor.pos;
         rect.style.width = `${size.x * scale}px`;
         rect.style.height = `${size.y * scale}px`;
         rect.style.left = `${pos.x * scale}px`;
@@ -223,28 +226,29 @@ function createMenuBlocks(numLevels, selected, width, height, levelStatus) {
     let leftOff = (width * scale - Math.min(menuWidth, numLevels) * menuScale) / 4;
     let topOff = scale;
     return new Array(numLevels).fill(undefined).map((_, n) => elt("div", {
-            class: `menu-item ${n === selected? "selected" : ""}`,
-            style: `left: ${(n % menuWidth) * menuScale + leftOff}px;
+        class: `menu-item ${n === selected ? "selected" : ""}`,
+        style: `left: ${(n % menuWidth) * menuScale + leftOff}px;
             top: ${Math.floor(n / menuWidth) * menuScale + topOff}px;
             border-width: ${menuBorderWidth}px;
             width: ${menuItemSize}px;
             height: ${menuItemSize}px;
             line-height: ${menuItemSize}px;
             font-size: ${menuItemSize * 0.55}px;`,
-            "data-status": levelStatus[n]}, String(n+1)));
+        "data-status": levelStatus[n]
+    }, String(n + 1)));
 }
 
 function overlapX(pos1, size1, pos2, size2) {
     return pos1.x + size1.x > pos2.x && pos1.x < pos2.x + size2.x;
 }
 
-function overlapY(pos1, size1, pos2, size2) { 
+function overlapY(pos1, size1, pos2, size2) {
     return pos1.y + size1.y > pos2.y && pos1.y < pos2.y + size2.y;
 }
 
 function actorOverlap(actor1, actor2) {
-    return overlapX(actor1.pos, actor1.size, actor2.pos, actor2.size) && 
-                    overlapY(actor1.pos, actor1.size, actor2.pos, actor2.size);
+    return overlapX(actor1.pos, actor1.size, actor2.pos, actor2.size) &&
+        overlapY(actor1.pos, actor1.size, actor2.pos, actor2.size);
 }
 
 function overlap(pos1, size1, pos2, size2) {
@@ -262,8 +266,8 @@ function collidePos1D(y1, prevY1, y2, prevY2, size) {
 }
 
 function collidePos(pos1, prevPos1, pos2, prevPos2, size) {
-    let [x1, x2] = collidePos1D(pos1.x, prevPos1.x, pos2.x, prevPos2.x,    size.x);
-    let [y1, y2] = collidePos1D(pos1.y, prevPos1.y, pos2.y, prevPos2.y,    size.y);
+    let [x1, x2] = collidePos1D(pos1.x, prevPos1.x, pos2.x, prevPos2.x, size.x);
+    let [y1, y2] = collidePos1D(pos1.y, prevPos1.y, pos2.y, prevPos2.y, size.y);
     console.log(pos1, prevPos1, pos2, prevPos2, size);
     return [new Vec(x1, y1), new Vec(x1, y1)];
 }
@@ -300,34 +304,43 @@ class DOMDisplay {
             let height = (level.height - 2) * scale;
             this.menuBlocks = createMenuBlocks(numLevels,
                 curLevel, level.width, level.height, levelStatus);
-            this.menu = elt("div", {class: "menu", 
+            this.menu = elt("div", {
+                class: "menu",
                 style: `width: ${(level.width - 2) * scale}px;
                 height: ${(level.height - 2) * scale}px;
-                padding: ${scale}px;`}, 
-                elt("div", {class: "levels-wrapper", style:`
-                height: ${Math.ceil(numLevels / menuWidth) * menuScale}px;`},
-                ...this.menuBlocks));
+                padding: ${scale}px;`
+            },
+                elt("div", {
+                    class: "levels-wrapper", style: `
+                height: ${Math.ceil(numLevels / menuWidth) * menuScale}px;`
+                },
+                    ...this.menuBlocks));
             this.bgLevel = level;
-            this.dom = elt("div", {class: "game"}, 
-                createGrid(level), 
-                elt("p", {class: "menu-text", 
-                        style: `font-size: ${scale * 0.8}px;
+            this.dom = elt("div", { class: "game" },
+                createGrid(level),
+                elt("p", {
+                    class: "menu-text",
+                    style: `font-size: ${scale * 0.8}px;
                         left: ${scale}px;
-                        top: ${(level.height - 1.5) * scale}px;`}, 
-                        "Based on ", 
-                        elt("a", {href:"https://www.puzzleplayground.com/jumping_clones"},
-                            "https://www.puzzleplayground.com/jumping_clones")),
+                        top: ${(level.height - 1.5) * scale}px;`
+                },
+                    "Based on ",
+                    elt("a", { href: "https://www.puzzleplayground.com/jumping_clones" },
+                        "https://www.puzzleplayground.com/jumping_clones")),
                 this.menu);
             this.first = true;
         } else {
             this.dom = elt("div", {
-                    class: "game", style: `width: ${level.width * scale}px;
-                    height: ${level.height * scale}px;`}, createGrid(level), 
-                    elt("p", {class: "level-text", 
+                class: "game", style: `width: ${level.width * scale}px;
+                    height: ${level.height * scale}px;`
+            }, createGrid(level),
+                elt("p", {
+                    class: "level-text",
                     style: `font-size: ${scale * 0.8}px;
                     right: ${scale * 0.1}px;
-                    top: ${scale * -0.8}px;`}, 
-                    curLevel === null? "" : `Level ${curLevel + 1}`));
+                    top: ${scale * -0.8}px;`
+                },
+                    curLevel === null ? "" : `Level ${curLevel + 1}`));
             this.actorLayer = null;
         }
         parent.appendChild(this.dom);
@@ -345,9 +358,10 @@ class DOMDisplay {
             this.dom.style.transform = `translate(${Math.cos(ending * Math.PI * 40) * 4}px, ${Math.sin(ending * Math.PI * 40) * 4}px)`;
             if (explode.pos) {
                 let dotNum = 12;
-                this.dots = elt("div", {class: "explode-wrapper"}, 
+                this.dots = elt("div", { class: "explode-wrapper" },
                     ...new Array(dotNum).fill(null).map(
-                        (_, i) => elt("div", {class: "explode-dot", style: `
+                        (_, i) => elt("div", {
+                            class: "explode-dot", style: `
                             left: ${(explode.pos.x + explode.size.x / 2) * scale}px;
                             top: ${(explode.pos.y + explode.size.y / 2) * scale}px;
                             width: ${scale / 4}px;
@@ -355,7 +369,8 @@ class DOMDisplay {
                             opacity: ${1.03 - ending / endTime};
                             transform: translate(-50%, -50%)
                             rotate(${i * Math.PI * 2 / dotNum}rad)
-                            translateX(${ending * 300}px);`})));
+                            translateX(${ending * 300}px);`
+                        })));
                 this.dom.appendChild(this.dots);
             }
         }
@@ -366,17 +381,17 @@ class DOMDisplay {
         let prevBlock = this.menuBlocks[prevIndex];
         prevBlock.className = prevBlock.className.replace("selected", "");
         this.menuBlocks[menuState.level].className += " selected";
-        if (prevIndex != menuState.level || keys.ArrowUp || 
+        if (prevIndex != menuState.level || keys.ArrowUp ||
             keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight || this.first) {
             this.first = false;
-            if (Math.floor(menuState.level / menuWidth) * 
-                    menuScale - this.menu.scrollTop < 0) {
-                this.menu.scrollTop = 
+            if (Math.floor(menuState.level / menuWidth) *
+                menuScale - this.menu.scrollTop < 0) {
+                this.menu.scrollTop =
                     Math.floor(menuState.level / menuWidth + 1) * menuScale - menuItemSize;
-            } else if (Math.floor(menuState.level / menuWidth) * menuScale + 
-                    menuBorderWidth*2 + menuItemSize - this.menu.scrollTop > 
-                    (this.bgLevel.height - 3) * scale) {
-                this.menu.scrollTop = Math.floor(menuState.level / menuWidth) * menuScale - 
+            } else if (Math.floor(menuState.level / menuWidth) * menuScale +
+                menuBorderWidth * 2 + menuItemSize - this.menu.scrollTop >
+                (this.bgLevel.height - 3) * scale) {
+                this.menu.scrollTop = Math.floor(menuState.level / menuWidth) * menuScale -
                     (this.bgLevel.height - 3) * scale + menuBorderWidth * 2 + menuItemSize;
             }
         }
@@ -413,8 +428,8 @@ class MenuState {
                 level += menuWidth;
                 keyPressed = true;
             }
-            
-            if (keyPressed && level >= 0 && 
+
+            if (keyPressed && level >= 0 &&
                 level < this.numLevels && levelStatus[level] != 0) {
                 last = keyDelay;
             } else {
@@ -445,7 +460,7 @@ class Trampoline {
         return new Trampoline(pos, false);
     }
 
-    get type() { return `trampoline${this.bounced? " bounce" : ""}`; }
+    get type() { return `trampoline${this.bounced ? " bounce" : ""}`; }
 
     collide(state, player) {
         let actors = state.actors.slice();
@@ -478,7 +493,7 @@ class Key {
         this.flash = flash % (keyFlashInterval * 2);
     }
 
-    get type() { return `key${this.flash < keyFlashInterval? "" : " flash"}`; }
+    get type() { return `key${this.flash < keyFlashInterval ? "" : " flash"}`; }
 
     static create(pos) {
         return new Key(pos, 0, 0);
@@ -534,39 +549,39 @@ class Spike {
 }
 
 class Teleporter {
-  constructor(pos, num, ported = null, newPorted = null) {
-    this.pos = pos;
-    this.num = num;
-    this.ported = ported;
-    this.newPorted = newPorted;
-  }
-
-  get type() { return `teleporter ${this.num}`; }
-
-  static create(pos, char) {
-    return new Teleporter(pos, Number(char));
-  }
-
-  collide(state, player) {
-    let current = this;
-    let that = state.actors.find(a => a.type === current.type && a !== current);
-    if (this.ported === player.sig || this.newPorted === player.sig) {
-      state = state.replaceActor(this, this.setNewPorted(player.sig));
-    } else if (!that.ported && !that.newPorted) {
-      state = state.replaceActor(player, player.set("pos", that.pos));
-      state = state.replaceActor(that, that.setNewPorted(player.sig));
+    constructor(pos, num, ported = null, newPorted = null) {
+        this.pos = pos;
+        this.num = num;
+        this.ported = ported;
+        this.newPorted = newPorted;
     }
-    
-    return state;
-  }
-  
-  setNewPorted(playerSig) {
-    return new Teleporter(this.pos, this.num, this.ported, playerSig);
-  }
 
-  update(time) {
-    return new Teleporter(this.pos, this.num, this.newPorted);
-  }
+    get type() { return `teleporter ${this.num}`; }
+
+    static create(pos, char) {
+        return new Teleporter(pos, Number(char));
+    }
+
+    collide(state, player) {
+        let current = this;
+        let that = state.actors.find(a => a.type === current.type && a !== current);
+        if (this.ported === player.sig || this.newPorted === player.sig) {
+            state = state.replaceActor(this, this.setNewPorted(player.sig));
+        } else if (!that.ported && !that.newPorted) {
+            state = state.replaceActor(player, player.set("pos", that.pos));
+            state = state.replaceActor(that, that.setNewPorted(player.sig));
+        }
+
+        return state;
+    }
+
+    setNewPorted(playerSig) {
+        return new Teleporter(this.pos, this.num, this.ported, playerSig);
+    }
+
+    update(time) {
+        return new Teleporter(this.pos, this.num, this.newPorted);
+    }
 }
 Teleporter.prototype.size = new Vec(1, 1);
 
@@ -578,9 +593,9 @@ class Portal {
         this.angle = counter % (Math.PI * 2);
         let size = Portal.prototype.size;
         let angle = Math.abs(counter % (Math.PI / 2) - Math.PI / 4);
-        let waveSize = Math.abs(Math.sin(angle + Math.PI/4));
+        let waveSize = Math.abs(Math.sin(angle + Math.PI / 4));
         this.dispSize = new Vec(size.x * waveSize, size.y * waveSize);
-        this.dispPosAdd = new Vec((2-this.dispSize.x)/4, (2-this.dispSize.y)/4);
+        this.dispPosAdd = new Vec((2 - this.dispSize.x) / 4, (2 - this.dispSize.y) / 4);
     }
 
     get type() { return `portal ${this.passNum}`; }
@@ -609,7 +624,7 @@ class Portal {
         }
         return new State(state.level, filtered, status, state.dead);
     }
-  
+
     update(time) {
         return new Portal(this.pos, this.passNum, this.counter + rotateSpeed * time);
     }
@@ -639,19 +654,19 @@ class Player {
             char = char.toLowerCase();
         }
         if (char === "n") {
-            return new Player(pos, new Vec(null, 0), jumpSpeed, playerXSpeed, gravity, 1, {char});
+            return new Player(pos, new Vec(null, 0), jumpSpeed, playerXSpeed, gravity, 1, { char });
         } else if (char === "r") {
-            return new Player(pos, new Vec(null, 0), jumpSpeed, -playerXSpeed, gravity, 1, {char});
+            return new Player(pos, new Vec(null, 0), jumpSpeed, -playerXSpeed, gravity, 1, { char });
         } else if (char === "y") {
-            return new Player(pos, new Vec(0, 0), jumpSpeed, playerXSpeed, gravity, 1, {char});
+            return new Player(pos, new Vec(0, 0), jumpSpeed, playerXSpeed, gravity, 1, { char });
         } else if (char === "g") {
-            return new Player(pos, new Vec(null, 0), 0, playerXSpeed, gravity, 1, {char});
+            return new Player(pos, new Vec(null, 0), 0, playerXSpeed, gravity, 1, { char });
         } else if (char === "u") {
-            return new Player(pos, new Vec(null, 0), -jumpSpeed, playerXSpeed, -gravity, 1, {char});
+            return new Player(pos, new Vec(null, 0), -jumpSpeed, playerXSpeed, -gravity, 1, { char });
         } else if (char === "s") {
-            return new Player(pos, new Vec(null, 0), jumpSpeed, 0, gravity, 1, {char});
+            return new Player(pos, new Vec(null, 0), jumpSpeed, 0, gravity, 1, { char });
         } else if (char === "w") {
-            return new Player(pos, new Vec(null, 0), jumpSpeed, playerXSpeed, gravity, -1, {char});
+            return new Player(pos, new Vec(null, 0), jumpSpeed, playerXSpeed, gravity, -1, { char });
         }
     }
 
@@ -688,53 +703,53 @@ class Player {
             else pos = new Vec(pos.x, touch.pos.y + touch.size.y);
             ySpeed = 0;
         }
-        
+
         let dirX = xSpeed > 0 ? "right" : xSpeed < 0 ? "left" : "";
         let dirY = ySpeed > 0 ? "down" : ySpeed < 0 ? "up" : "";
         return this.fromNewPos(pos, xSpeed, ySpeed, dirX, dirY, newJumpSpeed, newGravity);
     }
 
     fromNewPos(pos, xSpeed, ySpeed, dirX, dirY, jumpSpeed = this.jumpSpeed, gravity = this.gravity) {
-        let dir = typeof dirY === "string"? `${dirX} ${dirY}` : this.dir;
-        let speed = new Vec(typeof this.speed.x === "number"? xSpeed : null, ySpeed);
+        let dir = typeof dirY === "string" ? `${dirX} ${dirY}` : this.dir;
+        let speed = new Vec(typeof this.speed.x === "number" ? xSpeed : null, ySpeed);
         return new Player(pos, speed, jumpSpeed, this.xSpeed, gravity, this.toggle, this.sig, dir, this.pos);
     }
 
-  /*collide(state, that) {
-    let thisNewPos, thatNewPos;
-    let thisNewSpeed = this.speed, thatNewSpeed = that.speed;
-
-    let prevPosDiff = this.prevPos.y - that.prevPos.y;
-    if (Math.abs(prevPosDiff) >= this.size.y) {
-      let [thisNewY, thatNewY] = collidePos1D(
-        this.pos.y, this.prevPos.y, that.pos.y, that.prevPos.y,  this.size.y);
-      thisNewPos = new Vec(this.pos.x, thisNewY)
-      thatNewPos = new Vec(that.pos.x, thatNewY);
-      if (prevPosDiff > 0) {
-        thisNewSpeed = new Vec(thisNewSpeed.x, 0);
+    /*collide(state, that) {
+      let thisNewPos, thatNewPos;
+      let thisNewSpeed = this.speed, thatNewSpeed = that.speed;
+  
+      let prevPosDiff = this.prevPos.y - that.prevPos.y;
+      if (Math.abs(prevPosDiff) >= this.size.y) {
+        let [thisNewY, thatNewY] = collidePos1D(
+          this.pos.y, this.prevPos.y, that.pos.y, that.prevPos.y,  this.size.y);
+        thisNewPos = new Vec(this.pos.x, thisNewY)
+        thatNewPos = new Vec(that.pos.x, thatNewY);
+        if (prevPosDiff > 0) {
+          thisNewSpeed = new Vec(thisNewSpeed.x, 0);
+        } else {
+          thatNewSpeed = new Vec(thatNewSpeed.x, 0);
+        }
       } else {
-        thatNewSpeed = new Vec(thatNewSpeed.x, 0);
+        let [thisNewX, thatNewX] = collidePos1D(
+          this.pos.x, this.prevPos.x, that.pos.x, that.prevPos.x,  this.size.x);
+        thisNewPos = new Vec(thisNewX, this.pos.y)
+        thatNewPos = new Vec(thatNewX, that.pos.y);
       }
-    } else {
-      let [thisNewX, thatNewX] = collidePos1D(
-        this.pos.x, this.prevPos.x, that.pos.x, that.prevPos.x,  this.size.x);
-      thisNewPos = new Vec(thisNewX, this.pos.y)
-      thatNewPos = new Vec(thatNewX, that.pos.y);
-    }
-    console.log(""+thisNewPos, ""+thatNewPos);
-    state = state.replaceActor(this, 
-      this.set("pos", thisNewPos).set("speed", thisNewSpeed));
-    state = state.replaceActor(that, 
-      that.set("pos", thatNewPos).set("speed", thatNewSpeed));
-    return state;
-  }*/
+      console.log(""+thisNewPos, ""+thatNewPos);
+      state = state.replaceActor(this, 
+        this.set("pos", thisNewPos).set("speed", thisNewSpeed));
+      state = state.replaceActor(that, 
+        that.set("pos", thatNewPos).set("speed", thatNewSpeed));
+      return state;
+    }*/
 
     collide(state, that) {
         debugger;
         let prevSide = that.prevPos.sub(this.prevPos);
         let diff = that.pos.sub(this.pos);
-        let widthAdj = prevSide.x < 0? that.size.x : prevSide.x > 0? -this.size.x : 0;
-        let heightAdj = prevSide.y < 0? that.size.y : prevSide.y > 0? -this.size.y : 0;
+        let widthAdj = prevSide.x < 0 ? that.size.x : prevSide.x > 0 ? -this.size.x : 0;
+        let heightAdj = prevSide.y < 0 ? that.size.y : prevSide.y > 0 ? -this.size.y : 0;
         let adjust = new Vec(widthAdj, heightAdj);
         let move = diff.add(adjust).mult(0.5);
 
@@ -742,7 +757,7 @@ class Player {
         state = state.replaceActor(that, that.set("pos", that.pos.add(move.mult(-1))));
         return state;
     }
-  
+
     backout(actor, keys = Object.create(null)) {
         let actorPos = actor.prevPos || actor.pos;
         let pos = this.prevPos;
@@ -761,7 +776,7 @@ class Player {
         let movedY = new Vec(pos.x, this.pos.y);
         if (!overlap(movedY, this.size, actorPos, actor.size)) {
             pos = movedY;
-        } else if (keys.ArrowUp && (ySpeed > 0 ^ this.gravity < 0) && 
+        } else if (keys.ArrowUp && (ySpeed > 0 ^ this.gravity < 0) &&
             actor.type.includes("player")) {
             ySpeed = -this.jumpSpeed;
         } else {
@@ -777,7 +792,7 @@ class Player {
     }
 
     set(name, value) {
-        let newPlayer = new Player(this.pos, this.speed, this.jumpSpeed, 
+        let newPlayer = new Player(this.pos, this.speed, this.jumpSpeed,
             this.xSpeed, this.gravity, this.toggle, this.sig, this.dir, this.prevPos);
         newPlayer[name] = value;
         return newPlayer;
@@ -786,14 +801,14 @@ class Player {
 Player.prototype.size = new Vec(0.95, 0.95);
 
 const levelChars = {
-    "^": Spike, "v": Spike, "<": Spike, ">": Spike, 
-    ".": "empty", "#": "wall", "~": "lava", "=": Trampoline, "+": Key, 
-    "@": Portal, "!": Portal, 
-    "n": Player, "N": Player, "g": Player, "G": Player, "y": Player, "Y": Player, 
-    "r": Player, "R": Player, "u": Player, "U": Player, "s": Player, "S": Player, 
-    "w": Player, "W": Player, 
-    "0": Teleporter, "1": Teleporter, "2": Teleporter, "3": Teleporter, 
-    "4": Teleporter, "5": Teleporter, "6": Teleporter, "7": Teleporter, 
+    "^": Spike, "v": Spike, "<": Spike, ">": Spike,
+    ".": "empty", "#": "wall", "~": "lava", "=": Trampoline, "+": Key,
+    "@": Portal, "!": Portal,
+    "n": Player, "N": Player, "g": Player, "G": Player, "y": Player, "Y": Player,
+    "r": Player, "R": Player, "u": Player, "U": Player, "s": Player, "S": Player,
+    "w": Player, "W": Player,
+    "0": Teleporter, "1": Teleporter, "2": Teleporter, "3": Teleporter,
+    "4": Teleporter, "5": Teleporter, "6": Teleporter, "7": Teleporter,
     "8": Teleporter, "9": Teleporter
 };
 
@@ -820,8 +835,8 @@ class Level {
         for (let y = yStart; y < yEnd; y++) {
             for (let x = xStart; x < xEnd; x++) {
                 let isOutside = x < 0 || x >= this.width || y < 0 || y >= this.height;
-                let here = isOutside? "lava" : this.rows[y][x];
-                if (here === type) return {pos: new Vec(x, y), size: new Vec(1, 1)};
+                let here = isOutside ? "lava" : this.rows[y][x];
+                if (here === type) return { pos: new Vec(x, y), size: new Vec(1, 1) };
             }
         }
         return false;
@@ -835,10 +850,10 @@ class State {
         this.status = status;
         this.dead = dead;
     }
-  
+
     static start(level) {
         let locked = level.startActors.some(a => a.type.includes("key"));
-        return new State(level, level.startActors, `playing ${locked? " locked" : ""}`, null);
+        return new State(level, level.startActors, `playing ${locked ? " locked" : ""}`, null);
     }
 
     get players() {
@@ -846,7 +861,7 @@ class State {
     }
 
     get numPlayers() {
-        return this.actors.reduce((num, a) => a.type.includes("player")? num + 1 : num, 0);
+        return this.actors.reduce((num, a) => a.type.includes("player") ? num + 1 : num, 0);
     }
 
     hits(pos, size, type) {
@@ -881,7 +896,7 @@ class State {
             for (let i = 0, l = players.length; i < l; i++) {
                 let player = players[i];
                 if (this.level.touches(player.pos, player.size, "lava")) {
-                    return new State(this.level, actors, 
+                    return new State(this.level, actors,
                         newState.status.replace("playing", "lost"), player);
                 }
             }

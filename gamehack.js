@@ -83,7 +83,7 @@ let interval = setInterval(() => {
 }, 200);
 
 // For StayFocusd
-/* 
+/*
 let str = `The procrastinator is often remarkably optimistic about his ability to complete a task on a tight deadline; this is usually accompanied by expressions of reassurance that everything is under control. (Therefore, there is no need to start.) Lulled by a false sense of security, time passes. At some point, he crosses over an imaginary starting time and suddenly realizes, "Oh no! I am not in control! There isn't enough time!"`;
 txtarea.onkeypress = (event) => {
     event.preventDefault();
@@ -92,15 +92,19 @@ txtarea.onkeypress = (event) => {
 };
 */
 /*
-let str = `The procrastinator is often remarkably optimistic about his ability to complete a task on a tight deadline; this is usually accompanied by expressions of reassurance that everything is under control. (Therefore, there is no need to start.) Lulled by a false sense of security, time passes. At some point, he crosses over an imaginary starting time and suddenly realizes, "Oh no! I am not in control! There isn't enough time!"`, counter = 0;
-let interval = setInterval(() => {
-    if (counter >= str.length) {
-        clearInterval(interval);
-        return;
-    }
-    txtarea.value = str.slice(0, ++counter);
-    txtarea.dispatchEvent(new Event("input"));
-}, 1);
+let str = `The procrastinator is often remarkably optimistic about his ability to complete a task on a tight deadline; this is usually accompanied by expressions of reassurance that everything is under control. (Therefore, there is no need to start.) Lulled by a false sense of security, time passes. At some point, he crosses over an imaginary starting time and suddenly realizes, "Oh no! I am not in control! There isn't enough time!"`;
+txtarea.onkeypress = (event) => {
+    event.preventDefault();
+    let counter = 0;
+    let interval = setInterval(() => {
+        if (counter >= str.length || counter !== txtarea.value.length) {
+            clearInterval(interval);
+            return;
+        }
+        txtarea.value = str.slice(0, ++counter);
+        txtarea.dispatchEvent(new Event("input"));
+    }, 1);
+};
 */
 
 // Attempt for typing.com

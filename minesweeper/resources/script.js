@@ -24,21 +24,21 @@ let dirs = [
     [+1, -1],
     [-1, +1],
     [+1, +1],
-    ];
+];
 
 function checkWin() {
     won = true;
-    
-    for(let i = 0; i < blocks.length; i++){
-        for(let j = 0; j < blocks[0].length; j++){
+
+    for (let i = 0; i < blocks.length; i++) {
+        for (let j = 0; j < blocks[0].length; j++) {
             let b = blocks[i][j];
-            
-            if(b.bomb? !b.flagged : !b.clicked){
+
+            if (b.bomb ? !b.flagged : !b.clicked) {
                 won = false;
             }
         }
     }
-    
+
     return won;
 }
 
@@ -47,7 +47,7 @@ function checkBlocks() {
         endText.textContent = "You won!";
         endBox.setAttribute("data-show", "true");
         endText.style.color = "#f5cc00";
-    }else if (gameIsOver) {
+    } else if (gameIsOver) {
         endText.textContent = "You lost.";
         endBox.setAttribute("data-show", "true");
         endText.style.color = "#ff0022";
@@ -55,30 +55,30 @@ function checkBlocks() {
 }
 
 function resetBlocks() {
-    for(let i = 0; i < blocks.length; i++){
-        for(let j = 0; j < blocks[0].length; j++){
+    for (let i = 0; i < blocks.length; i++) {
+        for (let j = 0; j < blocks[0].length; j++) {
             blocks[i][j].allClicked = false;
             blocks[i][j].element.setAttribute("data-game-over", gameIsOver);
         }
     }
-    
+
     checkBlocks();
 }
 
 function validateInputs() {
     let allValid = true;
-    
-    for(let i = 0; i < inputs.length; i++){
+
+    for (let i = 0; i < inputs.length; i++) {
         allValid &&= inputs[i].checkValidity();
     }
 
     menu.setAttribute("data-valid", allValid);
-    
+
     return allValid;
 }
 
 
-class Block {    
+class Block {
     constructor(i, j) {
         Object.assign(this, {
             i: i,
@@ -133,7 +133,7 @@ class Block {
             ontouchstart: event => curThis.ontouchstart(event),
             ontouchend: event => curThis.ontouchend(event),
         });
-        
+
         Object.assign(this.element.style, {
             width: blockSize + "px",
             height: blockSize + "px",
@@ -142,7 +142,7 @@ class Block {
             left: i * blockSize + "px",
             lineHeight: blockSize + "px",
         });
-        
+
         this.bomb = this.bomb;
         this.flagged = this.flagged;
         this.clicked = this.clicked;
@@ -196,10 +196,10 @@ class Block {
         } else {
             if (!this.flagged) {
                 this.clicked = true;
-                
+
                 if (this.bomb) {
                     gameIsOver = true;
-                    
+
                     if (first) {
                         resetBlocks();
                     }
@@ -214,19 +214,19 @@ class Block {
             }
         }
     }
-    
+
     flag() {
         if (!this.clicked) {
             this.flagged = !this.flagged;
             checkBlocks();
         }
     }
-    
+
     clickAround() {
         let i = this.i, j = this.j;
-        
+
         this.setFlags();
-        
+
         let click = (x, y) => {
             if (x >= 0 && x < numBlocksX && y >= 0 && y < numBlocksY && !blocks[y][x].flagged) {
                 if (!blocks[y][x].allClicked) {
@@ -235,41 +235,41 @@ class Block {
                 }
             }
         };
-        
+
         if (this.flags === this.bombs) {
             for (let d = 0; d < dirs.length; d++) {
                 click(j + dirs[d][0], i + dirs[d][1]);
             }
         }
     }
-    
+
     setBombs() {
         let i = this.i, j = this.j;
-        
+
         this.bombs = 0;
         for (let d = 0; d < dirs.length; d++) {
             let x = j + dirs[d][0];
             let y = i + dirs[d][1];
-            
+
             if (x >= 0 && x < numBlocksX && y >= 0 && y < numBlocksY) {
                 if (blocks[y][x].bomb) {
                     this.bombs++;
                 }
             }
         }
-        
+
         this.element.setAttribute("data-bombs", this.bombs);
     }
-    
+
     setFlags() {
         let i = this.i, j = this.j;
-        
+
         this.flags = 0;
-        
+
         for (let d = 0; d < dirs.length; d++) {
-            let x = j+dirs[d][0];
-            let y = i+dirs[d][1];
-            
+            let x = j + dirs[d][0];
+            let y = i + dirs[d][1];
+
             if (x >= 0 && x < numBlocksX && y >= 0 && y < numBlocksY) {
                 if (blocks[y][x].flagged && !blocks[y][x].clicked) {
                     this.flags++;
@@ -294,10 +294,10 @@ function start(level) {
         if (!validateInputs()) {
             return;
         }
-        
+
         numBlocksX = Number(inputs[0].value);
         numBlocksY = Number(inputs[1].value);
-        
+
         if (Number.isNaN(numBlocksX) || Number.isNaN(numBlocksY)) {
             throw new Error("Invalid input.");
         }
@@ -306,25 +306,25 @@ function start(level) {
     let totalBlocks = numBlocksX * numBlocksY;
 
     this.disabled = true;
-    
+
     menu.style.display = "none";
-    
+
     board.id = "board";
-    board.style.width = numBlocksX * blockSize +"px";
-    board.style.height = numBlocksY * blockSize +"px";
-    
+    board.style.width = numBlocksX * blockSize + "px";
+    board.style.height = numBlocksY * blockSize + "px";
+
     document.body.appendChild(board);
-    
+
     for (let i = 0; i < numBlocksY; i++) {
         let row = [];
-        
+
         for (let j = 0; j < numBlocksX; j++) {
             let newBlock = new Block(i, j);
-            
+
             row.push(newBlock);
             board.appendChild(newBlock.element);
         }
-        
+
         blocks.push(row);
     }
 
@@ -344,13 +344,13 @@ function start(level) {
         let y = Math.floor(i / numBlocksX), x = i % numBlocksX;
         if (bombArray[i]) blocks[y][x].setBomb(true);
     }
-    
+
     for (let i = 0; i < blocks.length; i++) {
         for (let j = 0; j < blocks[i].length; j++) {
             blocks[i][j].setBombs();
         }
     }
-    
+
     let emptyBlocks = [];
     for (let i = 0; i < blocks.length; i++) {
         for (let j = 0; j < blocks[i].length; j++) {
@@ -359,7 +359,7 @@ function start(level) {
             }
         }
     }
-    
+
     if (emptyBlocks.length) {
         let randomBlock = emptyBlocks[Math.floor(Math.random() * emptyBlocks.length)];
         randomBlock.clickOn("start", false);
@@ -386,7 +386,7 @@ inputs[0].addEventListener("input", validateInputs);
 
 inputs[1].addEventListener("input", validateInputs);
 
-window.addEventListener("keyup", function(event){
+window.addEventListener("keyup", function (event) {
     board.setAttribute("data-flag-mode", Boolean(flagMode ^= !(event.key === "Control" || event.key === "Meta")));
     event.preventDefault();
 });

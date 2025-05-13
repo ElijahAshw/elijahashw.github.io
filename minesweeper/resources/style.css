@@ -70,7 +70,7 @@ button:hover {
     transition: 0.2s;
 }
 
-button:not([data-valid="false"] .create):active{
+button:not([data-valid="false"] .create):active {
     box-shadow: 1px 1px 1px;
     transform: translate(2px, 2px);
     transition: 0.1s;
@@ -209,7 +209,7 @@ button:not([data-valid="false"] .create):active{
     }
 }
 
-[data-flag-mode="true"] > .block[data-game-over="false"]:not([data-clicked="true"]):not([data-flagged="true"]) {
+[data-flag-mode="true"]>.block[data-game-over="false"]:not([data-clicked="true"]):not([data-flagged="true"]) {
     background-size: contain;
     background-image: url("./images/unset_flag.png");
 }
