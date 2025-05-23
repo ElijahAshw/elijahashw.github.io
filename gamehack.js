@@ -83,16 +83,17 @@ let interval = setInterval(() => {
 }, 200);
 
 // For StayFocusd
-/*
-let str = `The procrastinator is often remarkably optimistic about his ability to complete a task on a tight deadline; this is usually accompanied by expressions of reassurance that everything is under control. (Therefore, there is no need to start.) Lulled by a false sense of security, time passes. At some point, he crosses over an imaginary starting time and suddenly realizes, "Oh no! I am not in control! There isn't enough time!"`;
+let txtarea = document.querySelector('[data-testid="challenge-text"]');
+let strng = `The procrastinator is often remarkably optimistic about his ability to complete a task on a tight deadline; this is usually accompanied by expressions of reassurance that everything is under control. (Therefore, there is no need to start.) Lulled by a false sense of security, time passes. At some point, he crosses over an imaginary starting time and suddenly realizes, "Oh no! I am not in control! There isn't enough time!" And also, the procrastinator is often remarkably optimistic about his ability to complete a task on a tight deadline; this is usually accompanied by expressions of reassurance that everything is under control. (Therefore, there is no need to start.) Lulled by a false sense of security, time passes. At some point, he crosses over an imaginary starting time and suddenly realizes, "Oh no! I am not in control! There isn't enough time!"`;
 txtarea.onkeypress = (event) => {
     event.preventDefault();
-    txtarea.value = (str.slice(0, String(txtarea.value).length + 1));
+    txtarea.value = (strng.slice(0, String(txtarea.value).length + 1));
     txtarea.dispatchEvent(new Event("input"));
 };
-*/
-/*
-let str = `The procrastinator is often remarkably optimistic about his ability to complete a task on a tight deadline; this is usually accompanied by expressions of reassurance that everything is under control. (Therefore, there is no need to start.) Lulled by a false sense of security, time passes. At some point, he crosses over an imaginary starting time and suddenly realizes, "Oh no! I am not in control! There isn't enough time!"`;
+
+
+let txtarea = document.querySelector('[data-testid="challenge-text"]');
+let str = `The procrastinator is often remarkably optimistic about his ability to complete a task on a tight deadline; this is usually accompanied by expressions of reassurance that everything is under control. (Therefore, there is no need to start.) Lulled by a false sense of security, time passes. At some point, he crosses over an imaginary starting time and suddenly realizes, "Oh no! I am not in control! There isn't enough time!" And also, the procrastinator is often remarkably optimistic about his ability to complete a task on a tight deadline; this is usually accompanied by expressions of reassurance that everything is under control. (Therefore, there is no need to start.) Lulled by a false sense of security, time passes. At some point, he crosses over an imaginary starting time and suddenly realizes, "Oh no! I am not in control! There isn't enough time!"`;
 txtarea.onkeypress = (event) => {
     event.preventDefault();
     let counter = 0;
@@ -105,30 +106,3 @@ txtarea.onkeypress = (event) => {
         txtarea.dispatchEvent(new Event("input"));
     }, 1);
 };
-*/
-
-// Attempt for typing.com
-/*
-let str = `a`, counter = 0;
-let interval = setInterval(() => {
-    if (counter >= str.length) {
-        clearInterval(interval);
-        return;
-    }
-    let key = "a";
-    let keyCode = key.charCodeAt(0);
-    let event = new KeyboardEvent('keydown', {
-        key: key,
-        keyCode: keyCode,
-        which: keyCode,
-        code: keyCode,
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        bubbles: true,
-        cancelable: true,
-    });
-    el.focus();
-    el.dispatchEvent(event);
-}, 1);
-*/

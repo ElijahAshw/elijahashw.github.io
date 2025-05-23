@@ -143,7 +143,7 @@ async function runGame(plans, parent, Display) {
         while (level < plans.length) {
             let status = await runLevel(new Level(plans[level]), level, wrapper, Display);
             levelStatus = levelStatus.slice();
-            console.log(staa);
+            status = status.trim();
             if (status === "won") {
                 levelStatus[level] = 2;
                 levelStatus[level + 1] = Math.max(1, levelStatus[level + 1]);
@@ -187,7 +187,7 @@ function elt(name, props, ...children) {
 }
 
 function notWall(level, x, y) {
-    return ["empty", "lava", "spike"].includes(level.rows[y]?.[x]) || "";
+    return level.rows[y]?.[x] && level.rows[y]?.[x] !== "wall" || "";
 }
 
 function createGrid(level) {
@@ -197,10 +197,16 @@ function createGrid(level) {
     }, ...level.rows.map((row, y) =>
         elt("tr", { style: `height: ${scale}px;` },
             ...row.map((type, x) => elt("td", {
-                class: `${type}${(notWall(level, x, y - 1) && " top") +
-                    (notWall(level, x, y + 1) && " bottom") +
-                    (notWall(level, x - 1, y) && " left") +
-                    (notWall(level, x + 1, y) && " right")}`,
+                class: `${type}${
+                        (notWall(level, x, y - 1) && " top") +
+                        (notWall(level, x, y + 1) && " bottom") +
+                        (notWall(level, x - 1, y) && " left") +
+                        (notWall(level, x + 1, y) && " right")}${
+
+                        (notWall(level, x - 1, y - 1) && " tl") +
+                        (notWall(level, x + 1, y - 1) && " tr") +
+                        (notWall(level, x - 1, y + 1) && " bl") +
+                        (notWall(level, x + 1, y + 1) && " br")}`,
                 "data-number": (x ^ y) & 1
             })))
     ));
@@ -211,12 +217,13 @@ function createActors(actors) {
         let rect = elt("div", {
             class: `actor ${actor.type}`
         });
-        let size = actor.dispSize || actor.size;
-        let pos = actor.dispPosAdd ? actor.pos.add(actor.dispPosAdd) : actor.pos;
+        let size = actor.displaySize || actor.size;
+        let pos = actor.displayPositionOffset ? actor.pos.add(actor.displayPositionOffset) : actor.pos;
         rect.style.width = `${size.x * scale}px`;
         rect.style.height = `${size.y * scale}px`;
         rect.style.left = `${pos.x * scale}px`;
         rect.style.top = `${pos.y * scale}px`;
+        rect.style.setProperty("--w", `${size.x * scale}px`)
         if (actor.angle) rect.style.transform = `rotate(${actor.angle}rad)`;
         return rect;
     }));
@@ -514,8 +521,8 @@ class Key {
     }
 }
 Key.prototype.size = new Vec(1, 1);
-Key.prototype.dispPosAdd = new Vec((1 - 1 / Math.SQRT2) / 2, (1 - 1 / Math.SQRT2) / 2);
-Key.prototype.dispSize = new Vec(1 / Math.SQRT2, 1 / Math.SQRT2);
+Key.prototype.displayPositionOffset = new Vec((1 - 1 / Math.SQRT2) / 2, (1 - 1 / Math.SQRT2) / 2);
+Key.prototype.displaySize = new Vec(1 / Math.SQRT2, 1 / Math.SQRT2);
 
 class Spike {
     constructor(pos, size, dir) {
@@ -539,8 +546,7 @@ class Spike {
     }
 
     collide(state, player) {
-        return new State(state.level, state.actors,
-            state.status.replace("playing", "lost"), player);
+        return new State(state.level, state.actors, state.status.replace("playing", "lost"), player);
     }
 
     update() {
@@ -594,8 +600,8 @@ class Portal {
         let size = Portal.prototype.size;
         let angle = Math.abs(counter % (Math.PI / 2) - Math.PI / 4);
         let waveSize = Math.abs(Math.sin(angle + Math.PI / 4));
-        this.dispSize = new Vec(size.x * waveSize, size.y * waveSize);
-        this.dispPosAdd = new Vec((2 - this.dispSize.x) / 4, (2 - this.dispSize.y) / 4);
+        this.displaySize = new Vec(size.x * waveSize, size.y * waveSize);
+        this.displayPositionOffset = new Vec((2 - this.displaySize.x) / 4, (2 - this.displaySize.y) / 4);
     }
 
     get type() { return `portal ${this.passNum}`; }
@@ -792,8 +798,7 @@ class Player {
     }
 
     set(name, value) {
-        let newPlayer = new Player(this.pos, this.speed, this.jumpSpeed,
-            this.xSpeed, this.gravity, this.toggle, this.sig, this.dir, this.prevPos);
+        let newPlayer = new Player(this.pos, this.speed, this.jumpSpeed, this.xSpeed, this.gravity, this.toggle, this.sig, this.dir, this.prevPos);
         newPlayer[name] = value;
         return newPlayer;
     }
@@ -885,7 +890,7 @@ class State {
         let newState = new State(this.level, actors, this.status, this.dead);
 
         if (!newState.status.includes("playing")) return newState;
-
+        
         let playerMoved = false;
         let loopCount = 0;
         do {
@@ -896,8 +901,7 @@ class State {
             for (let i = 0, l = players.length; i < l; i++) {
                 let player = players[i];
                 if (this.level.touches(player.pos, player.size, "lava")) {
-                    return new State(this.level, actors,
-                        newState.status.replace("playing", "lost"), player);
+                    return new State(this.level, actors, newState.status.replace("playing", "lost"), player);
                 }
             }
 
@@ -908,7 +912,7 @@ class State {
                     if (numPlayers !== newState.numPlayers) break;
                     let player = newState.players[i];
                     if (actor !== player && actorOverlap(actor, player)) {
-                        playerMoved = true;
+                        // playerMoved = true;
                         newState = actor.collide(newState, player);
                     }
                 }
