@@ -1,21 +1,59 @@
 /** User adjustable settings **/
-// Game options: "tic-tac-toe", "hexapawn", "tic-tac-toe-mini"
-var gameBeingPlayed = "tic-tac-toe-mini";
+// Game options: "Tic-tac-toe", "Hexapawn", "Tic-tac-toe-mini"
+// Rules for each game are found below, starting on line 43.
+// If you play hexapawn as the second player, it is possible to beat
+// the computer. However, this is only because the second player (you) 
+// can always force a victory in hexapawn.
+// Make sure to restart after changing the game.
+// var gameBeingPlayed = "Tic-tac-toe";
 var player1IsComputer = true;
 var player2IsComputer = false;
 var computerMoveMillisecondDelay = 100;
 
+/* =============== For the judges =============== */
+/**
+                                        
+                          Contest: AI
+                                
+             I have completed 100% of Khan Academy's
+            'Intro to JS' and have been programming
+                         for ~70 months.
+                                
+               I would prefer to be placed in the
+                           Advanced
+                            bracket
+                                
+        In creating this entry, I focused on clear, well defined functions
+            and clean, well commented code. This helped me handle the 
+            challenging concepts of this program
+                                
+  One aspect I found challenging was iterating through a pseudo-array of 
+    unknown dimensions with a single loop.
+                                
+                   I would like to highlight
+        How I detailed many of the functions in comments 
+           before I started writing any actual code.
+                        for the judges.
+                                
+                                
+        TODO:
+        - Fill out statements above ✓
+        - Save your entry as a spin-off of this program 
+        - Have fun! ✓
+
+**/
+
 /** @Rules
- * Tic-tac-toe is a well known game that is played on a 3x3 board.
+ * ==== Tic-tac-toe is a well known game that is played on a 3x3 board.
  * Players take turns placing their symbol (X or O) in any open square.
  * First to get three in a row wins. X goes first.
  * If the board fills up without a victor, it is a tie.
  * 
- * Hexapawn is less well known. I learned 
+ * ==== Hexapawn is less well known. I learned 
  * about it (and this method of machine learning) from a youtube video.
- *  (I forgot which youtube video.) Here is another source of the same thing:
+ *  (I forgot which youtube video.) Here is another source for the same thing:
  * https://www.instructables.com/Matchbox-Mini-Chess-Learning-Machine/
- * ---- 
+ * 
  * Hexapawn is also played on a 3x3 board. Each player starts
  * the game with three chess pawns on each side of the board.
  * Players take turns moving their pawns like ordinary chess pawns.
@@ -25,17 +63,96 @@ var computerMoveMillisecondDelay = 100;
  *  1. You get a pawn to the other side of the board
  *  2. The other player has no moves left (this includes having no pieces).
  * 
- * Tic-tac-toe-mini is my invention. It is played on a 2x2 board.
+ * ==== Tic-tac-toe-mini is my invention. It is played on a 2x2 board.
  * As in classic tic-tac-toe, players take turns placing their symbol 
  * (X or O) in any open square.
  * If X claims a whole column, X wins.
  * If O claims a whole row, O wins.
  * If the board is full without a victor, it is a tie.
  * 
- * 
-**/
+**///
 
-/** Program structure overview **/
+/* =============== How the machine learning works =============== */
+/**
+ * This program currently relies on the game being simple enough that all 
+ * possible games can be analyzed. Even so, it has been tricky to implement. 
+ * I may later add an option for a board scoring function, to handle more 
+ * complex games.
+ * 
+ * The program's data is an object containing all of the possible boards.
+ * The program goes through every possible move on each board, 
+ * and labels each one as, essentially, "first player can win", 
+ * "second player can win", "uncertain", or "absolute tie".
+ * How the computer chooses a move is explained below.
+ * 
+ * Even though this program work by brute force, it does teach itself
+ * and (in tic-tac-toe) it played forks I didn't even know about.
+ * It does not keep any tic-tac-toe (or any other game) specific code 
+ * out side of the tic-tac-toe game definition.
+ * 
+ * Tic-tac-toe can be easily brute forced if caching is implemented, 
+ * given that there are only 6046 potentially reachable boards.
+ * 
+    function factorial(n) { return n <= 1? 1 : n * factorial(n - 1); }
+    function combination(outOf, take) {
+        return factorial(outOf) / (factorial(take) * factorial(outOf - take));
+    }
+    function calcTicTacToeBoards(squares) {
+        var boards = 0;
+        for (var i = 0; i <= squares / 2; i++) {
+            // X will go next on these boards.
+            // There are this many of them:
+            // (ways to place `i` Xs on a board with `squares` squares) *
+            // (ways to place `i` Os on a board with `squares` squares, 
+            //  after subtracting the squares taken by the `i` Xs,
+            //  giving `squares - i` spots availible.)
+            boards += combination(squares, i) * 
+                combination(squares - i, i);
+            
+            // O will go next on these boards.
+            // The logic is the same as before, except there 
+            // is one more X than O.
+            boards += combination(squares, i + 1) * 
+                combination(squares - (i + 1), i);
+        }
+        return boards;
+    }
+    println(calcTicTacToeBoards(9)); // → 6046
+ * 
+ * In practice, there are only 5478 boards that can actually be reached.
+ * 
+ * When it comes time to pick a move for the computer, 
+ * if there are any moves with canWin === gameState.turn, the computer
+ * randomly chooses one of those.
+ *     Otherwise, if possible, it randomly chooses a move with an unsure 
+ * outcome (which mean it will end in a tie if both players play perfectly).
+ * This means that the computer chooses a random move if it cannot guarantee a 
+ * victory. It does not seek to fork you if it cannot force it. This does make
+ * the game fun.
+ *     If the computer cannot win or tie, then it chooses a move that lets 
+ * the opponent win, to avoid not moving at all. For example, hexapawn 
+ * is a second player victory, if both players play perfectly.
+ * 
+ * Once the data has been created (I don't want to go into that algorithm here),
+ * it is time to train/analyze the data.
+ * One loop is used, and it runs a set number of iterations per frame.
+ * If it finds that the player whose turn it is can win, it sets the canWin 
+ * property on the previous move to that player, to show that they can force
+ * a win.
+ * If all possible moves for the current player have a canWin property 
+ * that is equal to the other player, then it sets canWin on the previous move
+ * to that other player. (This is likely the case if the other player just 
+ * created a fork in tic-tac-toe.)
+ * Or, similar to the first case, if at least one move choice leads to the 
+ * current player winning (canWin property again), then the result is the same
+ * as in the first situation (canWin for the previous move is set 
+ * to that player).
+ * 
+ * I have made an effort to keep the seperate elements of my program contained.
+ * 
+**///
+
+/* =============== Program structure overview =============== */
 /**
  * =============== Definition of terms and types ===============
  * 
@@ -57,7 +174,32 @@ var computerMoveMillisecondDelay = 100;
  * 
  * A Move is a one or two element array:
     Move onePartMove = [4]; // Tic-tac-toe uses one part moves.
-    Move twoPartMove = [3, 6]; // Chess uses two part moves.
+    Move twoPartMove = [3, 6]; // Chess and hexapawn use two part moves.
+ * 
+ * A GameState is an object with the following properties:
+    GameState gameState = {
+        Turn turn: <The current turn>,
+        Owner won: <Which player has won the game>,
+        Board board: <The current board>,
+        Move[] moves: <A list of all moves made so far in the game.
+            In games with two-part moves, the last Move in the array 
+            may be incomplete>,
+        GameDefinition game: <The GameDefinition for the game being played>
+    };
+ * GameStates are used to store the current state of the game.
+ * 
+ * A MenuState is an object with the following properties:
+    MenuState menuState = {
+        boolean player1IsComputer: <Whether the first player is played by AI>,
+        boolean player2IsComputer: <Whether the second player is played by AI>,
+        boolean menuDisplayed: <Whether the menu screen is being shown>,
+        String gameSelected: <A string naming the chosen game>,
+        Object<String,GameDefinition> games: <An object mapping names to games>,
+        void initGame(): <A function to initialize things dependent on
+            gameBeingPlayed> // It's helpful to store this in the menuState
+    };
+ * MenuStates are used to store the state of the home screen menu, along 
+ * with whether the home screen is being displayed.
  * 
  * A Color is just a color value from the color() function.
  * 
@@ -68,9 +210,12 @@ var computerMoveMillisecondDelay = 100;
         gamePlay: {
             int boardSize: 3,  // The size of the game's board
                 // For example, 3 for Tic-tac-toe
-            int maxDepth: 4, // How many moves ahead to look
+            int maxDepth: 9, // How many moves ahead to look;
+                // This feature is not fully working; it will cause unexpected
+                // results. Fixing it would require adding a board grading
+                // function, and I do not want to do that.
             
-            Owner hasWon(Board board, Turn turn) { 
+            Owner hasWon(Board board, Turn turn, Move[] moves) { 
                 Return an Owner indicating who has won the input board.
             },
             
@@ -128,12 +273,10 @@ var computerMoveMillisecondDelay = 100;
             double dotDiameter: squareSize / 4,
         }
     };
- * 
- * 
- * =============== Specifications for my program ===============
- * 
- * How AIData is stored as specified below this comment block.
- * 
+**///
+
+/* =============== Specifications for my program =============== */
+/**
  * The environment (along with libraries) stores a GameState.
  * A GameState has the the following properties:
     GameState gameState = {
@@ -158,7 +301,7 @@ var computerMoveMillisecondDelay = 100;
         }
         
         GameState renderGame(GameState gameState, 
-                double mouseX, double mouseY) {
+                int mouseX, int mouseY) {
             Renders a game using the gameState and original GUIConfig.
             Does not draw hover if mouseX or mouseY are undefined.
             Returns the GameState for convienience.
@@ -168,7 +311,7 @@ var computerMoveMillisecondDelay = 100;
             Draws a loading screen based on the phase argument.
         }
         
-        int squareClicked(GameState gameState, double mouseX, double mouseY) {
+        int squareClicked(GameState gameState, int mouseX, int mouseY) {
             Returns the index of the square that was clicked.
         }
     }
@@ -232,19 +375,7 @@ var computerMoveMillisecondDelay = 100;
             Return whether this.AIData is fully trained.
         }
     }
- * 
- * 
- * Next up: More details on the machine learning.
-**///
-
-/** ==== How the machine learning works ==== **/
-/**
- * This program currently relies on the game being simple enough that all 
- * possible games can be analyzed. Even so, it has been tricky to implement. 
- * I may later add an option for a board scoring function, to handle more 
- * complex games.
- * --------------
- * 
+ *  
  * After training is finished, the final data is in this format:
     AIData data = {
         <Board.toString()>: {
@@ -296,45 +427,25 @@ var computerMoveMillisecondDelay = 100;
  * is played. If canWin = Owner.tie, then there is no way to avoid a draw
  * if that move is played.
  * 
- * Even though this program work by brute force, it does teach itself
- * and (in tic-tac-toe) it played forks I didn't even know about.
- * It can also switch to a new game easily.
  * 
- * Tic-tac-toe can be easily brute forced if caching is implemented, 
- * given that there are only 6046 potentially reachable boards.
-    function factorial(n) { return n <= 1? 1 : n * factorial(n - 1); }
-    function combination(a, b) {
-        return factorial(a) / (factorial(b) * factorial(a - b));
-    }
-    function calcTicTacToeBoards(squares) {
-        var boards = 0;
-        for (var i = 0; i <= squares / 2; i++) {
-            boards += combination(squares, i) * 
-                combination(squares - i, i); // X's turn
-            boards += combination(squares, i + 1) * 
-                combination(squares - (i + 1), i); // O's turn
-        }
-        return boards;
-    }
-    println(calcTicTacToeBoards(9)); // → 6046
- * 
-**/
+ * Yay, we're done! Onto the code!
+**///
 
 /** "Enums" **/
 var Turn = {player1: "player1", player2: "player2", 
-    next: function (turn) {
+    next: function(turn) {
         return turn === "player2"? "player1" : "player2";
     }
 }; // I have firmly assumed that there are only two players
 var Owner = {none: "none", player1: "player1", player2: "player2", tie: "tie"};
 var PlayerTypes = {human: "human", computer: "computer"};
 
-/** LongRunning library. Helps with long running operations. **/
+/** LongRunning library. Helps break up long running operations. **/
 /* Usage example: 
 var slowFunc = LongRunning(function() {
-    for (var i = 0; i < 1000 * 1000 * 1000; i++) {
+    for (var i = 0; i < 1000 * 1000; i++) {
         println(floor(random(1, 100)));
-        if (i % 10000 === 0) {
+        if (i % 1000 === 0) {
             LongRunning.pause();
         }
     }
@@ -374,6 +485,9 @@ var LongRunning = (function() {
         return Object.constructor("__env__", func)(globalThis);
     }
     
+    // "Call" this to pause your functions
+    // If you called LongRunning() on the wrapper function,
+    // LongRunning.pause will never actually be called.
     LongRunning.pause = function() {
         var message = "LongRunning.pause shouldn't actually be called. " +
             "Did you forget to call LongRunning() on the wrapping function?";
@@ -391,14 +505,16 @@ var GUI = (function() {
     
     /* GUI constructor(GameDefinition.GUIConfig config, 
             GameDefinition.gamePlay gamePlay) {
-        Returns a new GUI object.
+        Returns a new GUI instance. If not given parameters, call the init
+        method with the missing parameters before 
+        using game-specific functions.
     } */
     function GUI(config, gamePlay) {
         // Hold on to game play functions
         this.gamePlay = gamePlay;
         
-        // Clone the config
-        config = Object.create(config);
+        // Remember the config
+        this.config = config;
         
         // Helper function
         function ifBlank(propertyName, value) {
@@ -407,24 +523,31 @@ var GUI = (function() {
             }
         }
         
-        // Set the default properties as specified
-        ifBlank("backgroundColor", color(255, 255, 255));
-        ifBlank("textColor", color(0, 0, 0));
-        ifBlank("squareColor", color(128, 128, 128));
-        ifBlank("hoverOverlayColor", color(0, 0, 0, 60));
-        ifBlank("squareSize", width / 3);
-        ifBlank("dotColor", color(100, 100, 100, 100));
-        ifBlank("dotDiameter", config.squareSize / 4);
-        
-        // Remember the config
-        this.config = config;
+        if (config) {
+            // Clone the config
+            config = Object.create(config);
+            
+            // Set the default properties as specified
+            ifBlank("squareColor", color(128, 128, 128));
+            ifBlank("hoverOverlayColor", color(0, 0, 0, 60));
+            ifBlank("squareSize", width / 3);
+            ifBlank("dotColor", color(100, 100, 100, 100));
+            ifBlank("dotDiameter", config.squareSize / 4);
+        }
     }
     
-    /* GameState renderGame(GameState gameState, 
-            double mouseX, double mouseY) {
+    /* void init(GameDefinition.GUIConfig config, 
+            GameDefinition.gamePlay gamePlay) {
+        Initializes the instance with the given config and gamePlay.
+    } */
+    GUI.prototype.init = function(config, gamePlay) {
+        GUI.call(this, config, gamePlay);
+    };
+    
+    /* void renderGame(GameState gameState, 
+            int mouseX, int mouseY) {
         Renders a game using the gameState and original GUIConfig.
         Does not draw hover if mouseX or mouseY are undefined.
-        Returns the GameState for convienience.
     } */
     GUI.prototype.renderGame = function(gameState, mouseX, mouseY) {
         // Background
@@ -432,6 +555,7 @@ var GUI = (function() {
         
         // Board offset and local config binding
         var config = this.config;
+        // The actual size in pixels of the board.
         var boardPixelSize = config.boardSize * config.squareSize;
         var xOffset = (width - boardPixelSize) / 2;
         var yOffset = (height - boardPixelSize) / 2;
@@ -459,29 +583,30 @@ var GUI = (function() {
         
         // Calculate the suggested move
         var mouseSquare = this.mouseSquare(gameState, mouseX, mouseY);
-        var suggestedMove = [mouseSquare.index];
+        var suggestedMoves = [ [mouseSquare.index] ];
         var incompleteMove = gameState.moves.length > 0 && 
             !this.gamePlay.isCompleteMove(gameState.board, 
                 gameState.moves.at(-1), gameState.turn);
         if (incompleteMove) {
             var newMove = gameState.moves.at(-1).slice();
-            newMove.push(mouseSquare.type);
-            suggestedMove = newMove;
+            newMove.push(mouseSquare.index);
+            suggestedMoves[1] = newMove;
         }
         
         // Draw move options if applicable (dots)
         if (incompleteMove) {
             var moves = this.gamePlay.getLegalMoves(
                 gameState.board, gameState.moves.at(-1), gameState.turn);
-            var newMoveIndex = gameState.moves.length;
+            var movePartIndex = gameState.moves.at(-1).length;
             
             noStroke();
             fill(config.dotColor);
             for (var m = 0; m < moves.length; m++) {
                 // Draw a dot
-                var x = (moves[m][newMoveIndex] % config.boardSize) * 
+                var dotIndex = moves[m][movePartIndex];
+                var x = (dotIndex % config.boardSize) * 
                     config.squareSize + xOffset + config.squareSize / 2;
-                var y = Math.floor(moves[m][newMoveIndex] / config.boardSize) * 
+                var y = Math.floor(dotIndex / config.boardSize) *
                     config.squareSize + yOffset + config.squareSize / 2;
                 ellipse(x, y, config.dotDiameter, config.dotDiameter);
             }
@@ -494,8 +619,10 @@ var GUI = (function() {
         
         // Cursor and hover effect
         if (mouseX !== undefined && mouseY !== undefined && 
-                this.gamePlay.isLegalMove(gameState.board, 
-                    suggestedMove, gameState.turn)) {
+                (this.gamePlay.isLegalMove(gameState.board, 
+                    suggestedMoves[0], gameState.turn) ||
+                suggestedMoves[1] && this.gamePlay.isLegalMove(
+                    gameState.board, suggestedMoves[1], gameState.turn))) {
             // Indicate with the cursor whether the square is clickable
             cursor("pointer");
             
@@ -547,8 +674,11 @@ var GUI = (function() {
         
         // Fade overlay and words
         fill(0, 0, 0, 130);
+        rectMode(CORNER);
         noStroke();
         rect(0, 0, width, height);
+        
+        // Text
         fill(255, 255, 255);
         textAlign(CENTER, CENTER);
         textSize(width / 6);
@@ -589,7 +719,232 @@ var GUI = (function() {
         }
     };
     
-    /* int squareClicked(GameState gameState, double mouseX, double mouseY) {
+    /* void drawHomeScreen(MenuState menuState, int mouseX, int mouseY) {
+        Draws the home screen with buttons based on the input MenuState,
+        mouseX, and mouseY.
+        Does not draw hover if mouseX or mouseY are undefined.
+    } */
+    GUI.prototype.drawHomeScreen = function(menuState, mouseX, mouseY) {
+        // Background
+        background(56, 56, 56);
+        
+        // Cursor variable
+        var clickable = false;
+        
+        // Center text
+        textAlign(CENTER, CENTER);
+        
+        // Title {
+        textSize(width / 8);
+        text("Machine learning\nfor simple games", width * 0.5, height * 0.2);
+        // }
+        
+        // Toggles {
+        var toggle1Hover = this.drawToggle(menuState.player1IsComputer, 
+            width * 0.41, height * 0.5, width / 10, height / 12.5,
+            mouseX, mouseY);
+        var toggle2Hover = this.drawToggle(menuState.player2IsComputer, 
+            width * 0.41, height * 0.7, width / 10, height / 12.5,
+            mouseX, mouseY);
+        clickable = clickable || toggle1Hover || toggle2Hover;
+        
+        // Toggle labels
+        textSize(width / 15);
+        text("Player 1 is\ncomputer?", width * 0.2, height * 0.5);
+        text("Player 2 is\ncomputer?", width * 0.2, height * 0.7);
+        // }
+        
+        // Play button {
+        // Hover effect
+        var buttonHover = false;
+        if (mouseX >= width * 0.16 && mouseX <= width * 0.46 &&
+            mouseY >= height * 0.82 && mouseY <= height * 0.92) {
+            buttonHover = true;
+        }
+        clickable = clickable || buttonHover;
+        
+        // Draw the button
+        fill(buttonHover? color(10, 36, 201) : color(18, 46, 255));
+        stroke(0, 0, 0);
+        strokeWeight(width / 200);
+        rect(width * 0.16, height * 0.82,
+            width * 0.3, height * 0.1, width * 0.03);
+        
+        // Text for the play button
+        fill(255, 255, 255);
+        text("Play", width * 0.31, height * 0.87);
+        // }
+        
+        // Game selector {
+        // Top box for chosen game
+        fill(25, 71, 255);
+        stroke(0, 0, 0);
+        strokeWeight(width / 200);
+        rect(width * 0.6, height * 0.44, 
+            width * 0.35, height * 0.1);
+        
+        // Text for top box
+        fill(255, 255, 255);
+        text(menuState.gameSelected, width * 0.775, height * 0.49);
+        
+        
+        // }
+        
+        // Cursor
+        if (clickable) {
+            cursor("pointer");
+        } else {
+            cursor("default");
+        }
+    };
+    
+    /* boolean drawToggle(boolean on, double x, double y, double w, double h,
+            Color c) {
+        Draws a toggle based on the input boolean "on" and x, y, w, h,
+        mouseX, and mouseY (last two for hover effect).
+        Returns whether the mouse is over the toggle.
+    } */
+    GUI.prototype.drawToggle = function(on, x, y, w, h, mouseX, mouseY) {
+        // The toggle border
+        // The toggle is drawn as two very thick lines, 
+        // with the back one being slightly thicker
+        // First line
+        stroke(0, 0, 0);
+        strokeWeight(h);
+        line(x, y, x + w, y);
+        
+        // Second, slightly smaller line
+        stroke(168, 168, 168);
+        strokeWeight(h * 0.8);
+        line(x, y, x + w, y);
+        
+        // Draw the dot
+        stroke(0, 29, 255);
+        strokeWeight(h * 0.7); // Add a little space
+        point(on? x + w : x, y);
+        
+        var hover = this.toggleHover(x, y, w, h, mouseX, mouseY);
+        
+        // Hover effect; similar to the border line
+        if (hover) {
+            stroke(0, 0, 0, 100);
+            strokeWeight(h);
+            line(x, y, x + w, y);
+        }
+        
+        // Return
+        return hover;
+    };
+    
+    /* boolean toggleHover(double x, double y, double w, double h,
+            Color c, int mouseX, int mouseY) {
+        Returns whether the mouse is over the toggle.
+    } */
+    GUI.prototype.toggleHover = function(x, y, w, h, mouseX, mouseY) {
+        // Left side circle hover
+        // If mouseX or mouseY are undefined, this will result in
+        // (NaN < h) which is correctly false.
+        var leftHover = Math.hypot(x + w - mouseX, y - mouseY) < h / 2;
+        
+        // Right side circle hover
+        var rightHover = Math.hypot(x + w - mouseX, y - mouseY) < h / 2;
+        
+        // Middle rectangle hover
+        var middleHover = mouseX >= x && mouseX <= x + w &&
+            mouseY >= y - h / 2 && mouseY <= y + h / 2;
+        
+        // Circle + rectangle + circle = toggle shape
+        // ◯ + ▯ + ◯ = ◖▮◗
+        var hover = leftHover || middleHover || rightHover;
+        
+        // Return
+        return hover;
+    };
+    
+    /* void humanPlayClick(GameState gameState, int mouseX, int mouseY) {
+        Handles a mouse click for an in-progress game on a human's turn
+    } */
+    GUI.prototype.humanPlayClick = function(gameState, mouseX, mouseY) {
+        // The human plays!
+        var mouseSquare = this.mouseSquare(gameState, mouseX, mouseY);
+        
+        // Calculate the selected move
+        var suggestedMoves = [ [mouseSquare.index] ];
+        var incompleteMove = gameState.moves.length > 0 && 
+                !gameState.game.gamePlay.isCompleteMove(gameState.board, 
+                    gameState.moves.at(-1), gameState.turn);
+        if (incompleteMove) {
+            var newMove = gameState.moves.at(-1).slice();
+            newMove.push(mouseSquare.index);
+            suggestedMoves[1] = newMove;
+        }
+        
+        // Test and possibly play suggestedMoves[0]
+        if (gameState.game.gamePlay.isLegalMove(gameState.board, 
+                suggestedMoves[0], gameState.turn)) {
+            // Play the move if it is complete
+            if (gameState.game.gamePlay.isCompleteMove(gameState.board, 
+                    suggestedMoves[0], gameState.turn)) {
+                
+                gameState.board = gameState.game.gamePlay.playMove(
+                    gameState.board, suggestedMoves[0], gameState.turn);
+                gameState.turn = Turn.next(gameState.turn);
+                gameState.won = gameState.game.gamePlay.hasWon(
+                    gameState.board, gameState.turn, gameState.moves);
+            }
+            
+            // Push the move to the move list
+            if (incompleteMove) {
+                var totalMoves = gameState.moves.length;
+                gameState.moves[totalMoves - 1] = suggestedMoves[0];
+            } else {
+                gameState.moves.push(suggestedMoves[0]);
+            }
+        }
+        
+        // Test and possibly play suggestedMoves[1]
+        if (suggestedMoves[1] &&
+            gameState.game.gamePlay.isLegalMove(gameState.board, 
+                suggestedMoves[1], gameState.turn)) {
+            // Play the move if it is complete
+            if (gameState.game.gamePlay.isCompleteMove(gameState.board, 
+                    suggestedMoves[1], gameState.turn)) {
+                
+                gameState.board = gameState.game.gamePlay.playMove(
+                    gameState.board, suggestedMoves[1], gameState.turn);
+                gameState.turn = Turn.next(gameState.turn);
+                gameState.won = gameState.game.gamePlay.hasWon(
+                    gameState.board, gameState.turn, gameState.moves);
+            }
+            
+            // Push the move to the move list
+            if (incompleteMove) {
+                var totalMoves = gameState.moves.length;
+                gameState.moves[totalMoves - 1] = suggestedMoves[1];
+            } else {
+                gameState.moves.push(suggestedMoves[1]);
+            }
+        }
+    };
+    
+    /* void menuClick(GameState gameState, int mouseX, int mouseY) {
+        Handles a mouse click for the menu.
+    } */
+    GUI.prototype.menuClick = function(menuState, mouseX, mouseY) {
+        // Copy-pasting hover code from above is not the best way,
+        // but it seemed fairly easy.
+        
+        // Play button
+        if (mouseX >= width * 0.16 && mouseX <= width * 0.46 &&
+            mouseY >= height * 0.82 && mouseY <= height * 0.92) {
+            // Initialize the game-dependent variables
+            menuState.initGame();
+            // Hide the menu
+            menuState.menuDisplayed = false;
+        }
+    };
+    
+    /* int squareClicked(GameState gameState, int mouseX, int mouseY) {
         Returns the index of the square that was clicked.
     } */
     GUI.prototype.mouseSquare = function(gameState, mouseX, mouseY) {
@@ -642,7 +997,7 @@ var GameAI = (function() {
         this.trainingIterator = null;
         this.createDataIterator = null;
         this.initialBoard = this.gamePlay.createBoard();
-        this.maxDepth = this.gamePlay.maxDepth || Infinity;
+        this.maxDepth = this.gamePlay.maxDepth || 100;
         this.iterationsPerFrame = this.gamePlay.iterationsPerFrame || 8000;
         this.visitId = 0;
         this.trained = false;
@@ -675,6 +1030,7 @@ var GameAI = (function() {
             if (iteratorValue.done) {
                 this.createDataIterator = null;
             }
+            return {training: false, value: iteratorValue.value};
         } else if (!this.trained) {
             // Utilize the Iterator interface
             if (!this.trainingIterator) {
@@ -685,6 +1041,7 @@ var GameAI = (function() {
             if (iteratorValue.done) {
                 this.trainingIterator = null;
             }
+            return {training: true, value: iteratorValue.value};
         }
     };
     
@@ -731,6 +1088,7 @@ var GameAI = (function() {
         }
         
         // Randomly choose one of the best moves to make things more fun
+        // Otherwise, the computer always chooses the same moves
         var randomIndex = Math.floor(Math.random() * bestMoves.length);
         return bestMoves[randomIndex].move;
     };
@@ -744,7 +1102,8 @@ var GameAI = (function() {
         gameState.board = this.gamePlay.playMove(
             gameState.board, computerMove, gameState.turn);
         gameState.turn = Turn.next(gameState.turn);
-        gameState.won = this.gamePlay.hasWon(gameState.board, gameState.turn);
+        gameState.won = this.gamePlay.hasWon(
+            gameState.board, gameState.turn, gameState.moves);
         gameState.moves.push(computerMove);
     };
     
@@ -761,8 +1120,7 @@ var GameAI = (function() {
         function moveToObject(move) {
             var result = instance.gamePlay.playMove(
                 this.board, move, this.turn);
-            return {move: move, canWin: Owner.none, 
-                result: result};
+            return {move: move, canWin: Owner.none, result: result};
         }
         
         // Initialize
@@ -772,12 +1130,12 @@ var GameAI = (function() {
         } else {
             var board = this.initialBoard.slice();
             startAt = { board: board };
+            // Calculate player1's moves
             startAt[Turn.player1] = this.gamePlay
                 .getLegalMoves(board, [], Turn.player1)
                 .map(moveToObject, { board: board, turn: Turn.player1 });
-            startAt[Turn.player2] = this.gamePlay
-                .getLegalMoves(board, [], Turn.player2)
-                .map(moveToObject, { board: board, turn: Turn.player2 });
+            // Player2 won't play on the first board
+            startAt[Turn.player2] = [];
             this.AIData[board.toString()] = startAt;
         }
         
@@ -790,6 +1148,7 @@ var GameAI = (function() {
         indexes[0][Turn.player2] = 0; // and for player2's moves
         var players = [Turn.player1]; // First or second player's moves above
         var boards = [startAt]; // Keep a board stack
+        var moves = []; // A list of the moves to get to current(boards)
         var pauseCounter = 0; // To prevent the loop from running too long.
         
         // Another helper function
@@ -820,6 +1179,11 @@ var GameAI = (function() {
                     depth--;
                     // Advance the index
                     indexes[depth][players[depth]]++;
+                    // Trim moves
+                    // When depth = 1, that means we are on the second board,
+                    // and that means that one move will have been played
+                    // to get there. So this is correct.
+                    moves.length = depth;
                 }
             } else 
             // Handle going down
@@ -827,21 +1191,36 @@ var GameAI = (function() {
                 // Bind the initial board and the new board
                 var initialBoard = boards[depth].board;
                 var newBoard = current(boards)[current(indexes)].result;
+                var move = current(boards)[current(indexes)].move;
                 
-                // Check for the possiblility of redoing work
-                if (this.AIData[newBoard.toString()]) {
-                    // This board has already been done, advance index
+                // Check for the possiblility of redoing work.
+                // But make sure that it has all needed moves.
+                // If not, simply do it again.
+                // newBoard's turn is the next one after the current turn.
+                // We know these moves have been done if there are any.
+                // If not, it won't cost much to recheck them all.
+                var possibleNewBoardObj = this.AIData[newBoard.toString()];
+                if (possibleNewBoardObj && possibleNewBoardObj
+                    [Turn.next(players[depth])].length > 0) {
+                    // This board has already been done. Advance index.
                     indexes[depth][players[depth]]++;
                     continue;
                 }
                 
+                // Add the new move to the moves array
+                moves.push(move);
+                
                 // Test for a victory
-                var won = this.gamePlay.hasWon(newBoard, players[depth]);
+                var won = this.gamePlay.hasWon(
+                    newBoard, Turn.next(players[depth]), moves);
                 
                 // Calculate possible moves
-                var player1Moves = won !== Owner.none? [] :
+                // Only do this for the player who will be playing on this board
+                var player1Moves = won !== Owner.none &&
+                    Turn.next(players[depth]) === Turn.player1? [] :
                     this.gamePlay.getLegalMoves(newBoard, [], Turn.player1);
-                var player2Moves = won !== Owner.none? [] :
+                var player2Moves = won !== Owner.none &&
+                    Turn.next(players[depth]) === Turn.player2? [] :
                     this.gamePlay.getLegalMoves(newBoard, [], Turn.player2);
                 
                 // Convert possible moves to move objects
@@ -875,6 +1254,7 @@ var GameAI = (function() {
                 indexes[depth][players[depth]]++;
             }
         }
+        return indexes;
     });
     
     /* Iterator trainAIFrom(GameState gameState (optional) ) {
@@ -948,11 +1328,10 @@ var GameAI = (function() {
                 }
                 
                 // If the previous check failed, check for an absolute outcome
+                // for the player that played the last move
                 if (previousMove.canWin === Owner.none) {
-                    var otherMoves = boards[depth][players[depth - 1]];
-                    var moves = otherMoves.concat(playerMoves);
                     var outcome = null;
-                    for (var i = 0; i < moves.length; i++) {
+                    for (var i = 0; i < playerMoves.length; i++) {
                         if (outcome === null) {
                             outcome = playerMoves[i].canWin;
                         } else if (playerMoves[i].canWin !== outcome) {
@@ -966,8 +1345,6 @@ var GameAI = (function() {
                 }
             }
         }
-        
-        // debugger; // jshint ignore:line
         
         // The One Loop
         while (indexes[0][players[0]] < boards[0][players[0]].length) {
@@ -1025,6 +1402,7 @@ var GameAI = (function() {
                 indexes[depth][players[depth]]++;
             }
         }
+        return indexes;
     });
     
     /* boolean isReady() {
@@ -1042,11 +1420,10 @@ var GameAI = (function() {
 var ticTacToe = {
     gamePlay: {
         boardSize: 3, // The size of the game's board; 3 for Tic-tac-toe
-        maxDepth: Infinity, // How many moves ahead to look
-        /* Owner hasWon(Board board, Turn turn) { 
+        /* Owner hasWon(Board board, Turn turn, Move[] moves) { 
             Return an Owner indicating who has won the input board.
         } */
-        hasWon: function(board, turn) {
+        hasWon: function(board, turn, moves) {
             // Winning sequences
             var sequences = [
                 // Rows
@@ -1127,7 +1504,9 @@ var ticTacToe = {
         },
         
         /* boolean isLegalMove(Board board, Move move, Turn turn) {
-            Return a boolean indicating whether the input move is legal
+            Return a boolean indicating whether the input move is legal.
+            Should return true if given a currently valid partial move.
+            E.g. [3] when the game is a two-move game.
         } */
         isLegalMove: function(board, move, turn) {
             return board[move[0]] === Owner.none;
@@ -1232,12 +1611,11 @@ var ticTacToe = {
 var hexapawn = {
     gamePlay: {
         boardSize: 3, // The size of the game's board; 3 for Tic-tac-toe
-        maxDepth: Infinity, // How many moves ahead to look
         
-        /* Owner hasWon(Board board, Turn turn) { 
+        /* Owner hasWon(Board board, Turn turn, Move[] moves) { 
             Return an Owner indicating who has won the input board.
         } */
-        hasWon: function(board, turn) {
+        hasWon: function(board, turn, moves) {
             if (board[0] === Owner.player2 ||
                 board[1] === Owner.player2 ||
                 board[2] === Owner.player2) {
@@ -1252,7 +1630,7 @@ var hexapawn = {
             
             var moves = hexapawn.gamePlay.getLegalMoves(board, [], turn);
             if (moves.length === 0) {
-                return turn;
+                return Turn.next(turn);
             }
             
             return Owner.none;
@@ -1278,22 +1656,27 @@ var hexapawn = {
                     continue;
                 }
                 // Create moves
-                if (board[i] === Owner.player1) {
-                    // Squares ahead, from left to right
-                    if (board[i + 2] === Owner.player2 && i % 3 !== 0) {
+                if (board[i] === Owner.player1 && board[i] === turn) {
+                    // Squares down the board, from left to right
+                    if (board[i + 2] === Owner.player2 && i % 3 > 0) {
                         legalMoves.push([i, i + 2]);
-                    } else if (board[i + 3] === Owner.none) {
+                    }
+                    if (board[i + 3] === Owner.none) {
                         legalMoves.push([i, i + 3]);
-                    } else if (board[i + 4] === Owner.player2 && i % 3 !== 2) {
+                    }
+                    if (board[i + 4] === Owner.player2 && i % 3 < 2) {
                         legalMoves.push([i, i + 4]);
                     }
-                } else if (board[i] === Owner.player2) {
-                    // Squares ahead, from left to right
-                    if (board[i - 4] === Owner.player1 && i % 3 !== 0) {
+                } else 
+                if (board[i] === Owner.player2 && board[i] === turn) {
+                    // Squares up the board, from left to right
+                    if (board[i - 4] === Owner.player1 && i % 3 > 0) {
                         legalMoves.push([i, i - 4]);
-                    } else if (board[i - 3] === Owner.none) {
+                    }
+                    if (board[i - 3] === Owner.none) {
                         legalMoves.push([i, i - 3]);
-                    } else if (board[i - 2] === Owner.player1 && i % 3 !== 2) {
+                    }
+                    if (board[i - 2] === Owner.player1 && i % 3 < 2) {
                         legalMoves.push([i, i - 2]);
                     }
                 }
@@ -1320,12 +1703,14 @@ var hexapawn = {
         },
         
         /* boolean isLegalMove(Board board, Move move, Turn turn) {
-            Return a boolean indicating whether the input move is legal
+            Return a boolean indicating whether the input move is legal.
+            Should return true if given a currently valid partial move.
+            E.g. [3] when the game is a two-move game.
         } */
         isLegalMove: function(board, move, turn) {
             var legalMove = board[move[0]] === turn && 
                 move[0] >= 0 && move[0] <= 9;
-            
+            /*
             if (move.length === 2) {
                 legalMove = legalMove && move[1] >= 0 && move[1] <= 9;
                 if (turn === Turn.player1) {
@@ -1346,6 +1731,14 @@ var hexapawn = {
                             board[move[1]] === Owner.none;
                     }
                 }
+            }*/
+            
+            if (move.length === 2) {
+                var legalMoves = hexapawn
+                    .gamePlay.getLegalMoves(board, [], turn).map(String);
+                legalMove = legalMove && legalMoves.includes(String(move));
+            } else {
+                legalMove = legalMove && board[move[0]] === turn;
             }
             
             return legalMove;
@@ -1414,7 +1807,7 @@ var hexapawn = {
                     i >= 6 && board[i] === Owner.player1) {
                     var pos = squarePositions[i];
                     var size = hexapawn.GUIConfig.squareSize;
-                    fill(255, 255, 255, 100);
+                    fill(255, 225, 0, 100);
                     rectMode(CENTER);
                     noStroke();
                     rect(pos[0], pos[1], size, size);
@@ -1436,11 +1829,10 @@ var hexapawn = {
 var ticTacToeMini = {
     gamePlay: {
         boardSize: 2, // The size of the game's board; 3 for Tic-tac-toe
-        maxDepth: Infinity, // How many moves ahead to look
-        /* Owner hasWon(Board board, Turn turn) { 
+        /* Owner hasWon(Board board, Turn turn, Move[] moves) { 
             Return an Owner indicating who has won the input board.
         } */
-        hasWon: function(board, turn) {
+        hasWon: function(board, turn, moves) {
             if (board[0] === Owner.player1 && board[2] === Owner.player1 ||
                 board[1] === Owner.player1 && board[3] === Owner.player1) {
                 return Owner.player1;
@@ -1506,8 +1898,10 @@ var ticTacToeMini = {
             }
         },
         
-        /* boolean drawLearningScreen(Board board, Move move, Turn turn) {
-            Return a boolean indicating whether the input move is legal
+        /* boolean isLegalMove(Board board, Move move, Turn turn) {
+            Return a boolean indicating whether the input move is legal.
+            Should return true if given a currently valid partial move.
+            E.g. [3] when the game is a two-move game.
         } */
         isLegalMove: function(board, move, turn) {
             return board[move[0]] === Owner.none;
@@ -1600,23 +1994,21 @@ var ticTacToeMini = {
     }
 };
 
-/** Initalization and game state **/
-var games = {
-    "tic-tac-toe": ticTacToe,
-    "hexapawn": hexapawn,
-    "tic-tac-toe-mini": ticTacToeMini,
-};
-if (!(gameBeingPlayed in games)) {
-    throw {message: "Unknown game: \"'" + gameBeingPlayed + "'\""};
-} // Test
-gameBeingPlayed = games[gameBeingPlayed];
-var gameGUI = new GUI(gameBeingPlayed.GUIConfig, gameBeingPlayed.gamePlay);
-var gameAI = new GameAI(gameBeingPlayed.gamePlay);
+/** General variable initalization **/
+// Initialize variables and GUI instance
+var gameGUI = new GUI();
+var gameAI = null, gameBeingPlayed = null;
+
+// Object indicating who each player is: human or computer
 var players = {
     player1: player1IsComputer? PlayerTypes.computer : PlayerTypes.human, 
     player2: player2IsComputer? PlayerTypes.computer : PlayerTypes.human
-}; // Object indicating who each player is: human or computer
-// Game state
+};
+
+// Delay variable for the computer moves
+var delayStart = null;
+
+// Game state init function
 var gameState = null;
 function initGameState() {
     gameState = {
@@ -1624,65 +2016,72 @@ function initGameState() {
         won: Owner.none,
         board: gameBeingPlayed.gamePlay.createBoard(),
         moves: [],
+        game: gameBeingPlayed
     };
 }
-initGameState();
-// Delay variable for the computer moves
-var delayStart = null;
 
+// Menu state
+var menuState = {
+    player1IsComputer: true,
+    player2IsComputer: false,
+    menuDisplayed: true,
+    gameSelected: "Tic-tac-toe",
+    games: {
+        "Tic-tac-toe": ticTacToe,
+        "Hexapawn": hexapawn,
+        "Tic-tac-toe-mini": ticTacToeMini,
+    },
+    initGame: function() {
+        gameBeingPlayed = menuState.games[menuState.gameSelected];
+        gameGUI.init(gameBeingPlayed.GUIConfig, gameBeingPlayed.gamePlay);
+        gameAI = new GameAI(gameBeingPlayed.gamePlay);
+        initGameState();
+    }
+};
+
+// A nicer font
 textFont(createFont("serif"));
 
-/** Event handling **/
+/** Event handling and game loop **/
+// This helps with the hover effects, 
+// so they don't stay there when the mouse goes out.
 var mouseIsIn = false;
 mouseOver = function() { mouseIsIn = true; };
 mouseOut = function() { mouseIsIn = false; };
 
 mouseClicked = function() {
     try {
-        if (gameState.won === Owner.none && gameAI.isReady() && 
+        if (menuState.menuDisplayed) {
+            // Pipe the click
+            gameGUI.menuClick(menuState, mouseX, mouseY);
+        } else if (gameState.won !== Owner.none) {
+            // Restart the game
+            initGameState();
+            loop();
+        } else if (gameAI.isReady() && 
                 players[gameState.turn] === PlayerTypes.human) {
-            // The human plays!
-            var mouseSquare = gameGUI.mouseSquare(gameState, mouseX, mouseY);
-            
-            // Calculate the selected move
-            var suggestedMove = [mouseSquare.index];
-            var incompleteMove = gameState.moves.length > 0 && 
-                    !gameBeingPlayed.gamePlay.isCompleteMove(gameState.board, 
-                        gameState.moves.at(-1), gameState.turn);
-            if (incompleteMove) {
-                var newMove = gameState.moves.at(-1).slice();
-                newMove.push(mouseSquare.index);
-                suggestedMove = newMove;
-            }
-            
-            // Play the move
-            if (gameBeingPlayed.gamePlay.isLegalMove(gameState.board, 
-                    suggestedMove, gameState.turn)) {
-                if (gameBeingPlayed.gamePlay.isCompleteMove(gameState.board, 
-                        suggestedMove, gameState.turn)) {
-                    
-                    gameState.board = gameBeingPlayed.gamePlay.playMove(
-                        gameState.board, suggestedMove, gameState.turn);
-                    gameState.turn = Turn.next(gameState.turn);
-                    gameState.won = gameBeingPlayed
-                        .gamePlay.hasWon(gameState.board, gameState.turn);
-                }
-                if (incompleteMove) {
-                    var totalMoves = gameState.moves.length;
-                    gameState.moves[totalMoves - 1] = suggestedMove;
-                } else {
-                    gameState.moves.push(suggestedMove);
-                }
-            }
+            // Pipe the click
+            gameGUI.humanPlayClick(gameState, mouseX, mouseY);
         }
     } catch (err) {
+        // Since Oh noes (mostly) doesn't report errors in mouseClicked
+        // and in the draw function, I am doing it myself.
+        // Also include a timestamp.
         debug(err, "" + hour() + ":" + minute() + ":" + second());
+        
+        // However, Oh noes does report {message: "KA_INFINITE_LOOP"} errors,
+        // so I'll let him.
+        if (err.message === "KA_INFINITE_LOOP") { throw err; }
     }
 };
 
 draw = function() {
     try {
-        if (gameAI.isReady()) {
+        if (menuState.menuDisplayed) {
+            gameGUI.drawHomeScreen(menuState,
+                mouseIsIn? mouseX : undefined,
+                mouseIsIn? mouseY : undefined);
+        } else if (gameAI.isReady()) {
             // Play the game
             if (gameState.won === Owner.none &&
                     players[gameState.turn] === PlayerTypes.computer) {
@@ -1704,14 +2103,8 @@ draw = function() {
                 mouseIsIn && humansTurn? mouseX : undefined,
                 mouseIsIn && humansTurn? mouseY : undefined);
             
-            // Handle victory; set mouseClicked to a reset function.
+            // Handle victory; stop looping
             if (gameState.won !== Owner.none) {
-                var wasMouseClicked = mouseClicked;
-                mouseClicked = function () {
-                    initGameState();
-                    mouseClicked = wasMouseClicked;
-                    loop();
-                };
                 noLoop();
             }
         } else {
@@ -1722,6 +2115,13 @@ draw = function() {
             gameGUI.drawLearningScreen(millis());
         }
     } catch (err) {
+        // Since Oh noes (mostly) doesn't report errors in mouseClicked
+        // and in the draw function, I am doing it myself.
+        // Also include a timestamp.
         debug(err, "" + hour() + ":" + minute() + ":" + second());
+        
+        // However, Oh noes does report {message: "KA_INFINITE_LOOP"} errors,
+        // so I'll let him.
+        if (err.message === "KA_INFINITE_LOOP") { throw err; }
     }
 };
