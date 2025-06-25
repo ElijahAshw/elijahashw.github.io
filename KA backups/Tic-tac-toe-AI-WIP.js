@@ -1,9 +1,14 @@
 /** Off-menu user adjustable setting **/
 var computerMoveMillisecondDelay = 100;
 // Rules for each game are found below, starting on line 43.
-// If you play a game where one player can always win, and you play as 
-// that player, the computer will move, but (if you play correctly) will lose.
-// This is not a bug.
+// If you play a game where one player can always win, then you may
+// be able to beat the computer. This is intentional, not a bug.
+
+// == Key controls ==
+// Press "p" to print the number of boards the AI has looked at.
+// Pressing "D" will (attempt) to print the AI's data.
+// Pressing "i" (while learning) will print the current place in the AI's data.
+// Press "g" to print the game state.
 
 /* =============== For the judges =============== */
 /**
@@ -18,23 +23,23 @@ var computerMoveMillisecondDelay = 100;
                            Advanced
                             bracket
                                 
-        In creating this entry, I focused on clear, well defined functions
-            and clean, well commented code. This helped me handle the 
-            challenging concepts of this program
+        In creating this entry, I focused on using clear, well defined 
+        functions and clean, well commented code. This helped me handle 
+            the challenging concepts of this program.
                                 
   One aspect I found challenging was iterating through a pseudo-array of 
-    unknown dimensions with a single loop.
+            unknown dimensions with a single loop.
                                 
                    I would like to highlight
-        How my machine learning method can handle new games
-        that my program has never seen before, without needing 
-        anything other than the new game's game definition.
+        That my machine learning method can handle new games
+          that it has never seen before, without needing 
+            anything other than the game definition.
                         for the judges.
                                 
                                 
         TODO:
         - Fill out statements above ✓
-        - Save your entry as a spin-off of this program 
+        - Save your entry as a spin-off of this program ✓
         - Have fun! ✓
 
 **///
@@ -46,12 +51,7 @@ var computerMoveMillisecondDelay = 100;
  * First to get three in a row wins. X goes first.
  * If the board fills up without a victor, it is a tie.
  * 
- * ==== Hexapawn is less well known. I learned 
- * about it (and this method of machine learning) from a youtube video.
- *  (I forgot which youtube video.) Here is another source for the same thing:
- * https://www.instructables.com/Matchbox-Mini-Chess-Learning-Machine/
- * 
- * Hexapawn is also played on a 3x3 board. Each player starts
+ * ==== Hexapawn is also played on a 3x3 board. Each player starts
  * the game with three chess pawns on each side of the board.
  * Players take turns moving their pawns like ordinary chess pawns.
  *  a. One step straight forward onto an empty square, OR
@@ -60,79 +60,36 @@ var computerMoveMillisecondDelay = 100;
  *  1. You get a pawn to the other side of the board
  *  2. The other player has no moves left (this includes having no pieces).
  * 
- * ==== 4x3 Connect three is a varient on the classic game connect four (7x6).
+ * I learned about hexapawn (and the basic concept for 
+ * the method of machine learning that I use in this program) 
+ * from a youtube video (I forgot which).
+ * Here is another source for the same thing:
+ * https://www.instructables.com/Matchbox-Mini-Chess-Learning-Machine/
+ * 
+ * ==== 4x3 Connect three is a varient on the classic game connect four.
  * Players take turns "dropping" their piece into a column with at least
  * one empty square. The piece falls down to the lowest empty square.
  * The first player to achieve three in a row wins. The board is 4x3.
  * 
- * ==== 5x4 Connect four is just like 4x3 connect three, 
- * except the board is 5x4 and you win by getting four in a row.
+ * ==== Three Men's morris I learned about from Google Gemini.
+ * It is played on a 3x3 board, and you win by getting three in a row.
+ * Once all 6 pieces have been placed like in tic-tac-toe (three each),
+ * players take turns moving one piece to an adjacent square.
  * 
 **///
 
 /* =============== How the machine learning works =============== */
 /**
- * This program currently relies on the game being simple enough that all 
- * possible games can be analyzed. Even so, it has been tricky to implement. 
- * I may later add an option for a board scoring function, to handle more 
- * complex games.
+ * This program currently relies on the game being simple enough that
+ * all possible outcomes can be analyzed. 
+ * Even so, it has been tricky to implement.
  * 
- * The program's data is an object containing all of the possible boards.
- * The program goes through every possible move on each board, 
- * and labels each one as, essentially, "first player can win", 
+ * The program's data is an object containing all of the 
+ * possible configurations. The program analyzes every possible move,
+ * and labels each move as "first player can win", 
  * "second player can win", "uncertain", or "absolute tie".
- * How the computer chooses a move is explained below.
  * 
- * Even though this program work by brute force, it does teach itself
- * and (in tic-tac-toe) it played forks I didn't even know about.
- * It does not keep any tic-tac-toe (or any other game) specific code 
- * out side of the tic-tac-toe game definition.
- * 
- * Tic-tac-toe can be easily brute forced if caching is implemented, 
- * given that there are only 6046 potentially reachable boards.
- * 
-    function factorial(n) { return n <= 1? 1 : n * factorial(n - 1); }
-    function combination(outOf, take) {
-        return factorial(outOf) / (factorial(take) * factorial(outOf - take));
-    }
-    function calcTicTacToeBoards(squares) {
-        var boards = 0;
-        for (var i = 0; i <= squares / 2; i++) {
-            // X will go next on these boards.
-            // There are this many of them:
-            // (ways to place `i` Xs on a board with `squares` squares) *
-            // (ways to place `i` Os on a board with `squares` squares, 
-            //  after subtracting the squares taken by the `i` Xs,
-            //  giving `squares - i` spots availible.)
-            boards += combination(squares, i) * 
-                combination(squares - i, i);
-            
-            // O will go next on these boards.
-            // The logic is the same as before, except there 
-            // is one more X than O.
-            boards += combination(squares, i + 1) * 
-                combination(squares - (i + 1), i);
-        }
-        return boards;
-    }
-    println(calcTicTacToeBoards(9)); // → 6046
- * 
- * In practice, there are only 5478 boards that can actually be reached.
- * 
- * When it comes time to pick a move for the computer, 
- * if there are any moves with canWin === gameState.turn, the computer
- * randomly chooses one of those.
- *     Otherwise, if possible, it randomly chooses a move with an unsure 
- * outcome (which mean it will end in a tie if both players play perfectly).
- * This means that the computer chooses a random move if it cannot guarantee a 
- * victory. It does not seek to fork you if it cannot force it. This does make
- * the game fun.
- *     If the computer cannot win or tie, then it chooses a move that lets 
- * the opponent win, to avoid not moving at all. For example, hexapawn 
- * is a second player victory, if both players play perfectly.
- * 
- * Once the data has been created (I don't want to go into that algorithm here),
- * it is time to train/analyze the data.
+ * Once the data has been created, it is time to train/analyze the data.
  * One loop is used, and it runs a set number of iterations per frame.
  * If it finds that the player whose turn it is can win, it sets the canWin 
  * property on the previous move to that player, to show that they can force
@@ -146,13 +103,35 @@ var computerMoveMillisecondDelay = 100;
  * as in the first situation (canWin for the previous move is set 
  * to that player).
  * 
- * I have made an effort to keep the seperate elements of my program contained.
+ * This program learns how to play the game via brute force analysis. 
+ * And it works well! In tic-tac-toe it played forks I didn't even know about.
+ * It does not keep any game specific code outside of the game definitions.
+ * 
+ * Tic-tac-toe can be easily brute forced if caching is implemented, 
+ * since there are only 5478 reachable boards.
+ * 
+ * When the computer moves, it randomly chooses a move where 
+ * the computer can force a win.
+ * If that is not possible, it randomly chooses a move with an unsure 
+ * outcome (which means the game will end in 
+ * a tie if both players play perfectly).
+ *     This means that the computer chooses a random move if it 
+ * cannot guarantee a victory. It does not seek to fork you if 
+ * it cannot force it. This move variation makes the game more fun.
+ *     If there are no unsure moves, the computer chooses one that will 
+ * end in a tie.
+ *     If the computer cannot avoid it, then it chooses a move that lets 
+ * the opponent win, to avoid not moving at all. For example, hexapawn 
+ * is a second player victory, if both players play perfectly.
  * 
 **///
 
-/* =============== Program structure overview =============== */
+/* =============== Program pseudocode =============== */
 /**
- * =============== Definition of terms and types ===============
+ * I wrote most of the pseudocode before writing the actual code,
+ * to help me stay organized and handle the difficult concepts.
+ * 
+ * =============== Definition of types ===============
  * 
  * I will indicate types in my examples in the style of Java types.
  * 
@@ -174,6 +153,7 @@ var computerMoveMillisecondDelay = 100;
     Move onePartMove = [4]; // Tic-tac-toe uses one part moves.
     Move twoPartMove = [3, 6]; // Chess and hexapawn use two part moves.
  * 
+ * GameStates are used to store the current state of the game.
  * A GameState is an object with the following properties:
     GameState gameState = {
         Turn turn: <The current turn>,
@@ -184,9 +164,10 @@ var computerMoveMillisecondDelay = 100;
             may be incomplete>,
         GameDefinition game: <The GameDefinition for the game being played>
     };
- * GameStates are used to store the current state of the game.
  * 
  * A MenuState is an object with the following properties:
+ * MenuStates are used to store the state of the home screen menu, along 
+ * with whether the home screen is being displayed.
     MenuState menuState = {
         boolean player1IsComputer: <Whether the first player is played by AI>,
         boolean player2IsComputer: <Whether the second player is played by AI>,
@@ -196,8 +177,6 @@ var computerMoveMillisecondDelay = 100;
         void initGame(): <A function to initialize things dependent on
             gameBeingPlayed> // It's helpful to store this in the menuState
     };
- * MenuStates are used to store the state of the home screen menu, along 
- * with whether the home screen is being displayed.
  * 
  * A Color is just a color value from the color() function.
  * 
@@ -275,12 +254,108 @@ var computerMoveMillisecondDelay = 100;
         }
     };
  * 
- * That's it for this section.
 **///
-
-/* =============== Specifications for my program =============== */
 /**
- * My classes are JavaScript classes with Java style types.
+ * =========== AIData description and class functions ===========
+ * 
+ * After training is finished, the final data is in this format:
+    AIData data = {
+        <Board.toString()>: {
+            board: <Board>,
+            won: <Owner>,
+            player1: [
+                {move: <Move>, canWin: <Owner>, result: <Board>},
+                ...
+            ],
+            player2: [
+                {move: <Move>, canWin: <Owner>, result: <Board>},
+                ...
+            ],
+            visitId: <int>
+        },
+        // Filled out example for hexapawn:
+        "player1,player1,player1,none,none,none,player2,player2,player2": {
+            board: ["player1","player1","player1","none","none",
+                "none","player2","player2","player2"],
+            player1: [
+                {move:[0,3], canWin: "player2",
+                    "result: ["none","player1","player1","player1",
+                        "none","none","player2","player2","player2"]},
+                {move:[1,4], canWin: "player2",
+                    result: ["player1","none","player1","none",
+                        "player1","none","player2","player2","player2"]},
+                {move:[2,5], canWin: "player2",
+                    result: ["player1","player1","none","none",
+                        "none","player1","player2","player2","player2"]}
+            ],
+            "player2: [],
+            visitId: 1
+        },
+        ...
+    };
+ * If canWin is a Turn, that means that player can force a win if that move 
+ * is played. If canWin = Owner.tie, then there is no way to avoid a draw
+ * if that move is played.
+ * 
+ * The class GameAI is the heart of my program. It has the following properties:
+    class GameAI {
+        Internally stores:
+            GameDefinition.gamePlay gamePlay,
+            AIData aiData,
+            Iterator trainingIterator,
+            Iterator createDataIterator,
+            Board initialBoard, // Helps access to the top of the AI game tree
+            int maxDepth,
+            int iterationsPerFrame, // Iterations per frame
+            int visitId, // An id for each training iteration
+            boolean trained, // Whether the AIData has been fully trained
+            boolean dataComplete, // Whether the AIData is filled out
+            boolean learnWhilePlaying
+            
+        GameAI constructor(
+            GameDefinition.gamePlay gamePlay, boolean learnWhilePlaying) {
+            Returns a new AI object.
+        }
+        
+        Object continueTraining() {
+            Simple interface for creating and training the AI.
+            Returns an object with these properties: 
+                {boolean training, Object<Turn,int>[]indexes}.
+        }
+        
+        Move getAIBestMove(GameState gameState) {
+            Returns the best move for the current player 
+            according to this.AIData
+        }
+        
+        void playAIBestMove(GameState gameState) {
+            Plays the best move for the current player 
+            according to this.AIData
+        }
+        
+        Iterator expandAIDataFrom(GameState gameState) {
+            Adds to this.AIData to meet the maxDepth config property
+            based on the input state.
+            Sets this.trained to false if this.AIData was added to.
+        }
+        
+        Iterator trainAIFrom(GameState gameState (optional) ) {
+            Train the new parts of this.AIData that were added by 
+            this.getAIBestMove()
+            This is where the learning happens.
+            Returns an iterator to avoid freezing the page.
+            If gameState is omitted, this method will start training at the top.
+            Training consists of 
+                1. Flagging moves that permit the opponent to win
+                    (this is calculated for both players).
+                2. Calculating how many sub-moves lead to draws.
+        }
+        
+        boolean isReady() {
+            Return whether this.AIData is ready to use.
+        }
+    }
+ * 
  * The class GUI has the following properties:
     class GUI {
         Internally stores:
@@ -344,102 +419,6 @@ var computerMoveMillisecondDelay = 100;
             Returns the index of the square that was clicked.
         }
     }
- * 
- * The class GameAI has the following properties:
-    class GameAI {
-        Internally stores:
-            GameDefinition.gamePlay gamePlay,
-            AIData aiData,
-            Iterator trainingIterator,
-            Iterator createDataIterator,
-            Board initialBoard, // Helps access to the top of the AI game tree
-            int maxDepth,
-            int iterationsPerFrame, // Iterations per frame
-            int visitId, // An id for each training iteration
-            boolean trained, // Whether the AIData has been fully trained
-            boolean dataComplete, // Whether the AIData is filled out
-            boolean learnWhilePlaying
-            
-        GameAI constructor(
-            GameDefinition.gamePlay gamePlay, boolean learnWhilePlaying) {
-            Returns a new AI object.
-        }
-        
-        void continueTraining() {
-            Simple interface for creating and training the AI.
-            Returns a boolean indicating whether training is complete.
-        }
-        
-        Move getAIBestMove(GameState gameState) {
-            Returns the best move for the current player 
-            according to this.AIData
-        }
-        
-        void playAIBestMove(GameState gameState) {
-            Plays the best move for the current player 
-            according to this.AIData
-        }
-        
-        Iterator expandAIDataFrom(GameState gameState) {
-            Adds to this.AIData to meet the maxDepth config property
-            based on the input state.
-            Sets this.trained to false if this.AIData was added to.
-        }
-        
-        Iterator trainAIFrom(GameState gameState (optional) ) {
-            Train the new parts of this.AIData that were added by 
-            this.getAIBestMove()
-            Returns an iterator to avoid freezing the page.
-            If gameState is omitted, this method will start training at the top.
-            Training consists of 
-                1. Flagging moves that permit the opponent to win
-                    (this is calculated for both players).
-                2. Calculating how many sub-moves lead to draws.
-        }
-        
-        boolean isReady() {
-            Return whether this.AIData is ready to use.
-        }
-    }
- *  
- * After training is finished, the final data is in this format:
-    AIData data = {
-        <Board.toString()>: {
-            board: <Board>,
-            won: <Owner>,
-            player1: [
-                {move: <Move>, canWin: <Owner>, result: <Board>},
-                ...
-            ],
-            player2: [
-                {move: <Move>, canWin: <Owner>, result: <Board>},
-                ...
-            ],
-            visitId: <int>
-        },
-        // Filled out examples for hexapawn:
-        "player1,player1,player1,none,none,none,player2,player2,player2": {
-            board: ["player1","player1","player1","none","none",
-                "none","player2","player2","player2"],
-            player1: [
-                {move:[0,3], canWin: "player2",
-                    "result: ["none","player1","player1","player1",
-                        "none","none","player2","player2","player2"]},
-                {move:[1,4], canWin: "player2",
-                    result: ["player1","none","player1","none",
-                        "player1","none","player2","player2","player2"]},
-                {move:[2,5], canWin: "player2",
-                    result: ["player1","player1","none","none",
-                        "none","player1","player2","player2","player2"]}
-            ],
-            "player2: [],
-            visitId: 1
-        },
-        ...
-    };
- * If canWin is a Turn, that means that player can force a win if that move 
- * is played. If canWin = Owner.tie, then there is no way to avoid a draw
- * if that move is played.
  * 
  * Yay, we're done! Onto the code!
 **///
@@ -975,9 +954,6 @@ var GUI = (function() {
         Handles a mouse click for the menu.
     } */
     GUI.prototype.menuClick = function(menuState, mouseX, mouseY) {
-        // Copy-pasting hover code from drawMenu is not the cleanest method,
-        // but it is fairly easy, and I don't plan to update the menu much.
-        
         // Toggles
         // Player 1 is computer toggle
         if (this.toggleHover(width * 0.41, height * 0.5, 
@@ -1051,7 +1027,7 @@ var GUI = (function() {
     return GUI;
 })();
 
-/** GameAI class **/
+/** GameAI class. This is the heart of the program, where learning happens. **/
 var GameAI = (function() {
     /* Internally stores:
         GameDefinition.gamePlay gamePlay,
@@ -1095,9 +1071,10 @@ var GameAI = (function() {
         }
     }
     
-    /* void continueTraining() {
+    /* Object continueTraining() {
         Simple interface for creating and training the AI.
-        Returns a boolean indicating whether training is complete.
+        Returns an object with these properties: 
+            {boolean training, Object<Turn,int>[]indexes}.
     } */
     GameAI.prototype.continueTraining = function() {
         if (!this.dataComplete) {
@@ -1110,7 +1087,7 @@ var GameAI = (function() {
             if (iteratorValue.done) {
                 this.createDataIterator = null;
             }
-            return {training: false, value: iteratorValue.value};
+            return {training: false, indexes: iteratorValue.value};
         } else if (!this.trained) {
             // Utilize the Iterator interface
             if (!this.trainingIterator) {
@@ -1121,7 +1098,7 @@ var GameAI = (function() {
             if (iteratorValue.done) {
                 this.trainingIterator = null;
             }
-            return {training: true, value: iteratorValue.value};
+            return {training: true, indexes: iteratorValue.value};
         }
     };
     
@@ -1136,21 +1113,25 @@ var GameAI = (function() {
         // The moveOptions object catagorizes each move
         var moveOptions = {
             computerVictory: [],
-            unsureVictory: [],
+            unsureOutcome: [],
+            certainTie: [],
             opponentVictory: []
         };
         
         // Catagorize the moves
         for (var i = 0; i < possibleMoves.length; i++) {
             if (possibleMoves[i].canWin === Turn.next(gameState.turn)) {
-                // This means that this move will lose
+                // This means that this move will lose.
                 moveOptions.opponentVictory.push(possibleMoves[i]);
             } else if (possibleMoves[i].canWin === gameState.turn) {
-                // This means that the computer can win from here
+                // This means that the computer can win from here.
                 moveOptions.computerVictory.push(possibleMoves[i]);
+            } else if (possibleMoves[i].canWin === Owner.tie) {
+                // This move will always result in a tie.
+                moveOptions.certainTie.push(possibleMoves[i]);
             } else {
                 // This move won't lose, but it isn't a forced win either.
-                moveOptions.unsureVictory.push(possibleMoves[i]);
+                moveOptions.unsureOutcome.push(possibleMoves[i]);
             }
         }
         
@@ -1159,11 +1140,15 @@ var GameAI = (function() {
         if (moveOptions.computerVictory.length > 0) {
             // The computer can win! Yay!
             bestMoves = moveOptions.computerVictory;
-        } else if (moveOptions.unsureVictory.length > 0) {
-            // Not as good as winning, but better than losing
-            bestMoves = moveOptions.unsureVictory;
+        } else if (moveOptions.unsureOutcome.length > 0) {
+            // Not as good as winning, but the next best thing.
+            bestMoves = moveOptions.unsureOutcome;
+        } else if (moveOptions.certainTie.length > 0) {
+            // Not as good as a chance at winning, 
+            // but still better than losing.
+            bestMoves = moveOptions.certainTie;
         } else {
-            // Default to the worst moves if there are no others
+            // Default to the worst moves if there are no others.
             bestMoves = moveOptions.opponentVictory;
         }
         
@@ -1790,28 +1775,6 @@ var hexapawn = {
         isLegalMove: function(board, move, turn) {
             var legalMove = board[move[0]] === turn && 
                 move[0] >= 0 && move[0] <= 9;
-            /*
-            if (move.length === 2) {
-                legalMove = legalMove && move[1] >= 0 && move[1] <= 9;
-                if (turn === Turn.player1) {
-                    if (move[0] === move[1] + 2 && move[0] % 3 || 
-                            move[0] === move[1] + 4) {
-                        legalMove = legalMove && 
-                            board[move[1]] === Owner.player2;
-                    } else if (move[0] === move[1] + 3) {
-                        legalMove = legalMove && 
-                            board[move[1]] === Owner.none;
-                    }
-                } else if (turn === Turn.player2) {
-                    if (move[0] === move[1] - 4 || move[0] === move[1] - 2) {
-                        legalMove = legalMove && 
-                            board[move[1]] === Owner.player1;
-                    } else if (move[0] === move[1] - 3) {
-                        legalMove = legalMove && 
-                            board[move[1]] === Owner.none;
-                    }
-                }
-            }*/
             
             if (move.length === 2) {
                 var legalMoves = hexapawn
@@ -2119,11 +2082,11 @@ var connectThree4x3 = {
     }
 };
 
-// Connect four 5x4 GameDefinition
-var connectFour5x4 = {
+// Three men's morris GameDefinition
+var threeMensMorris = {
     gamePlay: {
-        boardColumns: 5, // The columns in the game's board; 3 for Tic-tac-toe
-        boardRows: 4, // The rows in the game's board; 3 for Tic-tac-toe
+        boardColumns: 3, // The columns in the game's board; 3 for Tic-tac-toe
+        boardRows: 3, // The rows in the game's board; 3 for Tic-tac-toe
         /* Owner hasWon(Board board, Turn turn, Move[] moves) { 
             Return an Owner indicating who has won the input board.
         } */
@@ -2131,21 +2094,16 @@ var connectFour5x4 = {
             // Winning sequences
             var sequences = [
                 // Rows
-                [ 0,  1,  2,  3], [ 1,  2,  3,  4],
-                [ 5,  6,  7,  8], [ 6,  7,  8,  9],
-                [10, 11, 12, 13], [11, 12, 13, 14],
-                [15, 16, 17, 18], [16, 17, 18, 19],
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
                 // Columns
-                [0,  5, 10, 15],
-                [1,  6, 11, 16],
-                [2,  7, 12, 17],
-                [3,  8, 13, 18],
-                [4,  9, 14, 19],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
                 // Diagonals
-                [0, 6, 12, 18], // Top-right-ish to bottom-left-ish
-                [1, 7, 13, 19],
-                [3, 7, 11, 15], // Top-left-ish to bottom-right-ish
-                [4, 8, 12, 16]];
+                [0, 4, 8],
+                [2, 4, 6]];
             
             for (var s = 0; s < sequences.length; s++) {
                 // If all board squares in a sequence are captured, 
@@ -2175,25 +2133,59 @@ var connectFour5x4 = {
             but this function should never be called on a won board.
         } */
         getLegalMoves: function(board, partialMove, turn) {
-            if (partialMove.length >= 1) {
+            var emptyCount = board.reduce(function (count, square) {
+                return square === Owner.none? count + 1 : count; }, 0);
+                
+            if (partialMove.length >= (emptyCount === 3? 2 : 1)) {
                 return [partialMove];
             }
             
-            var legalMoves = [], countPlayer1 = 0, countPlayer2 = 0;
+            var legalMoves = [], playerSquare = -1;
+            var countPlayer1 = 0, countPlayer2 = 0;
             for (var i = 0; i < board.length; i++) {
-                if (i < 5 && board[i] === Owner.none) {
-                    legalMoves.push([i]);
-                } else if (board[i] === Owner.player1) {
-                    countPlayer1++;
-                } else if (board[i] === Owner.player2) {
-                    countPlayer2++;
+                if (emptyCount === 3) {
+                    // If emptyCount === 3, then all pieces have been placed
+                    // So we are in the move-pieces phase
+                    var validEnding = partialMove.length === 0 || 
+                        partialMove[0] === i;
+                    if (board[i] === turn && validEnding) {
+                        if (board[i - 1] === Owner.none && i % 3 > 0) {
+                            legalMoves.push([i, i - 1]);
+                        }
+                        if (board[i - 3] === Owner.none) {
+                            // Off-board moves are undefined,
+                            // which does not equal Owner.none
+                            legalMoves.push([i, i - 3]);
+                        }
+                        if (board[i + 1] === Owner.none && i % 3 < 2) {
+                            legalMoves.push([i, i + 1]);
+                        }
+                        if (board[i + 3] === Owner.none) {
+                            legalMoves.push([i, i + 3]);
+                        }
+                    }
+                } else {
+                    if (board[i] === Owner.none) {
+                        legalMoves.push([i]);
+                    } else if (board[i] === Owner.player1) {
+                        countPlayer1++;
+                    } else if (board[i] === Owner.player2) {
+                        countPlayer2++;
+                    }
+                }
+                if (board[i] === turn) {
+                    playerSquare = i;
                 }
             }
             var isLegalTurn = turn === Turn.player1? 
                 countPlayer1 === countPlayer2 : // As many Xs as Os
                 countPlayer1 === countPlayer2 + 1; // One more X than O
             
-            return isLegalTurn? legalMoves : [];
+            // Make sure there is at least one move in the array
+            // (if it is a legal turn)
+            legalMoves = legalMoves || [[playerSquare, playerSquare]];
+            
+            return emptyCount === 3 || isLegalTurn? legalMoves : [];
         },
         
         /* Board playMove(Board board, Move move, Turn turn) {
@@ -2202,15 +2194,19 @@ var connectFour5x4 = {
             unchanged input Board if the Move is illegal.
         } */
         playMove: function(board, move, turn) {
-            if (board[move[0]] === Owner.none) {
+            var emptyCount = board.reduce(function (count, square) {
+                return square === Owner.none? count + 1 : count; }, 0);
+            var isLegalMove = threeMensMorris.gamePlay
+                .isLegalMove(board, move, turn);
+            
+            if (isLegalMove) {
                 // Play the move
                 var newBoard = board.slice();
-                for (var row = 4; row-- > 0;) {
-                    var square = move[0] % 5 + row * 5;
-                    if (board[square] === Owner.none) {
-                        newBoard[square] = turn;
-                        break;
-                    }
+                if (emptyCount === 3) {
+                    newBoard[move[0]] = Owner.none;
+                    newBoard[move[1]] = turn;
+                } else {
+                    newBoard[move[0]] = turn;
                 }
                 return newBoard;
             } else { // Illegal move, return board
@@ -2224,21 +2220,39 @@ var connectFour5x4 = {
             E.g. [3] when the game is a two-move game.
         } */
         isLegalMove: function(board, move, turn) {
-            return board[move[0]] === Owner.none;
+            var emptyCount = board.reduce(function (count, square) {
+                return square === Owner.none? count + 1 : count; }, 0);
+            
+            // If the game is currently in the placing phase
+            if (emptyCount > 3) {
+                return board[move[0]] === Owner.none && move.length <= 1;
+            }
+            
+            // Otherwise, we are moving pieces around.
+            // Is this a partial move?
+            if (move.length < 2) {
+                return board[move[0]] === turn;
+            } else {
+                var legalMoves = threeMensMorris.gamePlay
+                    .getLegalMoves(board, [], turn).map(String);
+                return legalMoves.includes(String(move));
+            }
         },
         
         /* boolean isCompleteMove(Board board, Move move, Turn turn) {
             Return whether the input Move is a complete Move.
         } */
         isCompleteMove: function(board, move, turn) {
-            return move.length === 1;
+            var emptyCount = board.reduce(function (count, square) {
+                return square === Owner.none? count + 1 : count; }, 0);
+            return emptyCount === 3? move.length === 2 : move.length === 1;
         },
         
         /* Board createBoard() {
             Return a new game board for the game. MUST NOT BE RANDOM!
         } */
         createBoard: function() {
-            return Array(5*4).fill(Owner.none);
+            return Array(9).fill(Owner.none);
         },
     },
     GUIConfig: {
@@ -2253,7 +2267,7 @@ var connectFour5x4 = {
             var marginY = h * 0.15;
             
             // Thick stroke
-            strokeWeight(w * 3 / 26);
+            strokeWeight(width / 26);
             
             // Draw the symbol
             if (pieceType === Turn.player1) {
@@ -2282,24 +2296,19 @@ var connectFour5x4 = {
             // Winning sequences
             var sequences = [
                 // Rows
-                [ 0,  1,  2,  3], [ 1,  2,  3,  4],
-                [ 5,  6,  7,  8], [ 6,  7,  8,  9],
-                [10, 11, 12, 13], [11, 12, 13, 14],
-                [15, 16, 17, 18], [16, 17, 18, 19],
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
                 // Columns
-                [0,  5, 10, 15],
-                [1,  6, 11, 16],
-                [2,  7, 12, 17],
-                [3,  8, 13, 18],
-                [4,  9, 14, 19],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
                 // Diagonals
-                [0, 6, 12, 18], // Top-right-ish to bottom-left-ish
-                [1, 7, 13, 19],
-                [3, 7, 11, 15], // Top-left-ish to bottom-right-ish
-                [4, 8, 12, 16]];
+                [0, 4, 8],
+                [2, 4, 6]];
             
             strokeCap(PROJECT);
-            strokeWeight(width * 3 / 4 / 20);
+            strokeWeight(width / 20);
             stroke(0, 220, 0);
             for (var s = 0; s < sequences.length; s++) {
                 // If all board squares in a sequence are captured, 
@@ -2315,11 +2324,11 @@ var connectFour5x4 = {
             }
         },
         
-        nameSize: width / 19, // The font size of the game's name on the menu
+        nameSize: width / 16, // The font size of the game's name on the menu
         
         squareColor: color(170, 170, 170), // The square color
         hoverOverlayColor: color(0, 0, 0, 60), // A hover overlay
-        squareSize: width / 5, // The rendered size of board squares
+        squareSize: width / 3, // The rendered size of board squares
         
         // Dots are only drawn for two-part moves
         dotColor: color(100, 100, 100, 100),
@@ -2357,8 +2366,7 @@ var menuState = {
     games: {
         "Tic-tac-toe": ticTacToe,
         "Hexapawn": hexapawn,
-        "4x3 Connect three": connectThree4x3,
-        "5x4 Connect four": connectFour5x4
+        "4x3 Connect three": connectThree4x3
     },
     initGame: function() {
         // Get the correct GameDefinition
@@ -2391,6 +2399,28 @@ textFont(createFont("serif"));
 var mouseIsIn = false;
 mouseOver = function() { mouseIsIn = true; };
 mouseOut = function() { mouseIsIn = false; };
+
+keyReleased = function() {
+    if (key.toString() === "p" && gameAI) {
+        // Print the number of boards in gameAI.AIData
+        println(Object.keys(gameAI.AIData).length + " boards");
+    } else if (key.toString() === "D" && gameAI) {
+        var data = gameAI.AIData;
+        var JSON = Object.constructor("return JSON;")();
+        var dataString = JSON.stringify(data);
+        // Strip unnecissary data
+        dataString = dataString.replace(/,?"(board|result)":\[[^\]]+\],?/g, "");
+        dataString = dataString.replace(/"visitId":\d+,/g, "");
+        // Print the data string
+        println(dataString);
+    } else if (key.toString() === "g" && gameState) {
+        // Print the game state without game data
+        var JSON = Object.constructor("return JSON;")();
+        var stateString = JSON.stringify(gameState);
+        stateString = stateString.replace(/,"game":.+/, "}");
+        println(stateString);
+    }
+};
 
 mouseClicked = function() {
     try {
@@ -2452,7 +2482,19 @@ draw = function() {
             }
         } else {
             // Continue training the AI
-            gameAI.continueTraining();
+            var value = gameAI.continueTraining();
+            
+            // Optionally print the indexes (for debugging).
+            if (keyIsPressed && key.toString() === "i") {
+                var indexArray = [];
+                var indexes = value.indexes;
+                var prefix = value.training? "Training: " : "";
+                for (var i = 0; i < indexes.length; i++) {
+                    // Add the player1 and player2 indexes
+                    indexArray.push(indexes[i].player1 + indexes[i].player2);
+                }
+                println(prefix + indexArray.toString());
+            }
             
             // Draw a loading message
             gameGUI.drawLearningScreen(millis());
