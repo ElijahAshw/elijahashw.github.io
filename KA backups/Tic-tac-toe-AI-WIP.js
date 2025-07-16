@@ -5,7 +5,7 @@ var computerMoveMillisecondDelay = 100;
 // be able to beat the computer. This is intentional, not a bug.
 
 // == Key controls ==
-// Press "p" to print the number of boards the AI has looked at.
+// Press "p" to print the number of boards (positions) the AI has looked at.
 // Pressing "D" will (attempt) to print the AI's data.
 // Pressing "i" (while learning) will print the current place in the AI's data.
 // Press "g" to print the game state.
@@ -71,21 +71,28 @@ var computerMoveMillisecondDelay = 100;
  * one empty square. The piece falls down to the lowest empty square.
  * The first player to achieve three in a row wins. The board is 4x3.
  * 
- * ==== Three Men's morris I learned about from Google Gemini.
- * It is played on a 3x3 board, and you win by getting three in a row.
- * Once all 6 pieces have been placed like in tic-tac-toe (three each),
- * players take turns moving one piece to an adjacent square.
+ * ==== Wild tic-tac-toe is a variation of classic tic-tac-toe.
+ * ***** WARNING: This game takes about 6 minutes to learn. *****
+ * Players take turns placing either a X or an O. 
+ * If you complete a three in a row, you win!
+ * To place a X,
+ * 1. Click the square you want the X on.
+ * 2. Click that square again.
+ * 
+ * To place an O,
+ * 1. Click the square you want the O on.
+ * 2. Click any other square.
  * 
 **///
 
 /* =============== How the machine learning works =============== */
 /**
  * This program currently relies on the game being simple enough that
- * all possible outcomes can be analyzed. 
+ * all possible boards (configurations) can be analyzed. 
  * Even so, it has been tricky to implement.
  * 
  * The program's data is an object containing all of the 
- * possible configurations. The program analyzes every possible move,
+ * possible boards. The program analyzes every possible move,
  * and labels each move as "first player can win", 
  * "second player can win", "uncertain", or "absolute tie".
  * 
@@ -151,7 +158,9 @@ var computerMoveMillisecondDelay = 100;
  * 
  * A Move is a one or two element array:
     Move onePartMove = [4]; // Tic-tac-toe uses one part moves.
-    Move twoPartMove = [3, 6]; // Chess and hexapawn use two part moves.
+    Move twoPartMove = [3, 6]; // Hexapawn uses two part moves.
+ * 
+ * A partial move is the first part of a move: For hexapawn, it might be [3].
  * 
  * GameStates are used to store the current state of the game.
  * A GameState is an object with the following properties:
@@ -451,7 +460,7 @@ draw = function() {
     if (value.done) { noLoop(); }
 }; */
 var LongRunning = (function() {
-    // Copied from Bob lyon's DeKhan library
+    // Credit for the frameCount hack to Bob Lyon
     // https://www.khanacademy.org/computer-programming/dekhan-the-code/5149916573286400
     var wasFrameCount = frameCount;
     frameCount = function() {
@@ -546,7 +555,7 @@ var GUI = (function() {
         // Background
         background(56, 56, 56);
         
-        // Board offset and local config and gamePlay binding
+        // Board offset and local config and gamePlay variables
         var config = this.config, gamePlay = this.gamePlay;
             // The actual width and height in pixels of the board.
         var boardPixelWidth = gamePlay.boardColumns * config.squareSize;
@@ -636,7 +645,7 @@ var GUI = (function() {
         how to play again.
     } */
     GUI.prototype.drawWinOverlay = function(gameState) {
-        // Calculate xOffset and yOffset (copied from renderGame)
+        // Calculate xOffset and yOffset
         var config = this.config, gamePlay = this.gamePlay;
         var boardPixelWidth = gamePlay.boardColumns * config.squareSize;
         var boardPixelHeight = gamePlay.boardRows * config.squareSize;
@@ -1152,6 +1161,13 @@ var GameAI = (function() {
             bestMoves = moveOptions.opponentVictory;
         }
         
+        // Check
+        if (bestMoves.length === 0) {
+            // No legal moves, throw an error
+            throw {message: "No legal moves for computer!",
+                toString: function() { return this.message; }};
+        }
+        
         // Randomly choose one of the best moves to make things more fun
         // Otherwise, the computer always chooses the same moves
         var randomIndex = Math.floor(Math.random() * bestMoves.length);
@@ -1253,7 +1269,7 @@ var GameAI = (function() {
             } else 
             // Handle going down
             if (depth < this.maxDepth) {
-                // Bind the initial board and the new board
+                // Variables for the initial board and the new board
                 var initialBoard = boards[depth].board;
                 var newBoard = current(boards)[current(indexes)].result;
                 var move = current(boards)[current(indexes)].move;
@@ -1314,7 +1330,6 @@ var GameAI = (function() {
             {
                 /* If maxDepth has been reached, there is no point to continue
                     exploring this level, so go up a level. */
-                // Copied from above
                 depth--;
                 indexes[depth][players[depth]]++;
             }
@@ -1366,7 +1381,7 @@ var GameAI = (function() {
                 return;
             }
             
-            // Bind previousMove
+            // The previousMove variable
             var parentMoves = boards[depth - 1][players[depth - 1]];
             var previousMoveIndex = indexes[depth - 1][players[depth - 1]];
             var previousMove = parentMoves[previousMoveIndex];
@@ -1411,7 +1426,7 @@ var GameAI = (function() {
             }
         }
         
-        // The One Loop
+        // The (other) One Loop
         while (indexes[0][players[0]] < boards[0][players[0]].length) {
             // Test for a pause
             pauseCounter++;
@@ -1629,7 +1644,6 @@ var ticTacToe = {
             center of the square on the board corrisponding the board array.
         } */
         drawWin: function(board, won, squarePositions) {
-            // I copied winner detection logic from the hasWon function above
             // Winning sequences
             var sequences = [
                 // Rows
@@ -2035,7 +2049,6 @@ var connectThree4x3 = {
             center of the square on the board corrisponding the board array.
         } */
         drawWin: function(board, won, squarePositions) {
-            // I copied winner detection logic from the hasWon function above
             // Winning sequences
             var sequences = [
                 // Rows
@@ -2082,8 +2095,8 @@ var connectThree4x3 = {
     }
 };
 
-// Three men's morris GameDefinition
-var threeMensMorris = {
+// Wild tic-tac-toe GameDefinition
+var wildTicTacToe = {
     gamePlay: {
         boardColumns: 3, // The columns in the game's board; 3 for Tic-tac-toe
         boardRows: 3, // The rows in the game's board; 3 for Tic-tac-toe
@@ -2111,7 +2124,7 @@ var threeMensMorris = {
                 if (board[sequences[s][0]] === board[sequences[s][1]] && 
                     board[sequences[s][1]] === board[sequences[s][2]] && 
                     board[sequences[s][0]] !== Owner.none) {
-                    return board[sequences[s][0]];
+                    return Turn.next(turn);
                 }
             }
             
@@ -2133,59 +2146,26 @@ var threeMensMorris = {
             but this function should never be called on a won board.
         } */
         getLegalMoves: function(board, partialMove, turn) {
-            var emptyCount = board.reduce(function (count, square) {
-                return square === Owner.none? count + 1 : count; }, 0);
-                
-            if (partialMove.length >= (emptyCount === 3? 2 : 1)) {
+            if (partialMove.length >= 2) {
                 return [partialMove];
             }
             
-            var legalMoves = [], playerSquare = -1;
-            var countPlayer1 = 0, countPlayer2 = 0;
+            var legalMoves = [], countPieces = 0;
             for (var i = 0; i < board.length; i++) {
-                if (emptyCount === 3) {
-                    // If emptyCount === 3, then all pieces have been placed
-                    // So we are in the move-pieces phase
-                    var validEnding = partialMove.length === 0 || 
-                        partialMove[0] === i;
-                    if (board[i] === turn && validEnding) {
-                        if (board[i - 1] === Owner.none && i % 3 > 0) {
-                            legalMoves.push([i, i - 1]);
-                        }
-                        if (board[i - 3] === Owner.none) {
-                            // Off-board moves are undefined,
-                            // which does not equal Owner.none
-                            legalMoves.push([i, i - 3]);
-                        }
-                        if (board[i + 1] === Owner.none && i % 3 < 2) {
-                            legalMoves.push([i, i + 1]);
-                        }
-                        if (board[i + 3] === Owner.none) {
-                            legalMoves.push([i, i + 3]);
-                        }
-                    }
-                } else {
-                    if (board[i] === Owner.none) {
-                        legalMoves.push([i]);
-                    } else if (board[i] === Owner.player1) {
-                        countPlayer1++;
-                    } else if (board[i] === Owner.player2) {
-                        countPlayer2++;
-                    }
-                }
-                if (board[i] === turn) {
-                    playerSquare = i;
+                var matchesPartialMove = partialMove.length > 0?
+                    partialMove[0] === i : true;
+                if (board[i] === Owner.none && matchesPartialMove) {
+                    legalMoves.push([i, i]); // Place a X
+                    legalMoves.push([i, i > 0? 0 : 1]); // Or an O
+                } else if (board[i] !== Owner.none) {
+                    countPieces++;
                 }
             }
             var isLegalTurn = turn === Turn.player1? 
-                countPlayer1 === countPlayer2 : // As many Xs as Os
-                countPlayer1 === countPlayer2 + 1; // One more X than O
+                countPieces % 2 === 0 : // An even number of pieces
+                countPieces % 2 === 1; // An odd number of pieces
             
-            // Make sure there is at least one move in the array
-            // (if it is a legal turn)
-            legalMoves = legalMoves || [[playerSquare, playerSquare]];
-            
-            return emptyCount === 3 || isLegalTurn? legalMoves : [];
+            return isLegalTurn? legalMoves : [];
         },
         
         /* Board playMove(Board board, Move move, Turn turn) {
@@ -2194,20 +2174,11 @@ var threeMensMorris = {
             unchanged input Board if the Move is illegal.
         } */
         playMove: function(board, move, turn) {
-            var emptyCount = board.reduce(function (count, square) {
-                return square === Owner.none? count + 1 : count; }, 0);
-            var isLegalMove = threeMensMorris.gamePlay
-                .isLegalMove(board, move, turn);
-            
-            if (isLegalMove) {
+            if (board[move[0]] === Owner.none) {
                 // Play the move
                 var newBoard = board.slice();
-                if (emptyCount === 3) {
-                    newBoard[move[0]] = Owner.none;
-                    newBoard[move[1]] = turn;
-                } else {
-                    newBoard[move[0]] = turn;
-                }
+                var piece = move[0] === move[1]? Turn.player1 : Turn.player2;
+                newBoard[move[0]] = piece;
                 return newBoard;
             } else { // Illegal move, return board
                 return board;
@@ -2220,32 +2191,14 @@ var threeMensMorris = {
             E.g. [3] when the game is a two-move game.
         } */
         isLegalMove: function(board, move, turn) {
-            var emptyCount = board.reduce(function (count, square) {
-                return square === Owner.none? count + 1 : count; }, 0);
-            
-            // If the game is currently in the placing phase
-            if (emptyCount > 3) {
-                return board[move[0]] === Owner.none && move.length <= 1;
-            }
-            
-            // Otherwise, we are moving pieces around.
-            // Is this a partial move?
-            if (move.length < 2) {
-                return board[move[0]] === turn;
-            } else {
-                var legalMoves = threeMensMorris.gamePlay
-                    .getLegalMoves(board, [], turn).map(String);
-                return legalMoves.includes(String(move));
-            }
+            return board[move[0]] === Owner.none;
         },
         
         /* boolean isCompleteMove(Board board, Move move, Turn turn) {
             Return whether the input Move is a complete Move.
         } */
         isCompleteMove: function(board, move, turn) {
-            var emptyCount = board.reduce(function (count, square) {
-                return square === Owner.none? count + 1 : count; }, 0);
-            return emptyCount === 3? move.length === 2 : move.length === 1;
+            return move.length === 2;
         },
         
         /* Board createBoard() {
@@ -2292,7 +2245,6 @@ var threeMensMorris = {
             center of the square on the board corrisponding the board array.
         } */
         drawWin: function(board, won, squarePositions) {
-            // I copied winner detection logic from the hasWon function above
             // Winning sequences
             var sequences = [
                 // Rows
@@ -2315,7 +2267,7 @@ var threeMensMorris = {
                 // then that player won.
                 if (board[sequences[s][0]] === board[sequences[s][1]] && 
                     board[sequences[s][1]] === board[sequences[s][2]] && 
-                    board[sequences[s][0]] === won) {
+                    board[sequences[s][0]] !== Owner.none) {
                     // Draw a line across the sequence
                     var from = squarePositions[sequences[s][0]];
                     var to = squarePositions[sequences[s][2]];
@@ -2324,7 +2276,7 @@ var threeMensMorris = {
             }
         },
         
-        nameSize: width / 16, // The font size of the game's name on the menu
+        nameSize: width / 17, // The font size of the game's name on the menu
         
         squareColor: color(170, 170, 170), // The square color
         hoverOverlayColor: color(0, 0, 0, 60), // A hover overlay
@@ -2339,8 +2291,8 @@ var threeMensMorris = {
 /** General variable initalization **/
 // Initialize variables and GUI instance
 var gameGUI = new GUI();
-var gameAI = null, gameBeingPlayed = null, players = null;
-var bothHumans = false;
+var gameAI, gameBeingPlayed = null, players = null;
+var bothHumans = false, lastGame; // lastGame is to help with wild tic-tac-toe
 
 // Delay variable for the computer moves
 var delayStart = null;
@@ -2366,15 +2318,20 @@ var menuState = {
     games: {
         "Tic-tac-toe": ticTacToe,
         "Hexapawn": hexapawn,
-        "4x3 Connect three": connectThree4x3
+        "4x3 Connect three": connectThree4x3,
+        "Wild tic-tac-toe": wildTicTacToe
     },
     initGame: function() {
         // Get the correct GameDefinition
         gameBeingPlayed = menuState.games[menuState.gameSelected];
         // Give the GUI what it needs to handle the game
         gameGUI.init(gameBeingPlayed.GUIConfig, gameBeingPlayed.gamePlay);
-        // Create the AI
-        gameAI = new GameAI(gameBeingPlayed.gamePlay);
+        // Create the AI, if needed
+        if (lastGame !== menuState.gameSelected || !gameAI) {
+            gameAI = new GameAI(gameBeingPlayed.gamePlay);
+        }
+        // Set lastGame
+        lastGame = menuState.gameSelected;
         // "players" indicates whether each player is a computer or human
         players = {
             player1: menuState.player1IsComputer? 
@@ -2440,7 +2397,9 @@ mouseClicked = function() {
         // Since Oh noes (mostly) doesn't report errors in mouseClicked
         // and in the draw function, I am doing it myself.
         // Also include a timestamp.
-        debug(err, "" + hour() + ":" + minute() + ":" + second());
+        var timestamp = "" + hour() + ":" + minute() + ":" + second();
+        debug(err, timestamp);
+        println(err + "\n" + timestamp);
         
         // However, Oh noes does report {message: "KA_INFINITE_LOOP"} errors,
         // so I'll let him.
@@ -2503,7 +2462,9 @@ draw = function() {
         // Since Oh noes (mostly) doesn't report errors in mouseClicked
         // and in the draw function, I am doing it myself.
         // Also include a timestamp.
-        debug(err, "" + hour() + ":" + minute() + ":" + second());
+        var timestamp = "" + hour() + ":" + minute() + ":" + second();
+        debug(err, timestamp);
+        println(err + "\n" + timestamp);
         
         // However, Oh noes does report {message: "KA_INFINITE_LOOP"} errors,
         // so I'll let him.

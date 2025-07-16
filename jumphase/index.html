@@ -1,26 +1,28 @@
 <!DOCTYPE html>
 <html>
-<!-- Based on https://www.puzzleplayground.com/jumping_clones -->
+<!-- Based on https://www.puzzleplayground.com/jumphase -->
 
 <head>
-  <title>Jumping clones</title>
+  <title>Jumphase</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link href="./resources/style.css" rel="stylesheet">
+  <link href="./resources/static_character_styles.css" rel="stylesheet">
+  <link href="./resources/actor_styles.css" rel="stylesheet">
 </head>
 
 <body>
   <script src="./resources/levels.js"></script>
   <script src="./resources/display_class.js"></script>
-  <script src="./resources/animation_functions.js"></script>
   <script src="./resources/menu_class.js"></script>
   <script src="./resources/helper_functions.js"></script>
   <script src="./resources/actor_classes.js"></script>
   <script src="./resources/level_key.js"></script>
   <script src="./resources/level_class.js"></script>
   <script src="./resources/state_class.js"></script>
+  <script src="./resources/animation_functions.js"></script>
   <script>
     /* Some code inpired by https://eloquentjavascript.net/16_game.html */
-    runGame(GAME_LEVELS, document.body, DOMDisplay);
+    const game = new Game(GAME_LEVELS, document.body, DOMDisplay);
+    game.runGame();
   </script>
 </body>
 
