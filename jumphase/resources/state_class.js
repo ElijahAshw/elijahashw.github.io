@@ -12,7 +12,7 @@ class State {
 
     static start(level) {
         let locked = level.startActors.some(a => a.name === "key") ? " locked" : "";
-        return new State(level, level.startActors, `playing${locked}`, null);
+        return new State(level, level.startActors, `playing${locked}`);
     }
 
     hits(pos, size, type, currentActor, verify) {

@@ -260,3 +260,15 @@ button:not([data-valid="false"] .create):active {
 .block[data-bombs="8"] {
     color: #0ff;
 }
+
+#info h1,
+#info p {
+    color: #d8a900;
+    text-align: center;
+    font-family: sans-serif;
+    line-height: 1.5;
+}
+
+#info p {
+    font-size: 1.5em;
+}

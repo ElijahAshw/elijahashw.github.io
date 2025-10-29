@@ -29,9 +29,9 @@ class Game {
     }
 
     async runGame() {
-        let numL = this.plans.length;
+        let numLevels = this.plans.length;
         let item = "111";
-        let levelStatus = [...item.padEnd(numL, "1").slice(0, numL)];
+        let levelStatus = [...item.padEnd(numLevels, "1").slice(0, numLevels)];
         this.wrapper = elt("div", { class: "wrapper" });
         this.parent.appendChild(this.wrapper);
         let level = 0;

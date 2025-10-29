@@ -151,8 +151,6 @@ class Portal extends Actor {
         this.angle = counter % (Math.PI * 2);
         let angle = Math.abs(counter % (Math.PI / 2) - Math.PI / 4);
         let waveSize = Math.abs(Math.sin(angle + Math.PI / 4));
-        // this.displaySize = new Vec(this.size.x * waveSize, this.size.y * waveSize);
-        // this.displayPositionOffset = new Vec((this.size.x - this.displaySize.x) / 2, (2 - this.displaySize.y) / 2);
     }
 
     get type() {
@@ -160,14 +158,28 @@ class Portal extends Actor {
     }
 
     static create(pos, char) {
-        return new Portal(pos, char, 0);
+        let size = Portal.prototype.size;
+        let newPos = pos.add(new Vec(2 - size.x, 2 - size.y).div(2));
+        return new Portal(newPos, char, 0);
+    }
+
+    static rectCircleCollide(rx, ry, rw, rh, cx, cy, cr) {
+        let nearestX = Math.max(rx, Math.min(rx + rw, cx));
+        let nearestY = Math.max(ry, Math.min(ry + rh, cy));
+        let dist = Math.hypot(nearestX - cx, nearestY - cy);
+        return dist < cr;
     }
 
     collide(state, other) {
-        if (!state.status.includes("locked") && other.type.includes("player")) {
-            let filtered = state.actors.filter(a => a !== other);
-            let newStatus = state.status.replace("playing", "won");
-            return new State(state.level, filtered, newStatus);
+        if (other.type.includes("player")) {
+            let collides = Portal.rectCircleCollide(
+                other.pos.x, other.pos.y, other.size.x, other.size.y,
+                this.pos.x + this.size.x / 2, this.pos.y + this.size.y / 2, this.size.x / 2);
+            if (!state.status.includes("locked") && collides) {
+                let filtered = state.actors.filter(a => a !== other);
+                let newStatus = state.status.replace("playing", "won");
+                return new State(state.level, filtered, newStatus);
+            }
         }
         return state;
     }
@@ -177,7 +189,7 @@ class Portal extends Actor {
         return new Portal(this.pos, this.passNum, newCounter);
     }
 }
-Portal.prototype.size = new Vec(2, 2);
+Portal.prototype.size = new Vec(1.8, 1.8);
 
 
 class Box extends Actor {

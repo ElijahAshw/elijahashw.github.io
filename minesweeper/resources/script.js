@@ -4,7 +4,7 @@ let won = false;
 let blockSize = 38;
 let flagMode = false;
 let inputsValid = true;
-let board = document.createElement("div");
+let boardWrapper = document.createElement("div");
 let menu = document.querySelector("#start");
 let endBox = document.querySelector("#end");
 let endText = document.querySelector("#end > p");
@@ -309,11 +309,30 @@ function start(level) {
 
     menu.style.display = "none";
 
+    
+    let board = document.createElement("div");
     board.id = "board";
     board.style.width = numBlocksX * blockSize + "px";
     board.style.height = numBlocksY * blockSize + "px";
 
-    document.body.appendChild(board);
+    document.body.appendChild(boardWrapper);
+
+    boardWrapper.innerHTML = `
+        <div id="info">
+            <h1>Minesweeper</h1>
+            <p>Click on a square to reveal it. If you click on a bomb you lose. <br>
+                Ctrl-click (or command-click) to flag a square you think is a mine. <br>
+                You win by revealing all non-mine squares and flagging all the mines. <br>
+                Press any letter key or space to toggle flag mode<br>
+                Clicking on a square with as many flags as the number on the square will automatically click all surrounding squares.<br>
+                The game will auto-reveal a blank (0) square when the game begins.
+                Reload the page to play again.
+                Have fun!
+            </p>
+            <br>
+        </div>`;
+
+    boardWrapper.appendChild(board);
 
     for (let i = 0; i < numBlocksY; i++) {
         let row = [];
@@ -393,8 +412,6 @@ window.addEventListener("keyup", function (event) {
 
 validateInputs();
 
-let curDifficulty = Number(localStorage.getItem("difficulty"));
-if (curDifficulty || curDifficulty === 0) {
-    difficulty.value = curDifficulty;
-    onDifficultyInput.call(difficulty);
-}
+let curDifficulty = Number(localStorage.getItem("difficulty") ?? 10);
+difficulty.value = curDifficulty;
+onDifficultyInput.call(difficulty);

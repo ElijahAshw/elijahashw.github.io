@@ -36,7 +36,7 @@ const cx = canvas.getContext("2d");
 let boxes = new Map(), newBoxes = new Map(), possibleNew = new Map(), prevCells = new Map();
 let savedBoards = { main: [], redo: [], periodBoard: new Map() }, placingBoard = null, generations = 0;
 let [minX, minY, maxX, maxY, xOff, yOff] = [Infinity, Infinity, -Infinity, -Infinity, 0, 0];
-let chooseStage = null, maxToSave = 20, numW = 227 * 1, numH = 145 * 1, w, h;
+let chooseStage = null, maxToSave = 60, numW = 227 * 1, numH = 145 * 1, w, h;
 
 
 canvas.setAttribute("width", (w = numW * boxSize + 1) + "px");
@@ -46,9 +46,10 @@ const MapCompressor = (function () {
     const chars = "!#$%&'()*+¶-./:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª¯°±µ¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯʰʱʲʳʴʵʶʷʸʹʺʻʼʽˀˁ˂˃˄˅˪˫˭ˮ˵˶˸˹˺˻˼˽˾ͱͲͳʹ͵ͶͷͻͼͽͿ΄΅Ά·ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяѐёђѓєѕіїјљњћќѝўџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱѲѳѴѵѶѷѸѹѺѻѼѽѾѿҀҁ҂ҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӁӂӃӄӅӆӇӈӉӊӋӌӍӎӏӐӑӒӓӔӕӖӗӘәӚӛӜӝӞӟӠӡӢӣӤӥӦӧӨөӪӫӬӭӮӯӰӱӲӳӴӵӶӷӸӹӺӻӼӽӾӿԀԁԂԃԄԅԆԇԈԉԊԋԌԍԎԏԐԑԒԓ";
     const RLErow = /[\dabcdeo.$]{0,69}[abcdeo.$!]/gi;
     const startRLE = /x ?= ?\d+, ?y ?= ?\d+(, ?rule ?= ?[^ \n]+)? *\r?\n?\r?/i;
-    const extras = /([^]*x ?= ?\d+, ?y ?= ?\d+(, ?rule ?= ?[^ \n]+))?\r?\n?\r?| |![^]*/gi;
+    const extras = /([^]*x ?= ?\d+, ?y ?= ?\d+(, ?rule ?= ?[^ \n]+)?)?\r?\n?\r?| |![^]*/gi;
     const RLEpiece = /(\d+)([abcdeo.$])/gi;
     const emptyRows = /\${2,}/gi;
+    const liveCells = "aceo";
 
     function compressMap(mapToCompress) {
         let result = "";
@@ -71,7 +72,7 @@ const MapCompressor = (function () {
             for (let y = 0; y < RLE.length; y++) {
                 let row = RLE[y];
                 for (let x = 0; x < row.length; x++) {
-                    if ("aceo".includes(row[x])) {
+                    if (liveCells.includes(row[x])) {
                         result.set(`${x} ${y}`, { x, y });
                     }
                 }
@@ -200,6 +201,7 @@ function chooseBoard() {
             if (!chooseStage) {
                 canvas.removeEventListener("mousemove", handleMove);
                 canvas.removeEventListener("click", handleClick);
+                window.removeEventListener("keydown", handleKey);
                 reject("Stopped.");
             }
         }
@@ -217,7 +219,8 @@ function chooseBoard() {
             check();
             updateCoords(event);
             drawBoard();
-        };
+        }
+
         function handleClick(event) {
             check();
             if (chooseStage === 1) {
@@ -242,9 +245,19 @@ function chooseBoard() {
                 canvas.removeEventListener("click", handleClick);
                 resolve(board);
             }
-        };
+        }
+
+        function handleKey(event) {
+            if (event.key === " ") {
+                event.preventDefault();
+                placingBoard = null;
+            }
+            if (!check()) return;
+        }
+
         canvas.addEventListener("mousemove", handleMove);
         canvas.addEventListener("click", handleClick);
+        window.addEventListener("keydown", handleKey);
     });
 }
 
@@ -285,7 +298,12 @@ function placeBoard(board, setMinMax = true, clearSquare = true) {
             xOff = maxX - x;
             yOff = maxY - y;
         }
+
         function handleKey(event) {
+            if (event.key === " ") {
+                event.preventDefault();
+                placingBoard = null;
+            }
             if (!check()) return;
             if (event.key === 'ArrowRight') {
                 let newBoard = new Map();
@@ -390,13 +408,22 @@ function drawBoard() {
     cx.fillStyle = "#308aff";
     for (let x = 0; x < numW; x++) {
         for (let y = 0; y < numH; y++) {
-            let [newX, newY] = [x + xOff, y + yOff];
+            let newX = x + xOff, newY = y + yOff;
             let drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
             if (drawPlacingBoard ? placingBoard.has(`${newX} ${newY}`) : boxes.has(`${x} ${y}`)) {
                 cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
             }
         }
     }
+    // boxes.forEach(({ x, y }) => {
+    //     let newX = x + xOff, newY = y + yOff, drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
+    //     if (!drawPlacingBoard && boxes.has(`${newX} ${newY}`)) {
+    //         cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+    //     }
+    // });
+    // placingBoard && placingBoard.forEach(({ x, y }) => {
+    //     cx.fillRect((x - xOff) * boxSize, (y - yOff) * boxSize, boxSize, boxSize);
+    // });
 
     cx.fillStyle = "#333";
     for (let y = 0; y <= numH; y++) {

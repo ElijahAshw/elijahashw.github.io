@@ -30,23 +30,6 @@ function overlap(pos1, size1, pos2, size2) {
     return overlapX(pos1, size1, pos2, size2) && overlapY(pos1, size1, pos2, size2);
 }
 
-function collidePos1D(y1, prevY1, y2, prevY2, size) {
-    let jump1 = y1 - prevY1, jump2 = y2 - prevY2;
-    let distToCover = Math.abs(prevY2 - prevY1 - size);
-    let distCovered = Math.abs(jump1) + Math.abs(jump2);
-    let jumpFraction = distToCover / distCovered;
-    let newY1 = prevY1 + jump1 * jumpFraction;
-    let newY2 = prevY2 + jump2 * jumpFraction;
-    return [newY1, newY2];
-}
-
-function collidePos(pos1, prevPos1, pos2, prevPos2, size) {
-    let [x1, x2] = collidePos1D(pos1.x, prevPos1.x, pos2.x, prevPos2.x, size.x);
-    let [y1, y2] = collidePos1D(pos1.y, prevPos1.y, pos2.y, prevPos2.y, size.y);
-    console.log(pos1, prevPos1, pos2, prevPos2, size);
-    return [new Vec(x1, y1), new Vec(x1, y1)];
-}
-
 class Vec {
     constructor(x, y) {
         this.x = x;

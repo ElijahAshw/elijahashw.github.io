@@ -173,6 +173,10 @@ class GameOfLifeMap {
             }
         }
     }
+
+    get isEmpty() {
+        return this.cells.length === 0;
+    }
 }
 
 class GameOfLifeMapObj {
@@ -324,7 +328,7 @@ const MapCompressor = (function () {
     const chars = "!#$%&'()*+¶-./:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª¯°±µ¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯʰʱʲʳʴʵʶʷʸʹʺʻʼʽˀˁ˂˃˄˅˪˫˭ˮ˵˶˸˹˺˻˼˽˾ͱͲͳʹ͵ͶͷͻͼͽͿ΄΅Ά·ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяѐёђѓєѕіїјљњћќѝўџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱѲѳѴѵѶѷѸѹѺѻѼѽѾѿҀҁ҂ҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӁӂӃӄӅӆӇӈӉӊӋӌӍӎӏӐӑӒӓӔӕӖӗӘәӚӛӜӝӞӟӠӡӢӣӤӥӦӧӨөӪӫӬӭӮӯӰӱӲӳӴӵӶӷӸӹӺӻӼӽӾӿԀԁԂԃԄԅԆԇԈԉԊԋԌԍԎԏԐԑԒԓ";
     const RLErow = /[\dabcdeo.$]{0,69}[abcdeo.$!]/gi;
     const startRLE = /x ?= ?\d+, ?y ?= ?\d+(, ?rule ?= ?[^ \n]+)? *\r?\n?\r?/i;
-    const extras = /([^]*x ?= ?\d+, ?y ?= ?\d+(, ?rule ?= ?[^ \n]+))?\r?\n?\r?| |![^]*/gi;
+    const extras = /([^]*x ?= ?\d+, ?y ?= ?\d+(, ?rule ?= ?[^ \n]+)?)?\r?\n?\r?| |![^]*/gi;
     const RLEpiece = /(\d+)([abcdeo.$])/gi;
     const emptyRows = /\${2,}/gi;
 
@@ -368,7 +372,7 @@ const MapCompressor = (function () {
         // Get bounds
         let minX = Infinity, minY = Infinity;
         let maxX = -Infinity, maxY = -Infinity;
-        if (mapToConvert.size > 0) {
+        if (!mapToConvert.isEmpty) {
             mapToConvert.forEach((x, y) => {
                 minX = Math.min(minX, x);
                 maxX = Math.max(maxX, x);
@@ -476,6 +480,7 @@ function chooseBoard() {
             if (!chooseStage) {
                 canvas.removeEventListener("mousemove", handleMove);
                 canvas.removeEventListener("click", handleClick);
+                window.removeEventListener("keydown", handleKey);
                 reject("Stopped.");
             }
         }
@@ -523,8 +528,17 @@ function chooseBoard() {
             }
         }
 
+        function handleKey(event) {
+            if (event.key === " ") {
+                event.preventDefault();
+                placingBoard = null;
+            }
+            if (!check()) return;
+        }
+
         canvas.addEventListener("mousemove", handleMove);
         canvas.addEventListener("click", handleClick);
+        window.addEventListener("keydown", handleKey);
     });
 }
 
@@ -532,7 +546,7 @@ function placeBoard(board, setMinMax = true, clearSquare = true) {
     if (setMinMax) {
         minX = minY = Infinity;
         maxX = maxY = -Infinity;
-        if (board.size > 0) {
+        if (!board.isEmpty) {
             board.forEach((x, y) => {
                 minX = Math.min(minX, x);
                 maxX = Math.max(maxX, x);
@@ -568,6 +582,10 @@ function placeBoard(board, setMinMax = true, clearSquare = true) {
         }
 
         function handleKey(event) {
+            if (event.key === " ") {
+                event.preventDefault();
+                placingBoard = null;
+            }
             if (!check()) return;
             if (event.key === 'ArrowRight') {
                 let newBoard = new GameOfLifeMap();
@@ -673,15 +691,25 @@ function drawBoard() {
     }
 
     cx.fillStyle = "#308aff";
-    for (let x = 0; x < numW; x++) {
-        for (let y = 0; y < numH; y++) {
-            let [newX, newY] = [x + xOff, y + yOff];
-            let drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
-            if (drawPlacingBoard ? placingBoard.has(newX, newY) : boxes.has(x, y)) {
-                cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
-            }
+    // for (let x = 0; x < numW; x++) {
+    //     for (let y = 0; y < numH; y++) {
+    //         let newX = x + xOff, newY = y + yOff;
+    //         let drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
+    //         if (drawPlacingBoard ? placingBoard.has(newX, newY) : boxes.has(x, y)) {
+    //             cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+    //         }
+    //     }
+    // }
+    boxes.forEach((x, y) => {
+        let newX = x + xOff, newY = y + yOff, drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
+        if (!drawPlacingBoard && boxes.has(x, y)) {
+            cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
         }
-    }
+    });
+
+    placingBoard && placingBoard.forEach((x, y) => {
+        cx.fillRect((x + xOff) * boxSize, (y + yOff) * boxSize, boxSize, boxSize);
+    });
 
     cx.fillStyle = "#333333";
     for (let y = 0; y <= numH; y++) {
@@ -918,7 +946,7 @@ function save() {
         let name = prompt("What should this pattern be called?");
         if (name) {
             minX = minY = Infinity;
-            if (board.size > 0) {
+            if (!board.isEmpty) {
                 board.forEach((x, y) => {
                     minX = Math.min(minX, x);
                     minY = Math.min(minY, y);

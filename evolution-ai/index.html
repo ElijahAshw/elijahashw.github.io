@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolution AI</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <h3>Inspired by <a href="https://www.khanacademy.org/computer-programming/evolution-simulator/5754646313418752">https://www.khanacademy.org/computer-programming/evolution-simulator/5754646313418752</a></h3>
+    <canvas id="display-canvas"></canvas>
+    <br>
+    <div id="controls">
+        <p id="gen-counter">0</p>
+        <p id="speed-counter">Fastest speed: 0</p>
+        <button id="evolve-button">Evolve with screen refresh</button><br>
+        <br>
+        <button id="evolve-fast-button">Evolve without screen refresh</button><br>
+        <br>
+        <input type="checkbox" id="evolve-check">
+        <label for="evolve-check">Run continuously</label><br>
+        <br>
+        <button id="display-creatures">Display creatures</button><br>
+        <br>
+        <button id="display-graph">Display graph</button><br>
+    </div>
+    <script src="./creature.js"></script>
+    <script src="./creature-system.js"></script>
+    <script src="./script.js"></script>
+</body>
+</html>
