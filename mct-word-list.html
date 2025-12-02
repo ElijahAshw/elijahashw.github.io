@@ -85,6 +85,7 @@
       <div style="display:flex;gap:8px;align-items:center">
         <button id="startBtn" class="btn small" title="Start the selected set">Start Set</button>
         <button id="restartBtn" class="btn small ghost" title="Restart the current run">Restart</button>
+        <button id="randomizeBtn" class="btn small ghost" title="Randomize the current set order">Randomize Set</button>
       </div>
 
       <div style="display:flex;gap:8px;align-items:center">
@@ -717,6 +718,7 @@ const importCard = document.getElementById('importCard');
 const hideImportBtn = document.getElementById('hideImportBtn');
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 const toggleTimerBtn = document.getElementById('toggleTimerBtn');
+const randomizeBtn = document.getElementById('randomizeBtn');
 
 const rootText = document.getElementById('rootText');
 const originHint = document.getElementById('originHint');
@@ -1010,6 +1012,24 @@ nextBtn.addEventListener('click', ()=> { flashButton(nextBtn); onMoveOn(); });
 submitBtn.addEventListener('click', ()=> { onSubmit(); });
 revealBtn.addEventListener('click', ()=> { onReveal(); });
 moveOnBtn.addEventListener('click', ()=> { onMoveOn(); });
+randomizeBtn && randomizeBtn.addEventListener('click', ()=> { randomizeCurrentSet(); });
+
+/* Randomize current set (Fisher-Yates). Keeps root/meaning pairs; temporary until reload/import. */
+function randomizeCurrentSet(){
+  const set = sets[currentSetIndex];
+  if(!set || !Array.isArray(set.items) || set.items.length === 0){
+    alert("No items to randomize.");
+    return;
+  }
+  for(let i = set.items.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [set.items[i], set.items[j]] = [set.items[j], set.items[i]];
+  }
+  // Update editor view and restart the run with shuffled order
+  showSetsJson();
+  startSet();
+  flashButton(randomizeBtn);
+}
 
 /* Result rendering: only show meaning when item != untried */
 function renderResultList(list){
