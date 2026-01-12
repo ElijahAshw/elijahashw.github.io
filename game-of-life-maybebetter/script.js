@@ -23,6 +23,7 @@ const runSpeed = document.querySelector("#speed");
 const pattern = document.querySelector("#pattern");
 const resetGens = document.querySelector("#reset");
 const trackPrev = document.querySelector("#track");
+const showGridlines = document.querySelector("#gridlines");
 const periodDialog = document.querySelector("#fastModeDialog");
 const fastModeB = document.querySelector("#chooseFast");
 const slowModeB = document.querySelector("#chooseSlow");
@@ -318,7 +319,7 @@ class GameOfLifeMapObj {
 let boxes = new GameOfLifeMap(), newBoxes = new GameOfLifeMap(), possibleNew = new GameOfLifeMapObj(), prevCells = new GameOfLifeMap();
 let savedBoards = { main: [], redo: [], periodBoard: new GameOfLifeMap() }, placingBoard = null, generations = 0;
 let [minX, minY, maxX, maxY, xOff, yOff] = [Infinity, Infinity, -Infinity, -Infinity, 0, 0];
-let chooseStage = null, maxToSave = 20, numW = 227 * 1, numH = 145 * 1, w, h;
+let chooseStage = null, maxToSave = 20, numW = 1600, numH = 1000, w, h;
 
 
 canvas.setAttribute("width", `${w = numW * boxSize + 1}px`);
@@ -708,15 +709,17 @@ function drawBoard() {
     });
 
     placingBoard && placingBoard.forEach((x, y) => {
-        cx.fillRect((x + xOff) * boxSize, (y + yOff) * boxSize, boxSize, boxSize);
+        cx.fillRect((x - xOff) * boxSize, (y - yOff) * boxSize, boxSize, boxSize);
     });
 
-    cx.fillStyle = "#333333";
-    for (let y = 0; y <= numH; y++) {
-        cx.fillRect(0, y * boxSize, w, boxSize / 6);
-    }
-    for (let x = 0; x <= numW; x++) {
-        cx.fillRect(x * boxSize, 0, boxSize / 6, h);
+    if (showGridlines.checked) {
+        cx.fillStyle = "#333333";
+        for (let y = 0; y <= numH; y++) {
+            cx.fillRect(0, y * boxSize, w, boxSize / 6);
+        }
+        for (let x = 0; x <= numW; x++) {
+            cx.fillRect(x * boxSize, 0, boxSize / 6, h);
+        }
     }
 
     cx.fillStyle = "#ff0022";
@@ -1174,6 +1177,7 @@ tileB.addEventListener("click", tile);
 copyB.addEventListener("click", copy);
 periodB.addEventListener("click", determinePeriod);
 trackPrev.addEventListener("change", () => { drawBoard(); });
+showGridlines.addEventListener("change", () => { drawBoard(); });
 runSpeed.addEventListener("input", () => { updateSpeedCounter(); });
 
 updateSpeedCounter();

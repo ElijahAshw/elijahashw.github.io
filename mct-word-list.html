@@ -1,1112 +1,2356 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Roots → Meaning Quiz — Fixed Timer & Behavior + 15 Lists</title>
-<style>
-  :root{
-    --bg: #f6f8fa;
-    --panel: #ffffff;
-    --muted: #586069;
-    --accent: #2b6cb0;
-    --accent-2: #2c7a7b;
-    --correct: #16a34a;
-    --wrong: #e02424;
-    --slow: #d97706;
-    --text: #0f1724;
-    --card-shadow: 0 6px 18px rgba(15,23,36,0.06);
-    --radius: 12px;
-    --input-bg: #fff;
-    --input-border: #e6edf3;
-    --btn-foreground: #fff;
-    --base-font: 25px;
-  }
-  body.dark { background:#0b0c0e; color:#e6eef3 }
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
-  :root{font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; font-size:var(--base-font)}
-  .wrap{max-width:1100px;margin:28px auto;padding:20px;display:flex;flex-direction:column;gap:18px}
-  header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-  .site-title{display:flex;flex-direction:column;gap:6px}
-  h1{margin:0;font-size:1.1rem;font-weight:700;letter-spacing:0.2px}
-  .subtitle{color:var(--muted);font-size:0.95rem}
-  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  select, button, input[type="text"], input[type="number"]{font-size:0.95rem}
-  .sets-select{background:linear-gradient(180deg,var(--panel),transparent);border:1px solid var(--input-border);padding:10px;border-radius:10px;color:var(--text)}
-  .btn{padding:10px 14px;border-radius:10px;border:none;background:var(--accent);color:var(--btn-foreground);font-weight:600;cursor:pointer;box-shadow: 0 6px 12px rgba(43,108,176,0.12)}
-  .btn.ghost{background:transparent;border:1px solid rgba(15,23,36,0.06);color:var(--text);box-shadow:none}
-  .btn.small{padding:8px 10px;font-size:0.9rem}
-  .toggle-btn{background:transparent;border:1px dashed rgba(15,23,36,0.06);padding:8px;border-radius:10px;color:var(--muted);cursor:pointer}
-  .tiny{padding:6px 8px;font-size:0.85rem}
-  main{display:flex;flex-direction:column;gap:18px}
-  .card{background:var(--panel);border-radius:var(--radius);padding:18px;box-shadow:var(--card-shadow);border:1px solid rgba(15,23,36,0.04)}
-  .meta-row{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--muted);font-size:0.95rem}
-  .root-row{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
-  .root-box{min-width:140px;padding:18px;border-radius:12px;background:linear-gradient(180deg,#fcfeff,transparent);border:1px solid var(--input-border);font-weight:700;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
-  .root-text{font-size:1.28rem}
-  .hint{color:var(--muted);font-size:0.9rem}
-  input[type="text"]{flex:1;padding:14px;border-radius:10px;border:1px solid var(--input-border);background:var(--input-bg);outline:none;color:var(--text)}
-  input[type="number"]{padding:8px;border-radius:8px;border:1px solid var(--input-border);background:var(--input-bg);outline:none;color:var(--text);width:80px}
-  .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .reveal-area{margin-top:8px;display:none}
-  .tag{font-size:0.92rem;padding:7px 10px;border-radius:999px}
-  .tag.correct{background:rgba(22,163,74,0.12);color:var(--correct);border:1px solid rgba(22,163,74,0.08)}
-  .tag.wrong{background:rgba(224,36,36,0.06);color:var(--wrong);border:1px solid rgba(224,36,36,0.06)}
-  .tag.slow{background:rgba(217,119,6,0.08);color:var(--slow);border:1px solid rgba(217,119,6,0.06)}
-  .tag.untried{background:rgba(3,37,65,0.04);color:var(--muted);border:1px solid rgba(15,23,36,0.04)}
-  .score-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-  .pill{padding:8px 12px;border-radius:10px;background:linear-gradient(180deg,var(--panel),transparent);border:1px solid rgba(15,23,36,0.04);color:var(--muted);font-weight:600}
-  .result-list{display:flex;flex-direction:column;gap:8px;margin-top:8px;max-height:320px;overflow:auto;padding-right:6px}
-  .result-item{display:flex;justify-content:space-between;gap:12px;padding:10px;border-radius:10px;background:linear-gradient(180deg,var(--panel),transparent);border:1px solid rgba(15,23,36,0.02)}
-  .small-muted{font-size:0.92rem;color:var(--muted) }
-  .jsonedit{white-space:pre-wrap;background:var(--panel);padding:12px;border-radius:10px;border:1px solid var(--input-border);color:var(--text);max-height:280px;overflow:auto;font-size:0.85rem}
-  .compact{font-size:0.92rem;color:var(--muted)}
-  .flash { animation: flash-anim 420ms ease; }
-  @keyframes flash-anim { 0% { transform: scale(1); } 30% { transform: scale(1.06); } 100% { transform: scale(1); } }
-  .timer { font-weight:700; color:var(--muted); padding:6px 8px; border-radius:8px; border:1px solid var(--input-border); background:linear-gradient(180deg,var(--panel),transparent) }
-  @media (max-width:640px){ :root{font-size:20px} .root-box{min-width:120px} }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Roots → Meaning Quiz — Fixed Timer & Behavior + 15 Lists</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --panel: #ffffff;
+      --muted: #586069;
+      --accent: #2b6cb0;
+      --accent-2: #2c7a7b;
+      --correct: #16a34a;
+      --wrong: #e02424;
+      --slow: #d97706;
+      --text: #0f1724;
+      --card-shadow: 0 6px 18px rgba(15, 23, 36, 0.06);
+      --radius: 12px;
+      --input-bg: #fff;
+      --input-border: #e6edf3;
+      --btn-foreground: #fff;
+      --base-font: 25px;
+    }
+
+    body.dark {
+      background: #0b0c0e;
+      color: #e6eef3
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased
+    }
+
+    :root {
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      font-size: var(--base-font)
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 28px auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px
+    }
+
+    .site-title {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.2px
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    select,
+    button,
+    input[type="text"],
+    input[type="number"] {
+      font-size: 0.95rem
+    }
+
+    .sets-select {
+      background: linear-gradient(180deg, var(--panel), transparent);
+      border: 1px solid var(--input-border);
+      padding: 10px;
+      border-radius: 10px;
+      color: var(--text)
+    }
+
+    .btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: var(--btn-foreground);
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(43, 108, 176, 0.12)
+    }
+
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid rgba(15, 23, 36, 0.06);
+      color: var(--text);
+      box-shadow: none
+    }
+
+    .btn.small {
+      padding: 8px 10px;
+      font-size: 0.9rem
+    }
+
+    .toggle-btn {
+      background: transparent;
+      border: 1px dashed rgba(15, 23, 36, 0.06);
+      padding: 8px;
+      border-radius: 10px;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .tiny {
+      padding: 6px 8px;
+      font-size: 0.85rem
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(15, 23, 36, 0.04)
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.95rem
+    }
+
+    .root-row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      flex-wrap: wrap
+    }
+
+    .root-box {
+      min-width: 140px;
+      padding: 18px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #fcfeff, transparent);
+      border: 1px solid var(--input-border);
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start
+    }
+
+    .root-text {
+      font-size: 1.28rem
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.9rem
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      outline: none;
+      color: var(--text)
+    }
+
+    input[type="number"] {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      outline: none;
+      color: var(--text);
+      width: 80px
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .reveal-area {
+      margin-top: 8px;
+      display: none
+    }
+
+    .tag {
+      font-size: 0.92rem;
+      padding: 7px 10px;
+      border-radius: 999px
+    }
+
+    .tag.correct {
+      background: rgba(22, 163, 74, 0.12);
+      color: var(--correct);
+      border: 1px solid rgba(22, 163, 74, 0.08)
+    }
+
+    .tag.wrong {
+      background: rgba(224, 36, 36, 0.06);
+      color: var(--wrong);
+      border: 1px solid rgba(224, 36, 36, 0.06)
+    }
+
+    .tag.slow {
+      background: rgba(217, 119, 6, 0.08);
+      color: var(--slow);
+      border: 1px solid rgba(217, 119, 6, 0.06)
+    }
+
+    .tag.untried {
+      background: rgba(3, 37, 65, 0.04);
+      color: var(--muted);
+      border: 1px solid rgba(15, 23, 36, 0.04)
+    }
+
+    .score-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, var(--panel), transparent);
+      border: 1px solid rgba(15, 23, 36, 0.04);
+      color: var(--muted);
+      font-weight: 600
+    }
+
+    .result-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+      max-height: 320px;
+      overflow: auto;
+      padding-right: 6px
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, var(--panel), transparent);
+      border: 1px solid rgba(15, 23, 36, 0.02)
+    }
+
+    .small-muted {
+      font-size: 0.92rem;
+      color: var(--muted)
+    }
+
+    .jsonedit {
+      white-space: pre-wrap;
+      background: var(--panel);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--input-border);
+      color: var(--text);
+      max-height: 280px;
+      overflow: auto;
+      font-size: 0.85rem
+    }
+
+    .compact {
+      font-size: 0.92rem;
+      color: var(--muted)
+    }
+
+    .flash {
+      animation: flash-anim 420ms ease;
+    }
+
+    @keyframes flash-anim {
+      0% {
+        transform: scale(1);
+      }
+
+      30% {
+        transform: scale(1.06);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .timer {
+      font-weight: 700;
+      color: var(--muted);
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--input-border);
+      background: linear-gradient(180deg, var(--panel), transparent)
+    }
+
+    @media (max-width:640px) {
+      :root {
+        font-size: 20px
+      }
+
+      .root-box {
+        min-width: 120px
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="wrap" role="application" aria-label="Roots to Meaning Quiz (Stacked)">
-  <header>
-    <div class="site-title">
-      <h1>The Word Within the Word — Quiz</h1>
-      <h2>Created by the AI GPT-5-mini, edited by Elijah</h2>
-      <div class="subtitle">Fixed slow/timer behavior; Reveal marks wrong; Move-on preserves state; All 15 lists included.</div>
-    </div>
-
-    <div class="controls" aria-hidden="false">
-      <div style="display:flex;gap:8px;align-items:center">
-        <label for="setSelect" class="compact">Set:</label>
-        <select id="setSelect" class="sets-select" aria-label="Choose set"></select>
+  <div class="wrap" role="application" aria-label="Roots to Meaning Quiz (Stacked)">
+    <header>
+      <div class="site-title">
+        <h1>The Word Within the Word — Quiz</h1>
+        <h2>Created by the AI GPT-5-mini, edited by Elijah</h2>
+        <div class="subtitle">Fixed slow/timer behavior; Reveal marks wrong; Move-on preserves state; All 15 lists
+          included.</div>
       </div>
 
-      <div style="display:flex;gap:8px;align-items:center">
-        <button id="startBtn" class="btn small" title="Start the selected set">Start Set</button>
-        <button id="restartBtn" class="btn small ghost" title="Restart the current run">Restart</button>
-        <button id="randomizeBtn" class="btn small ghost" title="Randomize the current set order">Randomize Set</button>
-      </div>
-
-      <div style="display:flex;gap:8px;align-items:center">
-        <label class="compact" for="autoAdvanceDelay">Auto-advance delay:</label>
-        <select id="autoAdvanceDelay" class="sets-select tiny" title="Delay after auto-correct before advancing">
-          <option value="0">Instant (0 ms)</option>
-          <option value="300">Short (300 ms)</option>
-          <option value="800" selected>Default (800 ms)</option>
-          <option value="1500">Long (1500 ms)</option>
-          <option value="2500">Very long (2500 ms)</option>
-        </select>
-      </div>
-
-      <div style="display:flex;gap:8px;align-items:center">
-        <label class="compact" for="slowThresholdInput">Auto-slow threshold (s):</label>
-        <input id="slowThresholdInput" type="number" step="0.1" min="0" value="5.0" title="Seconds before an attempt is considered slow" />
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-        <button id="themeToggleBtn" class="btn small ghost" title="Toggle dark / light mode">Dark Mode</button>
-        <div style="display:flex;gap:8px">
-          <button id="toggleTimerBtn" class="toggle-btn tiny" title="Show/hide the attempt timer">Show timer</button>
-          <button id="toggleImportBtn" class="toggle-btn tiny" title="Show or hide the import editor">Toggle Import</button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section class="card" aria-live="polite">
-      <div class="meta-row">
-        <div class="small-muted">Item <strong><span id="pos">0</span></strong> of <strong><span id="total">0</span></strong></div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <div id="timerWrap" style="display:none"><div class="timer">Elapsed: <strong id="elapsed">0.0</strong>s</div></div>
-          <div class="small-muted">Auto-slow threshold: <strong id="slowThreshold">5.0</strong>s</div>
-        </div>
-      </div>
-
-      <div style="height:12px"></div>
-
-      <div class="root-row">
-        <div class="root-box" aria-hidden="false">
-          <div class="root-text" id="rootText">—</div>
-          <div class="hint" id="originHint"></div>
+      <div class="controls" aria-hidden="false">
+        <div style="display:flex;gap:8px;align-items:center">
+          <label for="setSelect" class="compact">Set:</label>
+          <select id="setSelect" class="sets-select" aria-label="Choose set"></select>
         </div>
 
-        <div style="flex:1;display:flex;flex-direction:column;gap:10px">
-          <input id="answerInput" type="text" placeholder="Type the meaning (e.g., before, together, two)" autocomplete="off" aria-label="Answer input" />
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="startBtn" class="btn small" title="Start the selected set">Start Set</button>
+          <button id="restartBtn" class="btn small ghost" title="Restart the current run">Restart</button>
+          <button id="randomizeBtn" class="btn small ghost" title="Randomize the current set order">Randomize
+            Set</button>
+        </div>
 
-          <div class="actions">
-            <button id="submitBtn" class="btn small" title="Submit your answer">Submit</button>
-            <button id="revealBtn" class="btn small ghost" title="Reveal the correct answer (R)">Reveal answer</button>
-            <button id="moveOnBtn" class="btn small ghost" title="Move on to the next item (M)">Move on</button>
-            <div class="compact" style="margin-left:auto">Tip: Enter submits (when input focused). R reveals (when not typing). M moves on (when not typing).</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <label class="compact" for="autoAdvanceDelay">Auto-advance delay:</label>
+          <select id="autoAdvanceDelay" class="sets-select tiny" title="Delay after auto-correct before advancing">
+            <option value="0">Instant (0 ms)</option>
+            <option value="300">Short (300 ms)</option>
+            <option value="800" selected>Default (800 ms)</option>
+            <option value="1500">Long (1500 ms)</option>
+            <option value="2500">Very long (2500 ms)</option>
+          </select>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center">
+          <label class="compact" for="slowThresholdInput">Auto-slow threshold (s):</label>
+          <input id="slowThresholdInput" type="number" step="0.1" min="0" value="5.0"
+            title="Seconds before an attempt is considered slow" />
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <button id="themeToggleBtn" class="btn small ghost" title="Toggle dark / light mode">Dark Mode</button>
+          <div style="display:flex;gap:8px">
+            <button id="toggleTimerBtn" class="toggle-btn tiny" title="Show/hide the attempt timer">Show timer</button>
+            <button id="toggleImportBtn" class="toggle-btn tiny" title="Show or hide the import editor">Toggle
+              Import</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="card" aria-live="polite">
+        <div class="meta-row">
+          <div class="small-muted">Item <strong><span id="pos">0</span></strong> of <strong><span
+                id="total">0</span></strong></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div id="timerWrap" style="display:none">
+              <div class="timer">Elapsed: <strong id="elapsed">0.0</strong>s</div>
+            </div>
+            <div class="small-muted">Auto-slow threshold: <strong id="slowThreshold">5.0</strong>s</div>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="root-row">
+          <div class="root-box" aria-hidden="false">
+            <div class="root-text" id="rootText">—</div>
+            <div class="hint" id="originHint"></div>
           </div>
 
-          <div id="revealArea" class="reveal-area" aria-live="polite">
-            <div class="small-muted">Answer: <strong id="correctAnswer"></strong></div>
-            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <button id="markCorrect" class="btn small" style="background:var(--accent-2)">Mark Correct</button>
-              <button id="markWrong" class="btn small" style="background:var(--wrong);color:#fff">Mark Wrong</button>
-              <button id="nextBtn" class="btn small ghost">Next</button>
-              <div id="inlineTags" style="margin-left:auto"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+            <input id="answerInput" type="text" placeholder="Type the meaning (e.g., before, together, two)"
+              autocomplete="off" aria-label="Answer input" />
+
+            <div class="actions">
+              <button id="submitBtn" class="btn small" title="Submit your answer">Submit</button>
+              <button id="revealBtn" class="btn small ghost" title="Reveal the correct answer (R)">Reveal
+                answer</button>
+              <button id="moveOnBtn" class="btn small ghost" title="Move on to the next item (M)">Move on</button>
+              <div class="compact" style="margin-left:auto">Tip: Enter submits (when input focused). R reveals (when not
+                typing). M moves on (when not typing).</div>
+            </div>
+
+            <div id="revealArea" class="reveal-area" aria-live="polite">
+              <div class="small-muted">Answer: <strong id="correctAnswer"></strong></div>
+              <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <button id="markCorrect" class="btn small" style="background:var(--accent-2)">Mark Correct</button>
+                <button id="markWrong" class="btn small" style="background:var(--wrong);color:#fff">Mark Wrong</button>
+                <button id="nextBtn" class="btn small ghost">Next</button>
+                <div id="inlineTags" style="margin-left:auto"></div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <div>
-          <div style="font-weight:700">Session Summary</div>
-          <div class="small-muted" style="margin-top:6px">Quick overview (live)</div>
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div>
+            <div style="font-weight:700">Session Summary</div>
+            <div class="small-muted" style="margin-top:6px">Quick overview (live)</div>
+          </div>
+          <div class="score-row" id="liveSummaryRow">
+            <div class="pill">Correct: <strong id="countCorrect">0</strong></div>
+            <div class="pill">Wrong: <strong id="countWrong">0</strong></div>
+            <div class="pill">Untried: <strong id="countUntried">0</strong></div>
+            <div class="pill">Slow: <strong id="countSlow">0</strong></div>
+          </div>
         </div>
-        <div class="score-row" id="liveSummaryRow">
-          <div class="pill">Correct: <strong id="countCorrect">0</strong></div>
-          <div class="pill">Wrong: <strong id="countWrong">0</strong></div>
-          <div class="pill">Untried: <strong id="countUntried">0</strong></div>
-          <div class="pill">Slow: <strong id="countSlow">0</strong></div>
+
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <button id="reviewWrongBtn" class="btn small ghost">Review wrong only</button>
+          <button id="reviewWrongSlowBtn" class="btn small ghost">Review wrong + slow</button>
+          <button id="reviewUntriedBtn" class="btn small ghost">Review untried</button>
+          <button id="reviewAllBtn" class="btn small">Review all</button>
+          <button id="retakeBtn" class="btn small">Retake set</button>
         </div>
-      </div>
 
-      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-        <button id="reviewWrongBtn" class="btn small ghost">Review wrong only</button>
-        <button id="reviewWrongSlowBtn" class="btn small ghost">Review wrong + slow</button>
-        <button id="reviewUntriedBtn" class="btn small ghost">Review untried</button>
-        <button id="reviewAllBtn" class="btn small">Review all</button>
-        <button id="retakeBtn" class="btn small">Retake set</button>
-      </div>
+        <div style="margin-top:12px" class="small-muted">Results (live):</div>
+        <div id="resultList" class="result-list" aria-live="polite"></div>
+      </section>
 
-      <div style="margin-top:12px" class="small-muted">Results (live):</div>
-      <div id="resultList" class="result-list" aria-live="polite"></div>
-    </section>
-
-    <section id="importCard" class="card" aria-hidden="false">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <div>
-          <div style="font-weight:700">Editable sets (JSON)</div>
-          <div class="small-muted" style="margin-top:6px">Edit sets here and click "Load sets". Each set is {"name":"...","items":[{"root":"ante","meaning":"before"},...]}</div>
+      <section id="importCard" class="card" aria-hidden="false">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div>
+            <div style="font-weight:700">Editable sets (JSON)</div>
+            <div class="small-muted" style="margin-top:6px">Edit sets here and click "Load sets". Each set is
+              {"name":"...","items":[{"root":"ante","meaning":"before"},...]}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+            <div style="display:flex;gap:8px;align-items:center">
+              <button id="loadSetsBtn" class="btn small ghost">Load sets</button>
+              <button id="copySetBtn" class="btn small ghost" title="Copy current set as JSON">Copy set</button>
+            </div>
+            <button id="hideImportBtn" class="toggle-btn small" title="Hide import editor">Hide Import</button>
+          </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-          <button id="loadSetsBtn" class="btn small ghost">Load sets</button>
-          <button id="hideImportBtn" class="toggle-btn small" title="Hide import editor">Hide Import</button>
+
+        <div style="margin-top:12px">
+          <pre id="setsJson" class="jsonedit" contenteditable spellcheck="false" aria-label="Sets JSON editor"></pre>
         </div>
-      </div>
+      </section>
 
-      <div style="margin-top:12px">
-        <pre id="setsJson" class="jsonedit" contenteditable spellcheck="false" aria-label="Sets JSON editor"></pre>
-      </div>
-    </section>
+      <footer>
+        Levenshtein fuzzy-match tolerance scales with answer length (small typos allowed). No data saved locally —
+        reloading resets progress.
+      </footer>
 
-    <footer>
-      Levenshtein fuzzy-match tolerance scales with answer length (small typos allowed). No data saved locally — reloading resets progress.
-    </footer>
+    </main>
+  </div>
 
-  </main>
-</div>
+  <script>
+    /* --- All 15 lists (converted from your images) --- */
+    /* Each list is an object {name: "List #N", items: [{root, meaning}, ...]} */
+    /* I kept the short meanings from the printed lists (parentheses content). */
+    const embeddedSets = [
+      {
+        "name": "List #1",
+        "items": [
+          { "root": "ante", "meaning": "before" },
+          { "root": "anti", "meaning": "against" },
+          { "root": "bi", "meaning": "two" },
+          { "root": "circum", "meaning": "around" },
+          { "root": "com", "meaning": "together" },
+          { "root": "con", "meaning": "together" },
+          { "root": "de", "meaning": "down" },
+          { "root": "dis", "meaning": "away" },
+          { "root": "equi", "meaning": "equal" },
+          { "root": "extra", "meaning": "beyond" },
+          { "root": "inter", "meaning": "between" },
+          { "root": "intra", "meaning": "within" },
+          { "root": "intro", "meaning": "into" },
+          { "root": "mal", "meaning": "bad" },
+          { "root": "mis", "meaning": "bad" },
+          { "root": "non", "meaning": "not" },
+          { "root": "post", "meaning": "after" },
+          { "root": "pre", "meaning": "before" },
+          { "root": "semi", "meaning": "half" },
+          { "root": "sub", "meaning": "under" },
+          { "root": "super", "meaning": "over" },
+          { "root": "sym", "meaning": "together" },
+          { "root": "syn", "meaning": "together" },
+          { "root": "tri", "meaning": "three" },
+          { "root": "un", "meaning": "not" }
+        ]
+      },
+      {
+        "name": "List #2",
+        "items": [
+          { "root": "archy", "meaning": "government" },
+          { "root": "ard", "meaning": "always" },
+          { "root": "cide", "meaning": "kill" },
+          { "root": "ician", "meaning": "specialist" },
+          { "root": "itis", "meaning": "inflammation" },
+          { "root": "aqua", "meaning": "water" },
+          { "root": "audi", "meaning": "hear" },
+          { "root": "bell", "meaning": "war" },
+          { "root": "cap", "meaning": "take" },
+          { "root": "cise", "meaning": "cut" },
+          { "root": "bio", "meaning": "life" },
+          { "root": "auto", "meaning": "self" },
+          { "root": "port", "meaning": "carry" },
+          { "root": "scrib", "meaning": "write" },
+          { "root": "logy", "meaning": "science" },
+          { "root": "dict", "meaning": "say" },
+          { "root": "cred", "meaning": "believe" },
+          { "root": "cent", "meaning": "one hundred" },
+          { "root": "neo", "meaning": "new" },
+          { "root": "ad", "meaning": "to" },
+          { "root": "cede", "meaning": "go" },
+          { "root": "miss", "meaning": "send" },
+          { "root": "centri", "meaning": "center" },
+          { "root": "biblio", "meaning": "book" },
+          { "root": "anthropo", "meaning": "human" }
+        ]
+      },
+      {
+        "name": "List #3",
+        "items": [
+          { "root": "homo", "meaning": "same" },
+          { "root": "spec", "meaning": "look" },
+          { "root": "duct", "meaning": "lead" },
+          { "root": "fer", "meaning": "carry" },
+          { "root": "pend", "meaning": "hang" },
+          { "root": "micro", "meaning": "small" },
+          { "root": "hydro", "meaning": "water" },
+          { "root": "photo", "meaning": "light" },
+          { "root": "pan", "meaning": "all" },
+          { "root": "penta", "meaning": "five" },
+          { "root": "tele", "meaning": "far" },
+          { "root": "vid", "meaning": "look" },
+          { "root": "omni", "meaning": "all" },
+          { "root": "ex", "meaning": "out" },
+          { "root": "poly", "meaning": "many" },
+          { "root": "re", "meaning": "again" },
+          { "root": "hypo", "meaning": "under" },
+          { "root": "pseudo", "meaning": "false" },
+          { "root": "neuro", "meaning": "nerve" },
+          { "root": "tomy", "meaning": "cut" },
+          { "root": "hema", "meaning": "blood" },
+          { "root": "proto", "meaning": "first" },
+          { "root": "phon", "meaning": "sound" },
+          { "root": "mono", "meaning": "one" },
+          { "root": "viv", "meaning": "life" }
+        ]
+      },
+      {
+        "name": "List #4",
+        "items": [
+          { "root": "morph", "meaning": "shape" },
+          { "root": "vest", "meaning": "clothes" },
+          { "root": "bene", "meaning": "good" },
+          { "root": "pond", "meaning": "weight" },
+          { "root": "corp", "meaning": "body" },
+          { "root": "dorm", "meaning": "sleep" },
+          { "root": "pater", "meaning": "father" },
+          { "root": "nov", "meaning": "new" },
+          { "root": "punct", "meaning": "point" },
+          { "root": "ject", "meaning": "throw" },
+          { "root": "tion", "meaning": "act or state" },
+          { "root": "loco", "meaning": "place" },
+          { "root": "dox", "meaning": "opinion" },
+          { "root": "amphi", "meaning": "both" },
+          { "root": "magn", "meaning": "great" },
+          { "root": "eu", "meaning": "good" },
+          { "root": "endo", "meaning": "within" },
+          { "root": "phobia", "meaning": "fear" },
+          { "root": "ortho", "meaning": "straight" },
+          { "root": "put", "meaning": "think" },
+          { "root": "ver", "meaning": "true" },
+          { "root": "matri", "meaning": "mother" },
+          { "root": "mega", "meaning": "large" },
+          { "root": "pop", "meaning": "people" },
+          { "root": "sangui", "meaning": "blood" }
+        ]
+      },
+      {
+        "name": "List #5",
+        "items": [
+          { "root": "vita", "meaning": "life" },
+          { "root": "demo", "meaning": "people" },
+          { "root": "stereo", "meaning": "solid" },
+          { "root": "ism", "meaning": "doctrine" },
+          { "root": "cogn", "meaning": "know" },
+          { "root": "sur", "meaning": "over" },
+          { "root": "alter", "meaning": "other" },
+          { "root": "astr", "meaning": "star" },
+          { "root": "dyna", "meaning": "power" },
+          { "root": "chron", "meaning": "time" },
+          { "root": "hyper", "meaning": "over" },
+          { "root": "luna", "meaning": "moon" },
+          { "root": "octa", "meaning": "eight" },
+          { "root": "gyro", "meaning": "turn" },
+          { "root": "contra", "meaning": "against" },
+          { "root": "geo", "meaning": "earth" },
+          { "root": "helio", "meaning": "sun" },
+          { "root": "thermo", "meaning": "heat" },
+          { "root": "tetra", "meaning": "four" },
+          { "root": "meter", "meaning": "measure" },
+          { "root": "scope", "meaning": "look" },
+          { "root": "son", "meaning": "sound" },
+          { "root": "dec", "meaning": "ten" },
+          { "root": "stell", "meaning": "star" },
+          { "root": "amat", "meaning": "love" }
+        ]
+      },
+      {
+        "name": "List #6",
+        "items": [
+          { "root": "germ", "meaning": "vital or related" },
+          { "root": "greg", "meaning": "group" },
+          { "root": "mar", "meaning": "sea" },
+          { "root": "prim", "meaning": "first" },
+          { "root": "pyro", "meaning": "fire" },
+          { "root": "clam", "meaning": "cry out" },
+          { "root": "plu", "meaning": "more" },
+          { "root": "tang", "meaning": "touch" },
+          { "root": "string", "meaning": "bind" },
+          { "root": "liber", "meaning": "free" },
+          { "root": "junct", "meaning": "join" },
+          { "root": "clud", "meaning": "close" },
+          { "root": "se", "meaning": "apart" },
+          { "root": "trib", "meaning": "pay" },
+          { "root": "dign", "meaning": "worthy" },
+          { "root": "luc", "meaning": "light" },
+          { "root": "rupt", "meaning": "break" },
+          { "root": "grat", "meaning": "pleasing" },
+          { "root": "medi", "meaning": "middle" },
+          { "root": "soph", "meaning": "wisdom" },
+          { "root": "curr", "meaning": "run" },
+          { "root": "tempor", "meaning": "time" },
+          { "root": "migr", "meaning": "wander" },
+          { "root": "trans", "meaning": "across" },
+          { "root": "gamy", "meaning": "marriage" }
+        ]
+      },
+      {
+        "name": "List #7",
+        "items": [
+          { "root": "numer", "meaning": "number" },
+          { "root": "fort", "meaning": "strong" },
+          { "root": "osteo", "meaning": "bone" },
+          { "root": "ornith", "meaning": "bird" },
+          { "root": "polis", "meaning": "city" },
+          { "root": "fus", "meaning": "pour" },
+          { "root": "ego", "meaning": "I" },
+          { "root": "spir", "meaning": "breathe" },
+          { "root": "dia", "meaning": "across" },
+          { "root": "acr", "meaning": "sharp" },
+          { "root": "acro", "meaning": "high, point or tip" },
+          { "root": "culp", "meaning": "blame" },
+          { "root": "derm", "meaning": "skin" },
+          { "root": "zo", "meaning": "animal" },
+          { "root": "per", "meaning": "through" },
+          { "root": "pac", "meaning": "peace" },
+          { "root": "brev", "meaning": "short" },
+          { "root": "necro", "meaning": "death" },
+          { "root": "urb", "meaning": "city" },
+          { "root": "pugn", "meaning": "fight" },
+          { "root": "ecto", "meaning": "outer" },
+          { "root": "plasto", "meaning": "molded" },
+          { "root": "agog", "meaning": "leader" },
+          { "root": "cle", "meaning": "small" },
+          { "root": "il", "meaning": "not" }
+        ]
+      },
+      {
+        "name": "List #8",
+        "items": [
+          { "root": "sed", "meaning": "sit" },
+          { "root": "leg", "meaning": "read" },
+          { "root": "anim", "meaning": "mind" },
+          { "root": "tort", "meaning": "twist" },
+          { "root": "nym", "meaning": "name" },
+          { "root": "sanct", "meaning": "holy" },
+          { "root": "meta", "meaning": "change" },
+          { "root": "petr", "meaning": "rock" },
+          { "root": "mir", "meaning": "wonder" },
+          { "root": "man", "meaning": "hand" },
+          { "root": "rect", "meaning": "right" },
+          { "root": "volv", "meaning": "roll" },
+          { "root": "demi", "meaning": "half" },
+          { "root": "retro", "meaning": "backward" },
+          { "root": "sens", "meaning": "feel" },
+          { "root": "fy", "meaning": "make" },
+          { "root": "ocul", "meaning": "eye" },
+          { "root": "cur", "meaning": "care for" },
+          { "root": "ultra", "meaning": "beyond" },
+          { "root": "oid", "meaning": "appearance" },
+          { "root": "gest", "meaning": "carry" },
+          { "root": "apt", "meaning": "fit" },
+          { "root": "tact", "meaning": "touch" },
+          { "root": "voc", "meaning": "voice" },
+          { "root": "rid", "meaning": "laugh" }
+        ]
+      },
+      {
+        "name": "List #9",
+        "items": [
+          { "root": "path", "meaning": "feeling" },
+          { "root": "a-", "meaning": "not" },
+          { "root": "nomy", "meaning": "law" },
+          { "root": "fid", "meaning": "faith" },
+          { "root": "caco", "meaning": "bad" },
+          { "root": "hetero", "meaning": "different" },
+          { "root": "sci", "meaning": "know" },
+          { "root": "graph", "meaning": "write" },
+          { "root": "lat", "meaning": "side" },
+          { "root": "lith", "meaning": "rock" },
+          { "root": "tract", "meaning": "pull" },
+          { "root": "in", "meaning": "in or not" },
+          { "root": "co", "meaning": "together" },
+          { "root": "phile", "meaning": "love" },
+          { "root": "ine", "meaning": "nature of" },
+          { "root": "-ar", "meaning": "relating to" },
+          { "root": "hexa", "meaning": "six" },
+          { "root": "fract", "meaning": "break" },
+          { "root": "platy", "meaning": "flat" },
+          { "root": "theo", "meaning": "god" },
+          { "root": "fin", "meaning": "end" },
+          { "root": "hedron", "meaning": "sided object" },
+          { "root": "ambul", "meaning": "walk" },
+          { "root": "ous", "meaning": "full of" },
+          { "root": "topo", "meaning": "place" }
+        ]
+      },
+      {
+        "name": "List #10",
+        "items": [
+          { "root": "ped", "meaning": "foot or child" },
+          { "root": "mort", "meaning": "death" },
+          { "root": "carn", "meaning": "flesh" },
+          { "root": "psych", "meaning": "soul" },
+          { "root": "ethno", "meaning": "race or culture" },
+          { "root": "gen", "meaning": "origin" },
+          { "root": "nat", "meaning": "born" },
+          { "root": "paleo", "meaning": "old" },
+          { "root": "curs", "meaning": "run" },
+          { "root": "crypt", "meaning": "hidden" },
+          { "root": "cad", "meaning": "fall" },
+          { "root": "capit", "meaning": "head" },
+          { "root": "loqu", "meaning": "talk" },
+          { "root": "sacro", "meaning": "holy" },
+          { "root": "uni", "meaning": "one" },
+          { "root": "ness", "meaning": "quality" },
+          { "root": "alt", "meaning": "high" },
+          { "root": "ics", "meaning": "art" },
+          { "root": "iso", "meaning": "equal" },
+          { "root": "vert", "meaning": "turn" },
+          { "root": "ate", "meaning": "cause" },
+          { "root": "cor", "meaning": "heart" },
+          { "root": "ess", "meaning": "female" },
+          { "root": "muta", "meaning": "change" },
+          { "root": "fug", "meaning": "flee" }
+        ]
+      },
+      {
+        "name": "List #11",
+        "items": [
+          { "root": "-i", "meaning": "plural" },
+          { "root": "jus", "meaning": "law" },
+          { "root": "lum", "meaning": "light" },
+          { "root": "ann", "meaning": "year" },
+          { "root": "apo", "meaning": "away" },
+          { "root": "sen", "meaning": "old" },
+          { "root": "sol", "meaning": "alone" },
+          { "root": "bas", "meaning": "low" },
+          { "root": "rogat", "meaning": "ask" },
+          { "root": "parl", "meaning": "speak" },
+          { "root": "potent", "meaning": "power" },
+          { "root": "surg", "meaning": "rise" },
+          { "root": "log", "meaning": "word or reason" },
+          { "root": "gram", "meaning": "writing" },
+          { "root": "cant", "meaning": "sing" },
+          { "root": "reg", "meaning": "rule" },
+          { "root": "pro", "meaning": "forward" },
+          { "root": "gyn", "meaning": "woman" },
+          { "root": "ag", "meaning": "to do" },
+          { "root": "act", "meaning": "to do" },
+          { "root": "mob", "meaning": "move" },
+          { "root": "sess", "meaning": "sit" },
+          { "root": "fic", "meaning": "make" },
+          { "root": "nounce", "meaning": "tell" },
+          { "root": "andro", "meaning": "human" }
+        ]
+      },
+      {
+        "name": "List #12",
+        "items": [
+          { "root": "an-", "meaning": "without" },
+          { "root": "ab", "meaning": "away" },
+          { "root": "mel", "meaning": "song" },
+          { "root": "aden", "meaning": "gland" },
+          { "root": "aer", "meaning": "air" },
+          { "root": "alb", "meaning": "white" },
+          { "root": "ase", "meaning": "enzyme" },
+          { "root": "epi", "meaning": "on" },
+          { "root": "hum", "meaning": "earth" },
+          { "root": "-be", "meaning": "life" },
+          { "root": "bon", "meaning": "good" },
+          { "root": "struct", "meaning": "build" },
+          { "root": "chlor", "meaning": "green" },
+          { "root": "cyan", "meaning": "blue" },
+          { "root": "cyt", "meaning": "cell" },
+          { "root": "diplo", "meaning": "double" },
+          { "root": "dys", "meaning": "bad" },
+          { "root": "eco", "meaning": "house" },
+          { "root": "emia", "meaning": "blood" },
+          { "root": "enter", "meaning": "intestine" },
+          { "root": "erythro", "meaning": "red" },
+          { "root": "idio", "meaning": "peculiar" },
+          { "root": "exo", "meaning": "out" },
+          { "root": "im", "meaning": "not" },
+          { "root": "fil", "meaning": "thread" }
+        ]
+      },
+      {
+        "name": "List #13",
+        "items": [
+          { "root": "chrom", "meaning": "color" },
+          { "root": "form", "meaning": "shape" },
+          { "root": "sequ", "meaning": "follow" },
+          { "root": "glyc", "meaning": "sweet" },
+          { "root": "hemo", "meaning": "blood" },
+          { "root": "ultima", "meaning": "last" },
+          { "root": "infra", "meaning": "beneath" },
+          { "root": "leuko", "meaning": "white" },
+          { "root": "lys", "meaning": "break down" },
+          { "root": "meso", "meaning": "middle" },
+          { "root": "milli", "meaning": "thousandth" },
+          { "root": "mem", "meaning": "remember" },
+          { "root": "gress", "meaning": "step" },
+          { "root": "labor", "meaning": "work" },
+          { "root": "myo", "meaning": "muscle" },
+          { "root": "vac", "meaning": "empty" },
+          { "root": "oligo", "meaning": "few or small" },
+          { "root": "ose", "meaning": "sugar" },
+          { "root": "osis", "meaning": "condition" },
+          { "root": "tude", "meaning": "state of" },
+          { "root": "patho", "meaning": "disease" },
+          { "root": "phag", "meaning": "eat" },
+          { "root": "phor", "meaning": "carry" },
+          { "root": "phyt", "meaning": "plant" },
+          { "root": "phyll", "meaning": "leaf" }
+        ]
+      },
+      {
+        "name": "List #14",
+        "items": [
+          { "root": "pleo", "meaning": "more" },
+          { "root": "pod", "meaning": "foot" },
+          { "root": "soror", "meaning": "sister" },
+          { "root": "-a", "meaning": "plural" },
+          { "root": "val", "meaning": "worth" },
+          { "root": "para", "meaning": "beside or near" },
+          { "root": "dom", "meaning": "rule" },
+          { "root": "erg", "meaning": "work" },
+          { "root": "rhiz", "meaning": "root" },
+          { "root": "sapro", "meaning": "rotten" },
+          { "root": "schizo", "meaning": "divide" },
+          { "root": "hippo", "meaning": "horse" },
+          { "root": "som", "meaning": "body" },
+          { "root": "spor", "meaning": "seed" },
+          { "root": "sta", "meaning": "stop" },
+          { "root": "rhodo", "meaning": "rose" },
+          { "root": "taxis", "meaning": "arrangement" },
+          { "root": "vol", "meaning": "will" },
+          { "root": "frat", "meaning": "brother" },
+          { "root": "trich", "meaning": "hair" },
+          { "root": "troph", "meaning": "nourishment" },
+          { "root": "tox", "meaning": "poison" },
+          { "root": "sect", "meaning": "cut" },
+          { "root": "zygo", "meaning": "yoke" },
+          { "root": "zym", "meaning": "ferment" }
+        ]
+      },
+      {
+        "name": "List #15",
+        "items": [
+          { "root": "tropo", "meaning": "turn" },
+          { "root": "gastro", "meaning": "stomach" },
+          { "root": "arthro", "meaning": "joint" },
+          { "root": "ventri", "meaning": "belly" },
+          { "root": "dors", "meaning": "back" },
+          { "root": "macro", "meaning": "large" },
+          { "root": "dextro", "meaning": "right or clockwise" },
+          { "root": "brachy", "meaning": "short" },
+          { "root": "brachio", "meaning": "arm" },
+          { "root": "branchio", "meaning": "gills" },
+          { "root": "kin", "meaning": "motion" },
+          { "root": "phylo", "meaning": "kind" },
+          { "root": "blasto", "meaning": "embryo" },
+          { "root": "dactylo", "meaning": "finger" },
+          { "root": "phos", "meaning": "light" },
+          { "root": "gon", "meaning": "angle" },
+          { "root": "lite", "meaning": "mineral or fossil" },
+          { "root": "vore", "meaning": "eating" },
+          { "root": "holo", "meaning": "whole" },
+          { "root": "haplo", "meaning": "single or simple" },
+          { "root": "opia", "meaning": "sight" },
+          { "root": "lent", "meaning": "full of" },
+          { "root": "ef", "meaning": "out" },
+          { "root": "ium", "meaning": "an element" },
+          { "root": "dicho", "meaning": "in two parts" }
+        ]
+      },
 
-<script>
-/* --- All 15 lists (converted from your images) --- */
-/* Each list is an object {name: "List #N", items: [{root, meaning}, ...]} */
-/* I kept the short meanings from the printed lists (parentheses content). */
-const embeddedSets = [
-  {
-    "name":"List #1",
-    "items":[
-      {"root":"ante","meaning":"before"},
-      {"root":"anti","meaning":"against"},
-      {"root":"bi","meaning":"two"},
-      {"root":"circum","meaning":"around"},
-      {"root":"com","meaning":"together"},
-      {"root":"con","meaning":"together"},
-      {"root":"de","meaning":"down"},
-      {"root":"dis","meaning":"away"},
-      {"root":"equi","meaning":"equal"},
-      {"root":"extra","meaning":"beyond"},
-      {"root":"inter","meaning":"between"},
-      {"root":"intra","meaning":"within"},
-      {"root":"intro","meaning":"into"},
-      {"root":"mal","meaning":"bad"},
-      {"root":"mis","meaning":"bad"},
-      {"root":"non","meaning":"not"},
-      {"root":"post","meaning":"after"},
-      {"root":"pre","meaning":"before"},
-      {"root":"semi","meaning":"half"},
-      {"root":"sub","meaning":"under"},
-      {"root":"super","meaning":"over"},
-      {"root":"sym","meaning":"together"},
-      {"root":"syn","meaning":"together"},
-      {"root":"tri","meaning":"three"},
-      {"root":"un","meaning":"not"}
-    ]
-  },
-  {
-    "name":"List #2",
-    "items":[
-      {"root":"archy","meaning":"government"},
-      {"root":"ard","meaning":"always"},
-      {"root":"cide","meaning":"kill"},
-      {"root":"ician","meaning":"specialist"},
-      {"root":"itis","meaning":"inflammation"},
-      {"root":"aqua","meaning":"water"},
-      {"root":"audi","meaning":"hear"},
-      {"root":"bell","meaning":"war"},
-      {"root":"cap","meaning":"take"},
-      {"root":"cise","meaning":"cut"},
-      {"root":"bio","meaning":"life"},
-      {"root":"auto","meaning":"self"},
-      {"root":"port","meaning":"carry"},
-      {"root":"scrib","meaning":"write"},
-      {"root":"logy","meaning":"science"},
-      {"root":"dict","meaning":"say"},
-      {"root":"cred","meaning":"believe"},
-      {"root":"cent","meaning":"one hundred"},
-      {"root":"neo","meaning":"new"},
-      {"root":"ad","meaning":"to"},
-      {"root":"cede","meaning":"go"},
-      {"root":"miss","meaning":"send"},
-      {"root":"centri","meaning":"center"},
-      {"root":"biblio","meaning":"book"},
-      {"root":"anthropo","meaning":"human"}
-    ]
-  },
-  {
-    "name":"List #3",
-    "items":[
-      {"root":"homo","meaning":"same"},
-      {"root":"spec","meaning":"look"},
-      {"root":"duct","meaning":"lead"},
-      {"root":"fer","meaning":"carry"},
-      {"root":"pend","meaning":"hang"},
-      {"root":"micro","meaning":"small"},
-      {"root":"hydro","meaning":"water"},
-      {"root":"photo","meaning":"light"},
-      {"root":"pan","meaning":"all"},
-      {"root":"penta","meaning":"five"},
-      {"root":"tele","meaning":"far"},
-      {"root":"vid","meaning":"look"},
-      {"root":"omni","meaning":"all"},
-      {"root":"ex","meaning":"out"},
-      {"root":"poly","meaning":"many"},
-      {"root":"re","meaning":"again"},
-      {"root":"hypo","meaning":"under"},
-      {"root":"pseudo","meaning":"false"},
-      {"root":"neuro","meaning":"nerve"},
-      {"root":"tomy","meaning":"cut"},
-      {"root":"hema","meaning":"blood"},
-      {"root":"proto","meaning":"first"},
-      {"root":"phon","meaning":"sound"},
-      {"root":"mono","meaning":"one"},
-      {"root":"viv","meaning":"life"}
-    ]
-  },
-  {
-    "name":"List #4",
-    "items":[
-      {"root":"morph","meaning":"shape"},
-      {"root":"vest","meaning":"clothes"},
-      {"root":"bene","meaning":"good"},
-      {"root":"pond","meaning":"weight"},
-      {"root":"corp","meaning":"body"},
-      {"root":"dorm","meaning":"sleep"},
-      {"root":"pater","meaning":"father"},
-      {"root":"nov","meaning":"new"},
-      {"root":"punct","meaning":"point"},
-      {"root":"ject","meaning":"throw"},
-      {"root":"tion","meaning":"act or state"},
-      {"root":"loco","meaning":"place"},
-      {"root":"dox","meaning":"opinion"},
-      {"root":"amphi","meaning":"both"},
-      {"root":"magn","meaning":"great"},
-      {"root":"eu","meaning":"good"},
-      {"root":"endo","meaning":"within"},
-      {"root":"phobia","meaning":"fear"},
-      {"root":"ortho","meaning":"straight"},
-      {"root":"put","meaning":"think"},
-      {"root":"ver","meaning":"true"},
-      {"root":"matri","meaning":"mother"},
-      {"root":"mega","meaning":"large"},
-      {"root":"pop","meaning":"people"},
-      {"root":"sangui","meaning":"blood"}
-    ]
-  },
-  {
-    "name":"List #5",
-    "items":[
-      {"root":"vita","meaning":"life"},
-      {"root":"demo","meaning":"people"},
-      {"root":"stereo","meaning":"solid"},
-      {"root":"ism","meaning":"doctrine"},
-      {"root":"cogn","meaning":"know"},
-      {"root":"sur","meaning":"over"},
-      {"root":"alter","meaning":"other"},
-      {"root":"astr","meaning":"star"},
-      {"root":"dyna","meaning":"power"},
-      {"root":"chron","meaning":"time"},
-      {"root":"hyper","meaning":"over"},
-      {"root":"luna","meaning":"moon"},
-      {"root":"octa","meaning":"eight"},
-      {"root":"gyro","meaning":"turn"},
-      {"root":"contra","meaning":"against"},
-      {"root":"geo","meaning":"earth"},
-      {"root":"helio","meaning":"sun"},
-      {"root":"thermo","meaning":"heat"},
-      {"root":"tetra","meaning":"four"},
-      {"root":"meter","meaning":"measure"},
-      {"root":"scope","meaning":"look"},
-      {"root":"son","meaning":"sound"},
-      {"root":"dec","meaning":"ten"},
-      {"root":"stell","meaning":"star"},
-      {"root":"amat","meaning":"love"}
-    ]
-  },
-  {
-    "name":"List #6",
-    "items":[
-      {"root":"germ","meaning":"vital or related"},
-      {"root":"greg","meaning":"group"},
-      {"root":"mar","meaning":"sea"},
-      {"root":"prim","meaning":"first"},
-      {"root":"pyro","meaning":"fire"},
-      {"root":"clam","meaning":"cry out"},
-      {"root":"plu","meaning":"more"},
-      {"root":"tang","meaning":"touch"},
-      {"root":"string","meaning":"bind"},
-      {"root":"liber","meaning":"free"},
-      {"root":"junct","meaning":"join"},
-      {"root":"clud","meaning":"close"},
-      {"root":"se","meaning":"apart"},
-      {"root":"trib","meaning":"pay"},
-      {"root":"dign","meaning":"worthy"},
-      {"root":"luc","meaning":"light"},
-      {"root":"rupt","meaning":"break"},
-      {"root":"grat","meaning":"pleasing"},
-      {"root":"medi","meaning":"middle"},
-      {"root":"soph","meaning":"wisdom"},
-      {"root":"curr","meaning":"run"},
-      {"root":"tempor","meaning":"time"},
-      {"root":"migr","meaning":"wander"},
-      {"root":"trans","meaning":"across"},
-      {"root":"gamy","meaning":"marriage"}
-    ]
-  },
-  {
-    "name":"List #7",
-    "items":[
-      {"root":"numer","meaning":"number"},
-      {"root":"fort","meaning":"strong"},
-      {"root":"osteo","meaning":"bone"},
-      {"root":"ornith","meaning":"bird"},
-      {"root":"polis","meaning":"city"},
-      {"root":"fus","meaning":"pour"},
-      {"root":"ego","meaning":"I"},
-      {"root":"spir","meaning":"breathe"},
-      {"root":"dia","meaning":"across"},
-      {"root":"acr","meaning":"sharp"},
-      {"root":"acro","meaning":"high, point or tip"},
-      {"root":"culp","meaning":"blame"},
-      {"root":"derm","meaning":"skin"},
-      {"root":"zo","meaning":"animal"},
-      {"root":"per","meaning":"through"},
-      {"root":"pac","meaning":"peace"},
-      {"root":"brev","meaning":"short"},
-      {"root":"necro","meaning":"death"},
-      {"root":"urb","meaning":"city"},
-      {"root":"pugn","meaning":"fight"},
-      {"root":"ecto","meaning":"outer"},
-      {"root":"plasto","meaning":"molded"},
-      {"root":"agog","meaning":"leader"},
-      {"root":"cle","meaning":"small"},
-      {"root":"il","meaning":"not"}
-    ]
-  },
-  {
-    "name":"List #8",
-    "items":[
-      {"root":"sed","meaning":"sit"},
-      {"root":"leg","meaning":"read"},
-      {"root":"anim","meaning":"mind"},
-      {"root":"tort","meaning":"twist"},
-      {"root":"nym","meaning":"name"},
-      {"root":"sanct","meaning":"holy"},
-      {"root":"meta","meaning":"change"},
-      {"root":"petr","meaning":"rock"},
-      {"root":"mir","meaning":"wonder"},
-      {"root":"man","meaning":"hand"},
-      {"root":"rect","meaning":"right"},
-      {"root":"volv","meaning":"roll"},
-      {"root":"demi","meaning":"half"},
-      {"root":"retro","meaning":"backward"},
-      {"root":"sens","meaning":"feel"},
-      {"root":"fy","meaning":"make"},
-      {"root":"ocul","meaning":"eye"},
-      {"root":"cur","meaning":"care for"},
-      {"root":"ultra","meaning":"beyond"},
-      {"root":"oid","meaning":"appearance"},
-      {"root":"gest","meaning":"carry"},
-      {"root":"apt","meaning":"fit"},
-      {"root":"tact","meaning":"touch"},
-      {"root":"voc","meaning":"voice"},
-      {"root":"rid","meaning":"laugh"}
-    ]
-  },
-  {
-    "name":"List #9",
-    "items":[
-      {"root":"path","meaning":"feeling"},
-      {"root":"a-","meaning":"not"},
-      {"root":"nomy","meaning":"law"},
-      {"root":"fid","meaning":"faith"},
-      {"root":"caco","meaning":"bad"},
-      {"root":"hetero","meaning":"different"},
-      {"root":"sci","meaning":"know"},
-      {"root":"graph","meaning":"write"},
-      {"root":"lat","meaning":"side"},
-      {"root":"lith","meaning":"rock"},
-      {"root":"tract","meaning":"pull"},
-      {"root":"in","meaning":"in or not"},
-      {"root":"co","meaning":"together"},
-      {"root":"phile","meaning":"love"},
-      {"root":"ine","meaning":"nature of"},
-      {"root":"-ar","meaning":"relating to"},
-      {"root":"hexa","meaning":"six"},
-      {"root":"fract","meaning":"break"},
-      {"root":"platy","meaning":"flat"},
-      {"root":"theo","meaning":"god"},
-      {"root":"fin","meaning":"end"},
-      {"root":"hedron","meaning":"sided object"},
-      {"root":"ambul","meaning":"walk"},
-      {"root":"ous","meaning":"full of"},
-      {"root":"topo","meaning":"place"}
-    ]
-  },
-  {
-    "name":"List #10",
-    "items":[
-      {"root":"ped","meaning":"foot or child"},
-      {"root":"mort","meaning":"death"},
-      {"root":"carn","meaning":"flesh"},
-      {"root":"psych","meaning":"soul"},
-      {"root":"ethno","meaning":"race or culture"},
-      {"root":"gen","meaning":"origin"},
-      {"root":"nat","meaning":"born"},
-      {"root":"paleo","meaning":"old"},
-      {"root":"curs","meaning":"run"},
-      {"root":"crypt","meaning":"hidden"},
-      {"root":"cad","meaning":"fall"},
-      {"root":"capit","meaning":"head"},
-      {"root":"loqu","meaning":"talk"},
-      {"root":"sacro","meaning":"holy"},
-      {"root":"uni","meaning":"one"},
-      {"root":"ness","meaning":"quality"},
-      {"root":"alt","meaning":"high"},
-      {"root":"ics","meaning":"art"},
-      {"root":"iso","meaning":"equal"},
-      {"root":"vert","meaning":"turn"},
-      {"root":"ate","meaning":"cause"},
-      {"root":"cor","meaning":"heart"},
-      {"root":"ess","meaning":"female"},
-      {"root":"muta","meaning":"change"},
-      {"root":"fug","meaning":"flee"}
-    ]
-  },
-  {
-    "name":"List #11",
-    "items":[
-      {"root":"-i","meaning":"plural"},
-      {"root":"jus","meaning":"law"},
-      {"root":"lum","meaning":"light"},
-      {"root":"ann","meaning":"year"},
-      {"root":"apo","meaning":"away"},
-      {"root":"sen","meaning":"old"},
-      {"root":"sol","meaning":"alone"},
-      {"root":"bas","meaning":"low"},
-      {"root":"rogat","meaning":"ask"},
-      {"root":"parl","meaning":"speak"},
-      {"root":"potent","meaning":"power"},
-      {"root":"surg","meaning":"rise"},
-      {"root":"log","meaning":"word or reason"},
-      {"root":"gram","meaning":"writing"},
-      {"root":"cant","meaning":"sing"},
-      {"root":"reg","meaning":"rule"},
-      {"root":"pro","meaning":"forward"},
-      {"root":"gyn","meaning":"woman"},
-      {"root":"ag","meaning":"to do"},
-      {"root":"act","meaning":"to do"},
-      {"root":"mob","meaning":"move"},
-      {"root":"sess","meaning":"sit"},
-      {"root":"fic","meaning":"make"},
-      {"root":"nounce","meaning":"tell"},
-      {"root":"andro","meaning":"human"}
-    ]
-  },
-  {
-    "name":"List #12",
-    "items":[
-      {"root":"an-","meaning":"without"},
-      {"root":"ab","meaning":"away"},
-      {"root":"mel","meaning":"song"},
-      {"root":"aden","meaning":"gland"},
-      {"root":"aer","meaning":"air"},
-      {"root":"alb","meaning":"white"},
-      {"root":"ase","meaning":"enzyme"},
-      {"root":"epi","meaning":"on"},
-      {"root":"hum","meaning":"earth"},
-      {"root":"-be","meaning":"life"},
-      {"root":"bon","meaning":"good"},
-      {"root":"struct","meaning":"build"},
-      {"root":"chlor","meaning":"green"},
-      {"root":"cyan","meaning":"blue"},
-      {"root":"cyt","meaning":"cell"},
-      {"root":"diplo","meaning":"double"},
-      {"root":"dys","meaning":"bad"},
-      {"root":"eco","meaning":"house"},
-      {"root":"emia","meaning":"blood"},
-      {"root":"enter","meaning":"intestine"},
-      {"root":"erythro","meaning":"red"},
-      {"root":"idio","meaning":"peculiar"},
-      {"root":"exo","meaning":"out"},
-      {"root":"im","meaning":"not"},
-      {"root":"fil","meaning":"thread"}
-    ]
-  },
-  {
-    "name":"List #13",
-    "items":[
-      {"root":"chrom","meaning":"color"},
-      {"root":"form","meaning":"shape"},
-      {"root":"sequ","meaning":"follow"},
-      {"root":"glyc","meaning":"sweet"},
-      {"root":"hemo","meaning":"blood"},
-      {"root":"ultima","meaning":"last"},
-      {"root":"infra","meaning":"beneath"},
-      {"root":"leuko","meaning":"white"},
-      {"root":"lys","meaning":"break down"},
-      {"root":"meso","meaning":"middle"},
-      {"root":"milli","meaning":"thousandth"},
-      {"root":"mem","meaning":"remember"},
-      {"root":"gress","meaning":"step"},
-      {"root":"labor","meaning":"work"},
-      {"root":"myo","meaning":"muscle"},
-      {"root":"vac","meaning":"empty"},
-      {"root":"oligo","meaning":"few or small"},
-      {"root":"ose","meaning":"sugar"},
-      {"root":"osis","meaning":"condition"},
-      {"root":"tude","meaning":"state of"},
-      {"root":"patho","meaning":"disease"},
-      {"root":"phag","meaning":"eat"},
-      {"root":"phor","meaning":"carry"},
-      {"root":"phyt","meaning":"plant"},
-      {"root":"phyll","meaning":"leaf"}
-    ]
-  },
-  {
-    "name":"List #14",
-    "items":[
-      {"root":"pleo","meaning":"more"},
-      {"root":"pod","meaning":"foot"},
-      {"root":"soror","meaning":"sister"},
-      {"root":"-a","meaning":"plural"},
-      {"root":"val","meaning":"worth"},
-      {"root":"para","meaning":"beside or near"},
-      {"root":"dom","meaning":"rule"},
-      {"root":"erg","meaning":"work"},
-      {"root":"rhiz","meaning":"root"},
-      {"root":"sapro","meaning":"rotten"},
-      {"root":"schizo","meaning":"divide"},
-      {"root":"hippo","meaning":"horse"},
-      {"root":"som","meaning":"body"},
-      {"root":"spor","meaning":"seed"},
-      {"root":"sta","meaning":"stop"},
-      {"root":"rhodo","meaning":"rose"},
-      {"root":"taxis","meaning":"arrangement"},
-      {"root":"vol","meaning":"will"},
-      {"root":"frat","meaning":"brother"},
-      {"root":"trich","meaning":"hair"},
-      {"root":"troph","meaning":"nourishment"},
-      {"root":"tox","meaning":"poison"},
-      {"root":"sect","meaning":"cut"},
-      {"root":"zygo","meaning":"yoke"},
-      {"root":"zym","meaning":"ferment"}
-    ]
-  },
-  {
-    "name":"List #15",
-    "items":[
-      {"root":"tropo","meaning":"turn"},
-      {"root":"gastro","meaning":"stomach"},
-      {"root":"arthro","meaning":"joint"},
-      {"root":"ventri","meaning":"belly"},
-      {"root":"dors","meaning":"back"},
-      {"root":"macro","meaning":"large"},
-      {"root":"dextro","meaning":"right or clockwise"},
-      {"root":"brachy","meaning":"short"},
-      {"root":"brachio","meaning":"arm"},
-      {"root":"branchio","meaning":"gills"},
-      {"root":"kin","meaning":"motion"},
-      {"root":"phylo","meaning":"kind"},
-      {"root":"blasto","meaning":"embryo"},
-      {"root":"dactylo","meaning":"finger"},
-      {"root":"phos","meaning":"light"},
-      {"root":"gon","meaning":"angle"},
-      {"root":"lite","meaning":"mineral or fossil"},
-      {"root":"vore","meaning":"eating"},
-      {"root":"holo","meaning":"whole"},
-      {"root":"haplo","meaning":"single or simple"},
-      {"root":"opia","meaning":"sight"},
-      {"root":"lent","meaning":"full of"},
-      {"root":"ef","meaning":"out"},
-      {"root":"ium","meaning":"an element"},
-      {"root":"dicho","meaning":"in two parts"}
-    ]
-  }
-];
+      /* ======================= SECOND HALF ========================== */
 
-/* --- App state --- */
-let sets = JSON.parse(JSON.stringify(embeddedSets)); // editable copy
-let currentSetIndex = 0;
-let currentOrder = [];
-let currentPos = 0;
-let attemptStart = 0;
-let timerMeasuredThisAttempt = false; // IMPORTANT: whether we actually measured elapsed time
-let slowThresholdSec = 5.0;
-document.getElementById('slowThreshold').textContent = slowThresholdSec.toFixed(1);
-let sessionStatus = []; // {index, root, meaning, status:'untried'|'correct'|'wrong', slow:false, attempts:0}
-let autoAdvanceDelayMs = 800;
 
-/* --- Fuzzy matching --- */
-function levenshtein(a, b){
-  if(a===b) return 0;
-  a = a || ""; b = b || "";
-  const al = a.length, bl = b.length;
-  if(al === 0) return bl;
-  if(bl === 0) return al;
-  const v0 = new Array(bl+1), v1 = new Array(bl+1);
-  for(let j=0;j<=bl;j++) v0[j]=j;
-  for(let i=0;i<al;i++){
-    v1[0]=i+1;
-    for(let j=0;j<bl;j++){
-      const cost = a[i] === b[j] ? 0 : 1;
-      v1[j+1] = Math.min(v1[j]+1, v0[j+1]+1, v0[j]+cost);
+      {
+        "name": "List #16",
+        "items": [
+          { "root": "anglo", "meaning": "English" },
+          { "root": "ist", "meaning": "one who" },
+          { "root": "saur", "meaning": "lizard" },
+          { "root": "pithec", "meaning": "ape" },
+          { "root": "calli", "meaning": "beautiful" },
+          { "root": "austro", "meaning": "south" },
+          { "root": "cephalo", "meaning": "head" },
+          { "root": "chiro", "meaning": "hand" },
+          { "root": "caust", "meaning": "burn" },
+          { "root": "terr", "meaning": "land" },
+          { "root": "cata", "meaning": "down" },
+          { "root": "jur", "meaning": "swear" },
+          { "root": "flu", "meaning": "flow" },
+          { "root": "here", "meaning": "stick" },
+          { "root": "pos", "meaning": "put" },
+          { "root": "mund", "meaning": "world" },
+          { "root": "cracy", "meaning": "government" },
+          { "root": "mania", "meaning": "madness" },
+          { "root": "ize", "meaning": "make" },
+          { "root": "antho", "meaning": "flower" },
+          { "root": "algia", "meaning": "pain" },
+          { "root": "somn", "meaning": "sleep" },
+          { "root": "quadr", "meaning": "four" },
+          { "root": "err", "meaning": "wander" },
+          { "root": "sine", "meaning": "without" }
+        ]
+      },
+      {
+        "name": "List #17",
+        "items": [
+          { "root": "lingu", "meaning": "tongue" },
+          { "root": "mot", "meaning": "move" },
+          { "root": "nav", "meaning": "ship" },
+          { "root": "und", "meaning": "wave" },
+          { "root": "flect", "meaning": "bend" },
+          { "root": "coron", "meaning": "crown" },
+          { "root": "aur", "meaning": "gold" },
+          { "root": "liter", "meaning": "letter" },
+          { "root": "rat", "meaning": "think" },
+          { "root": "sis", "meaning": "condition" },
+          { "root": "par", "meaning": "equal" },
+          { "root": "mens", "meaning": "measure" },
+          { "root": "mony", "meaning": "condition" },
+          { "root": "quin", "meaning": "five" },
+          { "root": "socio", "meaning": "society" },
+          { "root": "ovi", "meaning": "egg" },
+          { "root": "phasia", "meaning": "speech" },
+          { "root": "pter", "meaning": "wing" },
+          { "root": "phen", "meaning": "appearance" },
+          { "root": "hist", "meaning": "tissue" },
+          { "root": "glott", "meaning": "tongue" },
+          { "root": "phan", "meaning": "appearance" },
+          { "root": "peri", "meaning": "near or around" },
+          { "root": "pot", "meaning": "drink" },
+          { "root": "via", "meaning": "road" }
+        ]
+      },
+      {
+        "name": "List #18",
+        "items": [
+          { "root": "atmo", "meaning": "vapor" },
+          { "root": "cardio", "meaning": "heart" },
+          { "root": "cosmo", "meaning": "world or universe" },
+          { "root": "counter", "meaning": "against" },
+          { "root": "cranio", "meaning": "skull" },
+          { "root": "cyclo", "meaning": "circle" },
+          { "root": "gno", "meaning": "know" },
+          { "root": "oss", "meaning": "bone" },
+          { "root": "xylo", "meaning": "wood" },
+          { "root": "monger", "meaning": "seller" },
+          { "root": "sept", "meaning": "seven" },
+          { "root": "xeno", "meaning": "stranger" },
+          { "root": "vas", "meaning": "vessel" },
+          { "root": "fore", "meaning": "front" },
+          { "root": "ish", "meaning": "like" },
+          { "root": "less", "meaning": "without" },
+          { "root": "baro", "meaning": "pressure" },
+          { "root": "ferro", "meaning": "iron" },
+          { "root": "quasi", "meaning": "somewhat" },
+          { "root": "nesia", "meaning": "island" },
+          { "root": "lepsy", "meaning": "attack" },
+          { "root": "let", "meaning": "little" },
+          { "root": "nano", "meaning": "billionth" },
+          { "root": "pico", "meaning": "trillionth" },
+          { "root": "ideo", "meaning": "idea" }
+        ]
+      },
+      {
+        "name": "List #19",
+        "items": [
+          { "root": "ven", "meaning": "come" },
+          { "root": "ichthy", "meaning": "fish" },
+          { "root": "pulse", "meaning": "drive" },
+          { "root": "calor", "meaning": "heat" },
+          { "root": "sol", "meaning": "sun" },
+          { "root": "strat", "meaning": "layer" },
+          { "root": "nuc", "meaning": "center" },
+          { "root": "sat", "meaning": "enough" },
+          { "root": "protero", "meaning": "early" },
+          { "root": "mont", "meaning": "mountain" },
+          { "root": "kilo", "meaning": "thousand" },
+          { "root": "myria", "meaning": "many" },
+          { "root": "tachy", "meaning": "quick" },
+          { "root": "fiss", "meaning": "split" },
+          { "root": "cumu", "meaning": "heaped" },
+          { "root": "meteor", "meaning": "high" },
+          { "root": "hibern", "meaning": "winter" },
+          { "root": "di", "meaning": "two" },
+          { "root": "bath", "meaning": "deep" },
+          { "root": "cirr", "meaning": "hair" },
+          { "root": "grav", "meaning": "heavy" },
+          { "root": "solv", "meaning": "loosen" },
+          { "root": "ophthal", "meaning": "eye" },
+          { "root": "oma", "meaning": "tumor" },
+          { "root": "rub", "meaning": "red" }
+        ]
+      },
+      {
+        "name": "List #20",
+        "items": [
+          { "root": "mela", "meaning": "black" },
+          { "root": "vice", "meaning": "in place of" },
+          { "root": "foli", "meaning": "leaf" },
+          { "root": "atom", "meaning": "vapor or particle" },
+          { "root": "orb", "meaning": "circle" },
+          { "root": "multi", "meaning": "many" },
+          { "root": "ign", "meaning": "fire" },
+          { "root": "moll", "meaning": "soft" },
+          { "root": "lin", "meaning": "line" },
+          { "root": "hemi", "meaning": "half" },
+          { "root": "oo", "meaning": "egg" },
+          { "root": "grad", "meaning": "step" },
+          { "root": "pneumo", "meaning": "lung or air" },
+          { "root": "radi", "meaning": "ray" },
+          { "root": "oscu", "meaning": "mouth" },
+          { "root": "ob", "meaning": "against" },
+          { "root": "vect", "meaning": "carry" },
+          { "root": "digit", "meaning": "finger" },
+          { "root": "gymno", "meaning": "naked" },
+          { "root": "plasm", "meaning": "form" },
+          { "root": "narco", "meaning": "sleep" },
+          { "root": "vermi", "meaning": "worm" },
+          { "root": "lign", "meaning": "wood" },
+          { "root": "dendr", "meaning": "tree" },
+          { "root": "lachry", "meaning": "tear" }
+        ]
+      },
+      {
+        "name": "List #21",
+        "items": [
+          { "root": "equivocate", "meaning": "to hedge" },
+          { "root": "superfluous", "meaning": "unnecessary" },
+          { "root": "bilateral", "meaning": "two-sided" },
+          { "root": "unilateral", "meaning": "one-sided" },
+          { "root": "circumspect", "meaning": "cautious" },
+          { "root": "commensurate", "meaning": "of like measure" },
+          { "root": "malevolence", "meaning": "evil intent" },
+          { "root": "neophyte", "meaning": "beginner" },
+          { "root": "misanthropist", "meaning": "people-hater" },
+          { "root": "bellicose", "meaning": "warlike" },
+          { "root": "anthropomorphic", "meaning": "human-shaped" },
+          { "root": "captious", "meaning": "fault-finding" },
+          { "root": "neologism", "meaning": "new word" },
+          { "root": "malediction", "meaning": "a curse" },
+          { "root": "incredulous", "meaning": "not believing" },
+          { "root": "omniscient", "meaning": "all-knowing" },
+          { "root": "monomania", "meaning": "obsession with one thing" },
+          { "root": "specious", "meaning": "false" },
+          { "root": "excoriate", "meaning": "verbally flog" },
+          { "root": "prototype", "meaning": "first model" },
+          { "root": "xenophobia", "meaning": "fear of foreigners" },
+          { "root": "benediction", "meaning": "blessing" },
+          { "root": "amorphous", "meaning": "shapeless" },
+          { "root": "preponderance", "meaning": "bulk" },
+          { "root": "magnanimous", "meaning": "great-minded" }
+        ]
+      },
+      {
+        "name": "List #22",
+        "items": [
+          { "root": "mollify", "meaning": "make soft" },
+          { "root": "ichthyologist", "meaning": "fish scientist" },
+          { "root": "polyglot", "meaning": "multi-linguist" },
+          { "root": "diaphanous", "meaning": "semitransparent" },
+          { "root": "somniferous", "meaning": "bringing sleep" },
+          { "root": "sinecure", "meaning": "an easy, lucrative job" },
+          { "root": "soliloquy", "meaning": "speech to oneself" },
+          { "root": "adherent", "meaning": "supporter" },
+          { "root": "abjure", "meaning": "renounce" },
+          { "root": "caustic", "meaning": "burning" },
+          { "root": "confluence", "meaning": "a flowing together" },
+          { "root": "depose", "meaning": "topple from power" },
+          { "root": "egomania", "meaning": "self-obsession" },
+          { "root": "egregious", "meaning": "blatant" },
+          { "root": "analgesic", "meaning": "painkiller" },
+          { "root": "chiromancy", "meaning": "palm reading" },
+          { "root": "oligarchy", "meaning": "government by a few" },
+          { "root": "intractable", "meaning": "stubborn" },
+          { "root": "intransigent", "meaning": "not compromising" },
+          { "root": "perfidious", "meaning": "treacherous" },
+          { "root": "perspicuous", "meaning": "brilliantly clear" },
+          { "root": "ingenuous", "meaning": "innocent and naive" },
+          { "root": "circumlocution", "meaning": "talking in circles" },
+          { "root": "gregarious", "meaning": "sociable" },
+          { "root": "discursive", "meaning": "rambling" }
+        ]
+      },
+      {
+        "name": "List #23",
+        "items": [
+          { "root": "egocentric", "meaning": "self-centered" },
+          { "root": "tangible", "meaning": "touchable" },
+          { "root": "demagogue", "meaning": "corrupt politician" },
+          { "root": "preclude", "meaning": "prevent in advance" },
+          { "root": "cryptologist", "meaning": "code breaker" },
+          { "root": "ethnocentrism", "meaning": "racial or cultural prejudice" },
+          { "root": "pedagogue", "meaning": "teacher" },
+          { "root": "recant", "meaning": "retract" },
+          { "root": "revoke", "meaning": "cancel" },
+          { "root": "pugnacious", "meaning": "combative" },
+          { "root": "incisive", "meaning": "sharp" },
+          { "root": "diatribe", "meaning": "abusive criticism" },
+          { "root": "anomaly", "meaning": "abnormality" },
+          { "root": "enumerate", "meaning": "to list" },
+          { "root": "circumscribed", "meaning": "limited" },
+          { "root": "intercede", "meaning": "mediate" },
+          { "root": "disputatious", "meaning": "argumentative" },
+          { "root": "loquacious", "meaning": "talkative" },
+          { "root": "abrogate", "meaning": "annul" },
+          { "root": "prescience", "meaning": "foreknowledge" },
+          { "root": "sacrosanct", "meaning": "sacred" },
+          { "root": "androgynous", "meaning": "masculine and feminine" },
+          { "root": "acronym", "meaning": "initials-name" },
+          { "root": "congenital", "meaning": "at birth" },
+          { "root": "cacophony", "meaning": "bad noise" }
+        ]
+      },
+      {
+        "name": "List #24",
+        "items": [
+          { "root": "advocate", "meaning": "speak for" },
+          { "root": "ponderous", "meaning": "weighty" },
+          { "root": "retribution", "meaning": "revenge" },
+          { "root": "android", "meaning": "robot" },
+          { "root": "infidel", "meaning": "unbeliever" },
+          { "root": "resurgence", "meaning": "rising again" },
+          { "root": "punctilious", "meaning": "precise in conduct" },
+          { "root": "condescend", "meaning": "lower oneself" },
+          { "root": "collateral", "meaning": "side by side" },
+          { "root": "irrevocable", "meaning": "beyond recall" },
+          { "root": "elucidate", "meaning": "explain" },
+          { "root": "epigram", "meaning": "witty comment" },
+          { "root": "eccentricity", "meaning": "oddness" },
+          { "root": "cognizant", "meaning": "aware" },
+          { "root": "stringent", "meaning": "binding" },
+          { "root": "anthropoid", "meaning": "humanlike" },
+          { "root": "diffident", "meaning": "shy" },
+          { "root": "pandemonium", "meaning": "demonic clamor" },
+          { "root": "urbane", "meaning": "sophisticated" },
+          { "root": "tractable", "meaning": "docile" },
+          { "root": "supersede", "meaning": "replace" },
+          { "root": "temporize", "meaning": "delay" },
+          { "root": "somnambulist", "meaning": "sleepwalker" },
+          { "root": "sanguinary", "meaning": "bloody" },
+          { "root": "inanimate", "meaning": "lifeless" }
+        ]
+      },
+      {
+        "name": "List #25",
+        "items": [
+          { "root": "introspective", "meaning": "inward looking" },
+          { "root": "intervene", "meaning": "come between" },
+          { "root": "syndrome", "meaning": "complex of symptoms" },
+          { "root": "subordinate", "meaning": "lower" },
+          { "root": "dissonant", "meaning": "inharmonious" },
+          { "root": "belligerent", "meaning": "warring" },
+          { "root": "credible", "meaning": "believable" },
+          { "root": "impending", "meaning": "overhanging" },
+          { "root": "polyphonic", "meaning": "multi-melodic" },
+          { "root": "exculpate", "meaning": "free from blame" },
+          { "root": "euphemism", "meaning": "pleasant name" },
+          { "root": "benefactor", "meaning": "helper" },
+          { "root": "megalomania", "meaning": "delusions of greatness" },
+          { "root": "magnate", "meaning": "powerful person" },
+          { "root": "vivacious", "meaning": "lively" },
+          { "root": "heliotropic", "meaning": "sun-following" },
+          { "root": "amour-propre", "meaning": "self-love" },
+          { "root": "octogenarian", "meaning": "an eighty-year-old" },
+          { "root": "cognoscenti", "meaning": "those who know" },
+          { "root": "surfeit", "meaning": "excess" },
+          { "root": "primate", "meaning": "monkeys, apes, and humans" },
+          { "root": "pellucid", "meaning": "crystal clear" },
+          { "root": "circumvent", "meaning": "get around" },
+          { "root": "hemiplegia", "meaning": "paralysis on one side" },
+          { "root": "narcolepsy", "meaning": "attacks of sleep" }
+        ]
+      },
+      {
+        "name": "List #26",
+        "items": [
+          { "root": "delineate", "meaning": "to outline" },
+          { "root": "emollient", "meaning": "softener" },
+          { "root": "retrograde", "meaning": "backward" },
+          { "root": "melancholy", "meaning": "dark sadness" },
+          { "root": "intracranial", "meaning": "within the skull" },
+          { "root": "cardiovascular", "meaning": "of the heart and vessels" },
+          { "root": "epiphany", "meaning": "revelation" },
+          { "root": "histology", "meaning": "study of living tissues" },
+          { "root": "perihelion", "meaning": "orbital point nearest the sun" },
+          { "root": "inherent", "meaning": "built-in" },
+          { "root": "plutocracy", "meaning": "government of the wealthy" },
+          { "root": "sine qua non", "meaning": "essential element" },
+          { "root": "corpulent", "meaning": "full-bodied" },
+          { "root": "dichotomy", "meaning": "two-part division" },
+          { "root": "pathological", "meaning": "diseased" },
+          { "root": "cryptic", "meaning": "having hidden meaning" },
+          { "root": "isosceles", "meaning": "having two equal sides" },
+          { "root": "pathogen", "meaning": "disease-causer" },
+          { "root": "vociferous", "meaning": "loudly-voiced" },
+          { "root": "rectify", "meaning": "correct" },
+          { "root": "sanctimonious", "meaning": "affectedly holy" },
+          { "root": "tortuous", "meaning": "twisting" },
+          { "root": "rectilinear", "meaning": "right-angled" },
+          { "root": "metamorphosis", "meaning": "change of shape" },
+          { "root": "petroglyph", "meaning": "rock carving" }
+        ]
+      },
+      {
+        "name": "List #27",
+        "items": [
+          { "root": "chronic", "meaning": "lasting" },
+          { "root": "hyperbole", "meaning": "overstatement" },
+          { "root": "sonorous", "meaning": "full-sounding" },
+          { "root": "germane", "meaning": "related" },
+          { "root": "convivial", "meaning": "jovial, festive" },
+          { "root": "cognomen", "meaning": "nickname" },
+          { "root": "anarchist", "meaning": "one against government" },
+          { "root": "animadversion", "meaning": "criticism" },
+          { "root": "pusillanimous", "meaning": "small-minded" },
+          { "root": "subterfuge", "meaning": "evasive dodge" },
+          { "root": "saturnine", "meaning": "gloomy and remote" },
+          { "root": "luminary", "meaning": "enlightening person" },
+          { "root": "exorbitant", "meaning": "unreasonable" },
+          { "root": "expatriate", "meaning": "banish" },
+          { "root": "filigree", "meaning": "lacy design" },
+          { "root": "eulogy", "meaning": "words of praise" },
+          { "root": "sedentary", "meaning": "sitting" },
+          { "root": "euphoria", "meaning": "joy" },
+          { "root": "bonhomie", "meaning": "good-naturedness" },
+          { "root": "bona fide", "meaning": "good faith" },
+          { "root": "bon vivant", "meaning": "indulger in luxury" },
+          { "root": "mutable", "meaning": "changeable" },
+          { "root": "impute", "meaning": "attribute discredit" },
+          { "root": "status quo", "meaning": "the present state" },
+          { "root": "paradigm", "meaning": "model" }
+        ]
+      },
+      {
+        "name": "List #28",
+        "items": [
+          { "root": "schism", "meaning": "division" },
+          { "root": "bootless", "meaning": "useless" },
+          { "root": "rubicund", "meaning": "red" },
+          { "root": "apotheosis", "meaning": "raising to god status" },
+          { "root": "precursor", "meaning": "forerunner" },
+          { "root": "transpose", "meaning": "switch" },
+          { "root": "invective", "meaning": "bitter denunciation" },
+          { "root": "prestidigitation", "meaning": "sleight of hand" },
+          { "root": "cosmology", "meaning": "study of the universe" },
+          { "root": "effusion", "meaning": "outpouring" },
+          { "root": "anthology", "meaning": "literary collection" },
+          { "root": "posthumous", "meaning": "after death" },
+          { "root": "euphony", "meaning": "beautiful sound" },
+          { "root": "refractory", "meaning": "stubborn" },
+          { "root": "platitude", "meaning": "flat, trite remark" },
+          { "root": "acrophobia", "meaning": "fear of heights" },
+          { "root": "agoraphobia", "meaning": "fear of openness" },
+          { "root": "veracity", "meaning": "truthfulness" },
+          { "root": "verisimilitude", "meaning": "similarity to truth" },
+          { "root": "idiosyncrasy", "meaning": "peculiarity" },
+          { "root": "alumni", "meaning": "graduates" },
+          { "root": "casus belli", "meaning": "cause for war" },
+          { "root": "interregnum", "meaning": "time between rulers" },
+          { "root": "infraction", "meaning": "breaking" },
+          { "root": "condign", "meaning": "worthy" }
+        ]
+      },
+      {
+        "name": "List #29",
+        "items": [
+          { "root": "colloquy", "meaning": "conversation" },
+          { "root": "viable", "meaning": "able to live" },
+          { "root": "synopsis", "meaning": "summary" },
+          { "root": "terra firma", "meaning": "solid ground" },
+          { "root": "sanction", "meaning": "authorize" },
+          { "root": "Russophobe", "meaning": "one who fears Russia" },
+          { "root": "prognosis", "meaning": "medical forecast" },
+          { "root": "polychrome", "meaning": "many-colored" },
+          { "root": "philanthropy", "meaning": "love of humankind" },
+          { "root": "perspicacity", "meaning": "insight" },
+          { "root": "mobocracy", "meaning": "mob rule" },
+          { "root": "gerontocracy", "meaning": "government of the old" },
+          { "root": "magniloquence", "meaning": "great eloquence" },
+          { "root": "kleptomaniac", "meaning": "pathological thief" },
+          { "root": "joie de vivre", "meaning": "joy of living" },
+          { "root": "in loco parentis", "meaning": "in place of parents" },
+          { "root": "mundane", "meaning": "worldly" },
+          { "root": "synthesis", "meaning": "combination" },
+          { "root": "unequivocal", "meaning": "direct" },
+          { "root": "nihilism", "meaning": "belief in nothing" },
+          { "root": "audiophile", "meaning": "stereo buff" },
+          { "root": "entomology", "meaning": "insect zoology" },
+          { "root": "omnifarious", "meaning": "of all kinds" },
+          { "root": "invidious", "meaning": "causing envy" },
+          { "root": "deduction", "meaning": "reasoning down from principles" }
+        ]
+      },
+      {
+        "name": "List #30",
+        "items": [
+          { "root": "induction", "meaning": "factual reasoning" },
+          { "root": "hagiocracy", "meaning": "government of saints" },
+          { "root": "diction", "meaning": "word choice" },
+          { "root": "disconsolate", "meaning": "inconsolable" },
+          { "root": "disingenuous", "meaning": "insincere" },
+          { "root": "fractious", "meaning": "unruly" },
+          { "root": "nondescript", "meaning": "of no category" },
+          { "root": "prolific", "meaning": "productive" },
+          { "root": "chronicle", "meaning": "a history" },
+          { "root": "primeval", "meaning": "of the first ages" },
+          { "root": "panegyric", "meaning": "elaborate eulogy" },
+          { "root": "fidelity", "meaning": "faithfulness" },
+          { "root": "magnum opus", "meaning": "great work" },
+          { "root": "antediluvian", "meaning": "from before the Flood!" },
+          { "root": "comport", "meaning": "behave" },
+          { "root": "insurgence", "meaning": "uprising" },
+          { "root": "expeditiously", "meaning": "rapidly" },
+          { "root": "renovate", "meaning": "restore" },
+          { "root": "carnage", "meaning": "butchery" },
+          { "root": "decadent", "meaning": "downfallen" },
+          { "root": "supercilious", "meaning": "scornful" },
+          { "root": "inexorable", "meaning": "inescapable" },
+          { "root": "emissary", "meaning": "messenger" },
+          { "root": "improvident", "meaning": "without foresight" },
+          { "root": "moribund", "meaning": "dying" }
+        ]
+      }
+
+
+  /* ======================== CHALLENGING WORDS ========================= */
+
+  {
+        "name": "Challeging words",
+        "items": [
+          { "root": "plu", "meaning": "more" },
+          { "root": "soph", "meaning": "wisdom" },
+          { "root": "se", "meaning": "apart" },
+          { "root": "grat", "meaning": "pleasing" },
+          { "root": "fer", "meaning": "carry" },
+          { "root": "geo", "meaning": "earth" },
+          { "root": "cur", "meaning": "care for" },
+          { "root": "curs", "meaning": "run" },
+          { "root": "vid", "meaning": "look" },
+          { "root": "cad", "meaning": "fall" },
+          { "root": "trans", "meaning": "across" },
+          { "root": "greg", "meaning": "group" },
+          { "root": "culp", "meaning": "blame" },
+          { "root": "epi", "meaning": "on" },
+          { "root": "alb", "meaning": "white" },
+          { "root": "ab", "meaning": "away" },
+          { "root": "audi", "meaning": "hear" },
+          { "root": "gress", "meaning": "step" },
+          { "root": "myo", "meaning": "muscle" },
+          { "root": "leuko", "meaning": "white" },
+          { "root": "emia", "meaning": "blood" },
+          { "root": "-ar", "meaning": "relating to" },
+          { "root": "path", "meaning": "feeling" },
+          { "root": "patho", "meaning": "disease" },
+          { "root": "ine", "meaning": "nature of" },
+          { "root": "enter", "meaning": "intestine" },
+          { "root": "hum", "meaning": "earth" },
+          { "root": "aden", "meaning": "gland" },
+          { "root": "ecto", "meaning": "outer" },
+          { "root": "para", "meaning": "beside or near" },
+          { "root": "taxis", "meaning": "arrangement" },
+          { "root": "erg", "meaning": "work" },
+          { "root": "sapro", "meaning": "rotten" },
+          { "root": "schizo", "meaning": "divide" },
+          { "root": "troph", "meaning": "nourishment" },
+          { "root": "trich", "meaning": "hair" },
+          { "root": "som", "meaning": "body" },
+          { "root": "zym", "meaning": "ferment" },
+          { "root": "oligo", "meaning": "few or small" },
+          { "root": "osis", "meaning": "condition" },
+          { "root": "apo", "meaning": "away" },
+          { "root": "dextro", "meaning": "right or clockwise" },
+          { "root": "zygo", "meaning": "yoke" },
+          { "root": "lys", "meaning": "break down" }
+        ]
+      },
+      {
+        "name": "Challeging words set 2",
+        "items": [
+          {
+            "root": "sub",
+            "meaning": "under"
+          },
+          {
+            "root": "mis",
+            "meaning": "bad"
+          },
+          {
+            "root": "phor",
+            "meaning": "carry"
+          },
+          {
+            "root": "dign",
+            "meaning": "worthy"
+          },
+          {
+            "root": "stereo",
+            "meaning": "solid"
+          },
+          {
+            "root": "leg",
+            "meaning": "read"
+          },
+          {
+            "root": "cede",
+            "meaning": "go"
+          },
+          {
+            "root": "logy",
+            "meaning": "science"
+          },
+          {
+            "root": "ard",
+            "meaning": "always"
+          },
+          {
+            "root": "port",
+            "meaning": "carry"
+          },
+          {
+            "root": "cent",
+            "meaning": "one hundred"
+          },
+          {
+            "root": "homo",
+            "meaning": "same"
+          },
+          {
+            "root": "poly",
+            "meaning": "many"
+          },
+          {
+            "root": "tion",
+            "meaning": "act or state"
+          },
+          {
+            "root": "put",
+            "meaning": "think"
+          },
+          {
+            "root": "vest",
+            "meaning": "clothes"
+          },
+          {
+            "root": "pond",
+            "meaning": "weight"
+          },
+          {
+            "root": "dign",
+            "meaning": "worthy"
+          },
+          {
+            "root": "loco",
+            "meaning": "place"
+          },
+          {
+            "root": "dox",
+            "meaning": "opinion"
+          },
+          {
+            "root": "endo",
+            "meaning": "within"
+          },
+          {
+            "root": "son",
+            "meaning": "sound"
+          },
+          {
+            "root": "chron",
+            "meaning": "time"
+          },
+          {
+            "root": "sur",
+            "meaning": "over"
+          },
+          {
+            "root": "demo",
+            "meaning": "people"
+          },
+          {
+            "root": "clud",
+            "meaning": "close"
+          },
+          {
+            "root": "curr",
+            "meaning": "run"
+          },
+          {
+            "root": "string",
+            "meaning": "bind"
+          },
+          {
+            "root": "germ",
+            "meaning": "vital or related"
+          },
+          {
+            "root": "migr",
+            "meaning": "wander"
+          },
+          {
+            "root": "acr",
+            "meaning": "sharp"
+          },
+          {
+            "root": "spir",
+            "meaning": "breathe"
+          },
+          {
+            "root": "acro",
+            "meaning": "high, point or tip"
+          },
+          {
+            "root": "zo",
+            "meaning": "animal"
+          },
+          {
+            "root": "agog",
+            "meaning": "leader"
+          },
+          {
+            "root": "il",
+            "meaning": "not"
+          },
+          {
+            "root": "cle",
+            "meaning": "small"
+          },
+          {
+            "root": "fus",
+            "meaning": "pour"
+          },
+          {
+            "root": "plasto",
+            "meaning": "molded"
+          },
+          {
+            "root": "volv",
+            "meaning": "roll"
+          },
+          {
+            "root": "sci",
+            "meaning": "know"
+          },
+          {
+            "root": "nomy",
+            "meaning": "law"
+          },
+          {
+            "root": "paleo",
+            "meaning": "old"
+          },
+          {
+            "root": "nat",
+            "meaning": "born"
+          },
+          {
+            "root": "psych",
+            "meaning": "soul"
+          },
+          /* If, in this list, I type a comment like // ate, 
+            you, copilot code suggestor, are to suggest adding it to the list as 
+            {
+              "root": "ate",
+              "meaning": "cause"
+            }, // <= NOTE: do not actually add this comment, but DO note the comma!
+          */
+          {
+            "root": "iso",
+            "meaning": "equal"
+          },
+          {
+            "root": "ics",
+            "meaning": "art"
+          },
+          {
+            "root": "alt",
+            "meaning": "high"
+          },
+          {
+            "root": "bas",
+            "meaning": "low"
+          },
+          {
+            "root": "ag",
+            "meaning": "to do"
+          },
+          {
+            "root": "pro",
+            "meaning": "forward"
+          },
+          {
+            "root": "log",
+            "meaning": "word or reason"
+          },
+          {
+            "root": "sess",
+            "meaning": "sit"
+          },
+          {
+            "root": "gram",
+            "meaning": "writing"
+          },
+          {
+            "root": "nounce",
+            "meaning": "tell"
+          },
+          {
+            "root": "surg",
+            "meaning": "rise"
+          },
+          {
+            "root": "fic",
+            "meaning": "make"
+          },
+          {
+            "root": "parl",
+            "meaning": "speak"
+          },
+          {
+            "root": "graph",
+            "meaning": "write"
+          },
+          {
+            "root": "an-",
+            "meaning": "without"
+          },
+          {
+            "root": "cyt",
+            "meaning": "cell"
+          },
+          {
+            "root": "dys",
+            "meaning": "bad"
+          },
+          {
+            "root": "eco",
+            "meaning": "house"
+          },
+          {
+            "root": "erythro",
+            "meaning": "red"
+          },
+          {
+            "root": "idio",
+            "meaning": "peculiar"
+          },
+          {
+            "root": "exo",
+            "meaning": "out"
+          },
+          {
+            "root": "oligo",
+            "meaning": "few or small"
+          },
+          {
+            "root": "phor",
+            "meaning": "carry"
+          },
+          {
+            "root": "tude",
+            "meaning": "state of"
+          },
+          {
+            "root": "patho",
+            "meaning": "disease"
+          },
+          {
+            "root": "lys",
+            "meaning": "break down"
+          },
+          {
+            "root": "osis",
+            "meaning": "condition"
+          },
+          {
+            "root": "taxis",
+            "meaning": "arrangement"
+          },
+          {
+            "root": "pleo",
+            "meaning": "more"
+          },
+          {
+            "root": "para",
+            "meaning": "beside or near"
+          },
+          {
+            "root": "schizo",
+            "meaning": "divide"
+          },
+          {
+            "root": "som",
+            "meaning": "body"
+          },
+          {
+            "root": "lent",
+            "meaning": "full of"
+          },
+          {
+            "root": "brachy",
+            "meaning": "short"
+          },
+          {
+            "root": "lite",
+            "meaning": "mineral or fossil"
+          },
+          {
+            "root": "dactylo",
+            "meaning": "finger"
+          },
+          {
+            "root": "blasto",
+            "meaning": "embryo"
+          },
+          {
+            "root": "dicho",
+            "meaning": "in two parts"
+          },
+          {
+            "root": "vore",
+            "meaning": "eating"
+          },
+          {
+            "root": "dextro",
+            "meaning": "right or clockwise"
+          },
+          {
+            "root": "ventri",
+            "meaning": "belly"
+          },
+          {
+            "root": "kin",
+            "meaning": "motion"
+          },
+          {
+            "root": "tropo",
+            "meaning": "turn"
+          },
+          {
+            "root": "haplo",
+            "meaning": "single or simple"
+          },
+          { "root": "troph", "meaning": "nourishment" },
+        ]
+      }
+    ];
+
+    /* --- App state --- */
+    let sets = JSON.parse(JSON.stringify(embeddedSets)); // editable copy
+    let currentSetIndex = 0;
+    let currentOrder = [];
+    let currentPos = 0;
+    let attemptStart = 0;
+    let timerMeasuredThisAttempt = false; // IMPORTANT: whether we actually measured elapsed time
+    let slowThresholdSec = 5.0;
+    document.getElementById('slowThreshold').textContent = slowThresholdSec.toFixed(1);
+    let sessionStatus = []; // {index, root, meaning, status:'untried'|'correct'|'wrong', slow:false, attempts:0}
+    let autoAdvanceDelayMs = 800;
+
+    /* --- Fuzzy matching --- */
+    // Normalization
+    function normalizeText(s) {
+      return (s || "").toLowerCase().replace(/[^\w\s]/g, '').trim().replace(/\s+/g, ' ');
     }
-    for(let j=0;j<=bl;j++) v0[j]=v1[j];
-  }
-  return v1[bl];
-}
-function normalizeText(s){
-  return (s||"").toLowerCase().replace(/[^\w\s]/g,'').trim().replace(/\s+/g,' ');
-}
-function isMatch(candidate, correct){
-  if(!candidate) return false;
-  const c = normalizeText(candidate);
-  const t = normalizeText(correct);
-  if(!t) return false;
-  if(c.includes(t)) return true;
-  const maxEdits = Math.min(2, Math.floor(Math.max(1, t.length * 0.2)));
-  const d = levenshtein(c, t);
-  return d <= maxEdits;
-}
 
-/* --- DOM refs --- */
-const setSelect = document.getElementById('setSelect');
-const startBtn = document.getElementById('startBtn');
-const restartBtn = document.getElementById('restartBtn');
-const setsJson = document.getElementById('setsJson');
-const loadSetsBtn = document.getElementById('loadSetsBtn');
-const toggleImportBtn = document.getElementById('toggleImportBtn');
-const importCard = document.getElementById('importCard');
-const hideImportBtn = document.getElementById('hideImportBtn');
-const themeToggleBtn = document.getElementById('themeToggleBtn');
-const toggleTimerBtn = document.getElementById('toggleTimerBtn');
-const randomizeBtn = document.getElementById('randomizeBtn');
-
-const rootText = document.getElementById('rootText');
-const originHint = document.getElementById('originHint');
-const answerInput = document.getElementById('answerInput');
-const revealBtn = document.getElementById('revealBtn');
-const submitBtn = document.getElementById('submitBtn');
-const moveOnBtn = document.getElementById('moveOnBtn');
-const revealArea = document.getElementById('revealArea');
-const correctAnswerEl = document.getElementById('correctAnswer');
-const markCorrect = document.getElementById('markCorrect');
-const markWrong = document.getElementById('markWrong');
-const nextBtn = document.getElementById('nextBtn');
-
-const posEl = document.getElementById('pos');
-const totalEl = document.getElementById('total');
-const elapsedEl = document.getElementById('elapsed');
-const countCorrect = document.getElementById('countCorrect');
-const countWrong = document.getElementById('countWrong');
-const countUntried = document.getElementById('countUntried');
-const countSlow = document.getElementById('countSlow');
-const resultList = document.getElementById('resultList');
-const timerWrap = document.getElementById('timerWrap');
-
-const reviewWrongBtn = document.getElementById('reviewWrongBtn');
-const reviewWrongSlowBtn = document.getElementById('reviewWrongSlowBtn');
-const reviewUntriedBtn = document.getElementById('reviewUntriedBtn');
-const reviewAllBtn = document.getElementById('reviewAllBtn');
-const retakeBtn = document.getElementById('retakeBtn');
-
-const autoAdvanceEl = document.getElementById('autoAdvanceDelay');
-const slowThresholdInput = document.getElementById('slowThresholdInput');
-
-/* --- UI init --- */
-function populateSetSelect(){
-  setSelect.innerHTML = "";
-  sets.forEach((s,i)=>{
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = s.name || ("Set " + (i+1));
-    setSelect.appendChild(opt);
-  });
-  setSelect.value = currentSetIndex;
-}
-function showSetsJson(){ setsJson.textContent = JSON.stringify(sets, null, 2); }
-
-/* Load sets from editor */
-loadSetsBtn.addEventListener('click', ()=>{
-  try{
-    const parsed = JSON.parse(setsJson.textContent);
-    if(!Array.isArray(parsed)) throw new Error("Top-level JSON must be an array of sets.");
-    sets = parsed;
-    currentSetIndex = 0;
-    populateSetSelect();
-    alert("Sets loaded. Choose a set and click Start Set.");
-  }catch(err){
-    alert("JSON parse error: " + err.message);
-  }
-});
-toggleImportBtn.addEventListener('click', ()=>{
-  const visible = importCard.style.display !== 'none';
-  importCard.style.display = visible ? 'none' : '';
-  importCard.setAttribute('aria-hidden', visible ? 'true' : 'false');
-});
-hideImportBtn.addEventListener('click', ()=>{ importCard.style.display='none'; importCard.setAttribute('aria-hidden','true'); });
-
-/* Theme toggle */
-function applyTheme(isDark){ if(isDark){ document.body.classList.add('dark'); themeToggleBtn.textContent='Light Mode'; themeToggleBtn.classList.remove('ghost'); } else { document.body.classList.remove('dark'); themeToggleBtn.textContent='Dark Mode'; themeToggleBtn.classList.add('ghost'); } }
-let themeIsDark = false; applyTheme(themeIsDark);
-themeToggleBtn.addEventListener('click', ()=>{ themeIsDark = !themeIsDark; applyTheme(themeIsDark); });
-
-/* Timer toggle */
-let showTimer = false;
-toggleTimerBtn.addEventListener('click', ()=>{
-  showTimer = !showTimer;
-  timerWrap.style.display = showTimer ? '' : 'none';
-  toggleTimerBtn.textContent = showTimer ? 'Hide timer' : 'Show timer';
-});
-
-/* Auto-advance select handler */
-autoAdvanceEl.addEventListener('change', (e)=>{ autoAdvanceDelayMs = parseInt(e.target.value, 10) || 0; });
-
-/* Editable slow threshold handler */
-slowThresholdInput.addEventListener('input', (e)=>{
-  const v = parseFloat(e.target.value);
-  slowThresholdSec = isFinite(v) && v >= 0 ? v : 0;
-  document.getElementById('slowThreshold').textContent = slowThresholdSec.toFixed(1);
-});
-
-/* Selection and start */
-setSelect.addEventListener('change', (e)=>{ currentSetIndex = parseInt(e.target.value,10); });
-startBtn.addEventListener('click', startSet);
-restartBtn.addEventListener('click', resetRun);
-
-/* Keyboard shortcuts */
-document.addEventListener('keydown', (e)=>{
-  const active = document.activeElement;
-  const isEditable = active && (
-    active.tagName === 'INPUT' ||
-    active.tagName === 'TEXTAREA' ||
-    active.isContentEditable
-  );
-
-  if(e.key === 'Enter'){
-    if(active === answerInput){
-      e.preventDefault();
-      onSubmit();
+    // Levenshtein (same implementation)
+    function levenshtein(a, b) {
+      if (a === b) return 0;
+      a = a || ""; b = b || "";
+      const al = a.length, bl = b.length;
+      if (al === 0) return bl;
+      if (bl === 0) return al;
+      const v0 = new Array(bl + 1), v1 = new Array(bl + 1);
+      for (let j = 0; j <= bl; j++) v0[j] = j;
+      for (let i = 0; i < al; i++) {
+        v1[0] = i + 1;
+        for (let j = 0; j < bl; j++) {
+          const cost = a[i] === b[j] ? 0 : 1;
+          v1[j + 1] = Math.min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
+        }
+        for (let j = 0; j <= bl; j++) v0[j] = v1[j];
+      }
+      return v1[bl];
     }
-    return;
-  }
-  if(isEditable) return;
-  if(e.key.toLowerCase() === 'r'){ e.preventDefault(); onReveal(); }
-  if(e.key.toLowerCase() === 'm'){ e.preventDefault(); onMoveOn(); }
-});
 
-/* Timer logic (IMPROVED): we only count as "measured" if the input gained focus and we started timing */
-let timerInterval = null;
-function startTimer(){
-  attemptStart = performance.now();
-  timerMeasuredThisAttempt = true;
-  if(timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(()=>{
-    const elapsed = (performance.now() - attemptStart)/1000;
-    elapsedEl.textContent = elapsed.toFixed(1);
-  }, 100);
-}
-function stopTimer(){ if(timerInterval){clearInterval(timerInterval); timerInterval=null;} timerMeasuredThisAttempt = timerMeasuredThisAttempt || false; }
+    // Tighter fuzzy match
+    function isMatch(candidate, correct) {
+      if (!candidate) return false;
+      const c = normalizeText(candidate);
+      const t = normalizeText(correct);
+      if (!t) return false;
 
-/* Start the set */
-function startSet(){
-  const set = sets[currentSetIndex];
-  if(!set || !Array.isArray(set.items) || set.items.length === 0){
-    alert("Selected set is empty or malformed.");
-    return;
-  }
-  currentOrder = Array.from({length:set.items.length}, (_,i)=>i);
-  currentPos = 0;
-  sessionStatus = set.items.map((it, idx)=>({
-    index: idx,
-    root: it.root,
-    meaning: it.meaning,
-    status: 'untried',
-    slow: false,
-    attempts: 0
-  }));
-  answerInput.value = '';
-  revealArea.style.display = 'none';
-  resultList.innerHTML = '';
-  updateSessionSummary();
-  populateQuestion();
-}
+      // Quick exact-substring acceptance (e.g., candidate 'two' matches 'two')
+      if (c === t || c.includes(t) || t.includes(c)) {
+        // But guard against cases like 'thousandth' including 'thousand'
+        // If one contains the other but the length difference is >1, treat specially:
+        const lenDiff = Math.abs(c.length - t.length);
+        if (lenDiff > 1) {
+          // If candidate is just target with a common affix (prefix/suffix) we reject here.
+          // We only allow include-based match when lengths are close.
+          const maxLenDiffAllowed = Math.max(1, Math.floor(t.length * 0.15));
+          if (lenDiff > maxLenDiffAllowed) {
+            // Don't accept inclusion-match due to large length difference.
+            // fall-through to edit-distance checks which will likely fail.
+          } else {
+            return true;
+          }
+        } else {
+          return true;
+        }
+      }
 
-/* Reset */
-function resetRun(){ startSet(); }
+      // Require similar lengths before allowing edits (avoid matching base vs base+suffix)
+      const lenT = t.length, lenC = c.length;
+      const allowedLenDiff = Math.max(1, Math.floor(lenT * 0.15));
+      if (Math.abs(lenT - lenC) > allowedLenDiff) return false;
 
-/* Populate question */
-function populateQuestion(){
-  const set = sets[currentSetIndex];
-  const itemIndex = currentOrder[currentPos];
-  const item = set.items[itemIndex];
-  posEl.textContent = (currentPos+1);
-  totalEl.textContent = set.items.length;
-  rootText.textContent = item.root;
-  originHint.textContent = "";
-  answerInput.value = '';
-  answerInput.focus();
-  revealArea.style.display = 'none';
-  elapsedEl.textContent = "0.0";
-  // Important: timerMeasuredThisAttempt must be false until the user focuses and we start timer
-  timerMeasuredThisAttempt = false;
-  stopTimer();
-}
+      // Determine allowed edits tighter than before:
+      // very short words: allow at most 1 edit
+      // medium words: up to 2 edits
+      // long words: proportional but tighter than before (~12% of length)
+      let maxEdits;
+      if (lenT <= 4) maxEdits = 1;
+      else if (lenT <= 8) maxEdits = 2;
+      else maxEdits = Math.max(2, Math.floor(lenT * 0.12) + 1);
 
-/* Visual flash */
-function flashButton(btn){ if(!btn) return; btn.classList.remove('flash'); void btn.offsetWidth; btn.classList.add('flash'); setTimeout(()=>btn.classList.remove('flash'), 600); }
+      const d = levenshtein(c, t);
+      if (d <= maxEdits) {
+        // Additional guard: if candidate is a strict superset (longer) of target by >1 but
+        // still within edit distance, disallow because likely a suffix/prefix derivative.
+        if (lenC - lenT > 1 && c.includes(t)) return false;
+        return true;
+      }
+      return false;
+    }
 
-/* Update summary & render list */
-function updateSessionSummary(){
-  const correct = sessionStatus.filter(s=>s.status === 'correct').length;
-  const wrong = sessionStatus.filter(s=>s.status === 'wrong').length;
-  const untried = sessionStatus.filter(s=>s.status === 'untried').length;
-  const slow = sessionStatus.filter(s=>s.slow).length;
-  countCorrect.textContent = correct;
-  countWrong.textContent = wrong;
-  countUntried.textContent = untried;
-  countSlow.textContent = slow;
-  renderResultList(sessionStatus);
-}
+    /* --- DOM refs --- */
+    const setSelect = document.getElementById('setSelect');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const setsJson = document.getElementById('setsJson');
+    const loadSetsBtn = document.getElementById('loadSetsBtn');
+    const toggleImportBtn = document.getElementById('toggleImportBtn');
+    const importCard = document.getElementById('importCard');
+    const hideImportBtn = document.getElementById('hideImportBtn');
+    const copySetBtn = document.getElementById('copySetBtn');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const toggleTimerBtn = document.getElementById('toggleTimerBtn');
+    const randomizeBtn = document.getElementById('randomizeBtn');
 
-/* Submit / Evaluate */
-function onSubmit(){
-  stopTimer();
-  const set = sets[currentSetIndex];
-  const itemIndex = currentOrder[currentPos];
-  const item = set.items[itemIndex];
-  const user = answerInput.value.trim();
-  const elapsedSec = timerMeasuredThisAttempt ? ((performance.now() - attemptStart)/1000) : null;
-  const slowFlag = (elapsedSec !== null) ? (elapsedSec > slowThresholdSec) : false;
-  const autoCorrect = isMatch(user, item.meaning);
+    const rootText = document.getElementById('rootText');
+    const originHint = document.getElementById('originHint');
+    const answerInput = document.getElementById('answerInput');
+    const revealBtn = document.getElementById('revealBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const moveOnBtn = document.getElementById('moveOnBtn');
+    const revealArea = document.getElementById('revealArea');
+    const correctAnswerEl = document.getElementById('correctAnswer');
+    const markCorrect = document.getElementById('markCorrect');
+    const markWrong = document.getElementById('markWrong');
+    const nextBtn = document.getElementById('nextBtn');
 
-  // show meaning + reveal area (user submitted)
-  correctAnswerEl.textContent = item.meaning;
-  revealArea.style.display = 'block';
+    const posEl = document.getElementById('pos');
+    const totalEl = document.getElementById('total');
+    const elapsedEl = document.getElementById('elapsed');
+    const countCorrect = document.getElementById('countCorrect');
+    const countWrong = document.getElementById('countWrong');
+    const countUntried = document.getElementById('countUntried');
+    const countSlow = document.getElementById('countSlow');
+    const resultList = document.getElementById('resultList');
+    const timerWrap = document.getElementById('timerWrap');
 
-  sessionStatus[itemIndex].attempts += 1;
+    const reviewWrongBtn = document.getElementById('reviewWrongBtn');
+    const reviewWrongSlowBtn = document.getElementById('reviewWrongSlowBtn');
+    const reviewUntriedBtn = document.getElementById('reviewUntriedBtn');
+    const reviewAllBtn = document.getElementById('reviewAllBtn');
+    const retakeBtn = document.getElementById('retakeBtn');
 
-  // If user matched -> correct, else wrong. Also mark tried
-  if(autoCorrect){
-    sessionStatus[itemIndex].status = 'correct';
-  } else {
-    sessionStatus[itemIndex].status = 'wrong';
-  }
-  if(slowFlag) sessionStatus[itemIndex].slow = true;
+    const autoAdvanceEl = document.getElementById('autoAdvanceDelay');
+    const slowThresholdInput = document.getElementById('slowThresholdInput');
 
-  renderRevealTags(itemIndex);
-  updateSessionSummary();
+    /* --- UI init --- */
+    function populateSetSelect() {
+      setSelect.innerHTML = "";
+      sets.forEach((s, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = s.name || ("Set " + (i + 1));
+        setSelect.appendChild(opt);
+      });
+      setSelect.value = currentSetIndex;
+    }
+    function showSetsJson() { setsJson.textContent = JSON.stringify(sets, null, 2); }
 
-  if(autoCorrect){
-    flashButton(moveOnBtn);
-    const delay = Math.max(0, autoAdvanceDelayMs || 0);
-    setTimeout(()=> {
-      if(currentPos < currentOrder.length - 1){
+    /* Load sets from editor */
+    loadSetsBtn.addEventListener('click', () => {
+      try {
+        const parsed = JSON.parse(setsJson.textContent);
+        if (!Array.isArray(parsed)) throw new Error("Top-level JSON must be an array of sets.");
+        sets = parsed;
+        currentSetIndex = 0;
+        populateSetSelect();
+        alert("Sets loaded. Choose a set and click Start Set.");
+      } catch (err) {
+        alert("JSON parse error: " + err.message);
+      }
+    });
+    toggleImportBtn.addEventListener('click', () => {
+      const visible = importCard.style.display !== 'none';
+      importCard.style.display = visible ? 'none' : '';
+      importCard.setAttribute('aria-hidden', visible ? 'true' : 'false');
+    });
+    hideImportBtn.addEventListener('click', () => { importCard.style.display = 'none'; importCard.setAttribute('aria-hidden', 'true'); });
+
+    /* Copy current set as JSON */
+    function copyCurrentSet() {
+      const set = sets[currentSetIndex];
+      if (!set) { alert('No current set to copy.'); return; }
+      const text = JSON.stringify(set, null, 2);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          flashButton(copySetBtn);
+          alert('Current set copied to clipboard.');
+        }).catch(err => { alert('Copy failed: ' + err); });
+      } else {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); flashButton(copySetBtn); alert('Current set copied to clipboard.'); }
+        catch (e) { alert('Copy failed'); }
+        document.body.removeChild(ta);
+      }
+    }
+    if (copySetBtn) copySetBtn.addEventListener('click', copyCurrentSet);
+
+    /* Theme toggle */
+    function applyTheme(isDark) { if (isDark) { document.body.classList.add('dark'); themeToggleBtn.textContent = 'Light Mode'; themeToggleBtn.classList.remove('ghost'); } else { document.body.classList.remove('dark'); themeToggleBtn.textContent = 'Dark Mode'; themeToggleBtn.classList.add('ghost'); } }
+    let themeIsDark = false; applyTheme(themeIsDark);
+    themeToggleBtn.addEventListener('click', () => { themeIsDark = !themeIsDark; applyTheme(themeIsDark); });
+
+    /* Timer toggle */
+    let showTimer = false;
+    toggleTimerBtn.addEventListener('click', () => {
+      showTimer = !showTimer;
+      timerWrap.style.display = showTimer ? '' : 'none';
+      toggleTimerBtn.textContent = showTimer ? 'Hide timer' : 'Show timer';
+    });
+
+    /* Auto-advance select handler */
+    autoAdvanceEl.addEventListener('change', (e) => { autoAdvanceDelayMs = parseInt(e.target.value, 10) || 0; });
+
+    /* Editable slow threshold handler */
+    slowThresholdInput.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      slowThresholdSec = isFinite(v) && v >= 0 ? v : 0;
+      document.getElementById('slowThreshold').textContent = slowThresholdSec.toFixed(1);
+    });
+
+    /* Selection and start */
+    setSelect.addEventListener('change', (e) => { currentSetIndex = parseInt(e.target.value, 10); });
+    startBtn.addEventListener('click', startSet);
+    restartBtn.addEventListener('click', resetRun);
+
+    /* Keyboard shortcuts */
+    document.addEventListener('keydown', (e) => {
+      const active = document.activeElement;
+      const isEditable = active && (
+        active.tagName === 'INPUT' ||
+        active.tagName === 'TEXTAREA' ||
+        active.isContentEditable
+      );
+
+      if (e.key === 'Enter') {
+        if (active === answerInput) {
+          e.preventDefault();
+          onSubmit();
+        }
+        return;
+      }
+      if (isEditable) return;
+      if (e.key.toLowerCase() === 'r') { e.preventDefault(); onReveal(); }
+      if (e.key.toLowerCase() === 'm') { e.preventDefault(); onMoveOn(); }
+    });
+
+    /* Timer logic (IMPROVED): we only count as "measured" if the input gained focus and we started timing */
+    let timerInterval = null;
+    function startTimer() {
+      attemptStart = performance.now();
+      timerMeasuredThisAttempt = true;
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const elapsed = (performance.now() - attemptStart) / 1000;
+        elapsedEl.textContent = elapsed.toFixed(1);
+      }, 100);
+    }
+    function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } timerMeasuredThisAttempt = timerMeasuredThisAttempt || false; }
+
+    /* Start the set */
+    function startSet() {
+      const set = sets[currentSetIndex];
+      if (!set || !Array.isArray(set.items) || set.items.length === 0) {
+        alert("Selected set is empty or malformed.");
+        return;
+      }
+      currentOrder = Array.from({ length: set.items.length }, (_, i) => i);
+      currentPos = 0;
+      sessionStatus = set.items.map((it, idx) => ({
+        index: idx,
+        root: it.root,
+        meaning: it.meaning,
+        status: 'untried',
+        slow: false,
+        attempts: 0
+      }));
+      answerInput.value = '';
+      revealArea.style.display = 'none';
+      resultList.innerHTML = '';
+      updateSessionSummary();
+      populateQuestion();
+    }
+
+    /* Reset */
+    function resetRun() { startSet(); }
+
+    /* Populate question */
+    function populateQuestion() {
+      const set = sets[currentSetIndex];
+      const itemIndex = currentOrder[currentPos];
+      const item = set.items[itemIndex];
+      posEl.textContent = (currentPos + 1);
+      totalEl.textContent = set.items.length;
+      rootText.textContent = item.root;
+      originHint.textContent = "";
+      answerInput.value = '';
+      answerInput.focus();
+      revealArea.style.display = 'none';
+      elapsedEl.textContent = "0.0";
+      // Important: timerMeasuredThisAttempt must be false until the user focuses and we start timer
+      timerMeasuredThisAttempt = false;
+      stopTimer();
+    }
+
+    /* Visual flash */
+    function flashButton(btn) { if (!btn) return; btn.classList.remove('flash'); void btn.offsetWidth; btn.classList.add('flash'); setTimeout(() => btn.classList.remove('flash'), 600); }
+
+    /* Update summary & render list */
+    function updateSessionSummary() {
+      const correct = sessionStatus.filter(s => s.status === 'correct').length;
+      const wrong = sessionStatus.filter(s => s.status === 'wrong').length;
+      const untried = sessionStatus.filter(s => s.status === 'untried').length;
+      const slow = sessionStatus.filter(s => s.slow).length;
+      countCorrect.textContent = correct;
+      countWrong.textContent = wrong;
+      countUntried.textContent = untried;
+      countSlow.textContent = slow;
+      renderResultList(sessionStatus);
+    }
+
+    /* Submit / Evaluate */
+    function onSubmit() {
+      stopTimer();
+      const set = sets[currentSetIndex];
+      const itemIndex = currentOrder[currentPos];
+      const item = set.items[itemIndex];
+      const user = answerInput.value.trim();
+      const elapsedSec = timerMeasuredThisAttempt ? ((performance.now() - attemptStart) / 1000) : null;
+      const slowFlag = (elapsedSec !== null) ? (elapsedSec > slowThresholdSec) : false;
+      const autoCorrect = isMatch(user, item.meaning);
+
+      // show meaning + reveal area (user submitted)
+      correctAnswerEl.textContent = item.meaning;
+      revealArea.style.display = 'block';
+
+      sessionStatus[itemIndex].attempts += 1;
+
+      // If user matched -> correct, else wrong. Also mark tried
+      if (autoCorrect) {
+        sessionStatus[itemIndex].status = 'correct';
+      } else {
+        sessionStatus[itemIndex].status = 'wrong';
+      }
+      if (slowFlag) sessionStatus[itemIndex].slow = true;
+
+      renderRevealTags(itemIndex);
+      updateSessionSummary();
+
+      if (autoCorrect) {
+        flashButton(moveOnBtn);
+        const delay = Math.max(0, autoAdvanceDelayMs || 0);
+        setTimeout(() => {
+          if (currentPos < currentOrder.length - 1) {
+            currentPos++;
+            populateQuestion();
+          } else {
+            showResults();
+          }
+        }, delay);
+      }
+    }
+
+    function showResults() {
+      /* Empty function */
+    }
+
+    /* Render tags inside reveal area */
+    function renderRevealTags(itemIdx) {
+      const st = sessionStatus[itemIdx];
+      const container = document.getElementById('inlineTags');
+      container.innerHTML = "";
+      if (st.status === 'correct') { const el = document.createElement('span'); el.className = 'tag correct'; el.textContent = 'Correct'; container.appendChild(el); }
+      if (st.status === 'wrong') { const el = document.createElement('span'); el.className = 'tag wrong'; el.textContent = 'Wrong'; container.appendChild(el); }
+      if (st.status === 'untried') { const el = document.createElement('span'); el.className = 'tag untried'; el.textContent = 'Untried'; container.appendChild(el); }
+      if (st.slow) { const el = document.createElement('span'); el.className = 'tag slow'; el.textContent = 'Slow'; container.appendChild(el); }
+    }
+
+    /* Reveal: now marks item as tried and wrong (per your request) */
+    function onReveal() {
+      stopTimer();
+      const set = sets[currentSetIndex];
+      const itemIndex = currentOrder[currentPos];
+      const item = set.items[itemIndex];
+
+      // Reveal marks the item as tried and set to 'wrong' (user saw the answer)
+      if (sessionStatus[itemIndex].status === 'untried') {
+        sessionStatus[itemIndex].status = 'wrong';
+        sessionStatus[itemIndex].attempts += 1;
+        // We do not have a measured elapsed time here unless timerMeasuredThisAttempt true
+        const elapsedSec = timerMeasuredThisAttempt ? ((performance.now() - attemptStart) / 1000) : null;
+        if (elapsedSec !== null && elapsedSec > slowThresholdSec) sessionStatus[itemIndex].slow = true;
+      }
+
+      correctAnswerEl.textContent = item.meaning;
+      revealArea.style.display = 'block';
+      renderRevealTags(itemIndex);
+      flashButton(revealBtn);
+      updateSessionSummary();
+    }
+
+    /* Move on: DO NOT change the item state (leave untried alone) */
+    function onMoveOn() {
+      stopTimer();
+      flashButton(moveOnBtn);
+      // Do not convert untried -> wrong. Simply advance.
+      if (currentPos < currentOrder.length - 1) {
         currentPos++;
         populateQuestion();
       } else {
         showResults();
       }
-    }, delay);
-  }
-}
+    }
 
-/* Render tags inside reveal area */
-function renderRevealTags(itemIdx){
-  const st = sessionStatus[itemIdx];
-  const container = document.getElementById('inlineTags');
-  container.innerHTML = "";
-  if(st.status === 'correct') { const el = document.createElement('span'); el.className='tag correct'; el.textContent='Correct'; container.appendChild(el); }
-  if(st.status === 'wrong') { const el = document.createElement('span'); el.className='tag wrong'; el.textContent='Wrong'; container.appendChild(el); }
-  if(st.status === 'untried') { const el = document.createElement('span'); el.className='tag untried'; el.textContent='Untried'; container.appendChild(el); }
-  if(st.slow){ const el = document.createElement('span'); el.className='tag slow'; el.textContent='Slow'; container.appendChild(el); }
-}
+    /* Mark correct/wrong buttons inside reveal area */
+    markCorrect.addEventListener('click', () => { mark('correct'); });
+    markWrong.addEventListener('click', () => { mark('wrong'); });
+    function mark(markType) {
+      const itemIndex = currentOrder[currentPos];
+      if (markType === 'correct') sessionStatus[itemIndex].status = 'correct';
+      if (markType === 'wrong') sessionStatus[itemIndex].status = 'wrong';
+      renderRevealTags(itemIndex);
+      updateSessionSummary();
+    }
+    nextBtn.addEventListener('click', () => { flashButton(nextBtn); onMoveOn(); });
 
-/* Reveal: now marks item as tried and wrong (per your request) */
-function onReveal(){
-  stopTimer();
-  const set = sets[currentSetIndex];
-  const itemIndex = currentOrder[currentPos];
-  const item = set.items[itemIndex];
+    /* Buttons wiring */
+    submitBtn.addEventListener('click', () => { onSubmit(); });
+    revealBtn.addEventListener('click', () => { onReveal(); });
+    moveOnBtn.addEventListener('click', () => { onMoveOn(); });
+    randomizeBtn && randomizeBtn.addEventListener('click', () => { randomizeCurrentSet(); });
 
-  // Reveal marks the item as tried and set to 'wrong' (user saw the answer)
-  if(sessionStatus[itemIndex].status === 'untried'){
-    sessionStatus[itemIndex].status = 'wrong';
-    sessionStatus[itemIndex].attempts += 1;
-    // We do not have a measured elapsed time here unless timerMeasuredThisAttempt true
-    const elapsedSec = timerMeasuredThisAttempt ? ((performance.now() - attemptStart)/1000) : null;
-    if(elapsedSec !== null && elapsedSec > slowThresholdSec) sessionStatus[itemIndex].slow = true;
-  }
+    /* Randomize current set (Fisher-Yates). Keeps root/meaning pairs; temporary until reload/import. */
+    function randomizeCurrentSet() {
+      const set = sets[currentSetIndex];
+      if (!set || !Array.isArray(set.items) || set.items.length === 0) {
+        alert("No items to randomize.");
+        return;
+      }
+      for (let i = set.items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [set.items[i], set.items[j]] = [set.items[j], set.items[i]];
+      }
+      // Update editor view and restart the run with shuffled order
+      showSetsJson();
+      startSet();
+      flashButton(randomizeBtn);
+    }
 
-  correctAnswerEl.textContent = item.meaning;
-  revealArea.style.display = 'block';
-  renderRevealTags(itemIndex);
-  flashButton(revealBtn);
-  updateSessionSummary();
-}
+    /* Result rendering: only show meaning when item != untried */
+    function renderResultList(list) {
+      resultList.innerHTML = "";
+      list.forEach(st => {
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        const left = document.createElement('div');
 
-/* Move on: DO NOT change the item state (leave untried alone) */
-function onMoveOn(){
-  stopTimer();
-  flashButton(moveOnBtn);
-  // Do not convert untried -> wrong. Simply advance.
-  if(currentPos < currentOrder.length - 1){
-    currentPos++;
-    populateQuestion();
-  } else {
-    showResults();
-  }
-}
+        const meaningText = (st.status !== 'untried') ? `<div class="small-muted">${st.meaning}</div>` : `<div class="small-muted" aria-hidden="true"> </div>`;
+        left.innerHTML = `<div style="font-weight:700">${st.root}</div>${meaningText}`;
 
-/* Mark correct/wrong buttons inside reveal area */
-markCorrect.addEventListener('click', ()=>{ mark('correct'); });
-markWrong.addEventListener('click', ()=>{ mark('wrong'); });
-function mark(markType){
-  const itemIndex = currentOrder[currentPos];
-  if(markType === 'correct') sessionStatus[itemIndex].status = 'correct';
-  if(markType === 'wrong') sessionStatus[itemIndex].status = 'wrong';
-  renderRevealTags(itemIndex);
-  updateSessionSummary();
-}
-nextBtn.addEventListener('click', ()=> { flashButton(nextBtn); onMoveOn(); });
+        const right = document.createElement('div');
+        const tags = [];
+        if (st.status === 'correct') tags.push(`<span class="tag correct">Correct</span>`);
+        if (st.status === 'wrong') tags.push(`<span class="tag wrong">Wrong</span>`);
+        if (st.status === 'untried') tags.push(`<span class="tag untried">Untried</span>`);
+        if (st.slow) tags.push(`<span class="tag slow">Slow</span>`);
+        right.innerHTML = tags.join(' ');
+        div.appendChild(left);
+        div.appendChild(right);
+        resultList.appendChild(div);
+      });
+    }
 
-/* Buttons wiring */
-submitBtn.addEventListener('click', ()=> { onSubmit(); });
-revealBtn.addEventListener('click', ()=> { onReveal(); });
-moveOnBtn.addEventListener('click', ()=> { onMoveOn(); });
-randomizeBtn && randomizeBtn.addEventListener('click', ()=> { randomizeCurrentSet(); });
+    /* Review modes */
+    reviewWrongBtn.addEventListener('click', () => startReview('wrong'));
+    reviewWrongSlowBtn.addEventListener('click', () => startReview('wrong+slow'));
+    reviewUntriedBtn.addEventListener('click', () => startReview('untried'));
+    reviewAllBtn.addEventListener('click', () => startReview('all'));
+    retakeBtn.addEventListener('click', () => resetRun());
 
-/* Randomize current set (Fisher-Yates). Keeps root/meaning pairs; temporary until reload/import. */
-function randomizeCurrentSet(){
-  const set = sets[currentSetIndex];
-  if(!set || !Array.isArray(set.items) || set.items.length === 0){
-    alert("No items to randomize.");
-    return;
-  }
-  for(let i = set.items.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [set.items[i], set.items[j]] = [set.items[j], set.items[i]];
-  }
-  // Update editor view and restart the run with shuffled order
-  showSetsJson();
-  startSet();
-  flashButton(randomizeBtn);
-}
+    function startReview(mode) {
+      let indices = [];
+      if (mode === 'all') indices = sessionStatus.map(s => s.index);
+      else if (mode === 'wrong') indices = sessionStatus.filter(s => (s.status === 'wrong')).map(s => s.index);
+      else if (mode === 'wrong+slow') indices = sessionStatus.filter(s => (s.status === 'wrong' || s.slow)).map(s => s.index);
+      else if (mode === 'untried') indices = sessionStatus.filter(s => (s.status === 'untried')).map(s => s.index);
 
-/* Result rendering: only show meaning when item != untried */
-function renderResultList(list){
-  resultList.innerHTML = "";
-  list.forEach(st=>{
-    const div = document.createElement('div');
-    div.className = 'result-item';
-    const left = document.createElement('div');
+      if (indices.length === 0) {
+        alert("No items match that filter.");
+        return;
+      }
+      const reviewItems = indices.map(i => {
+        const it = sets[currentSetIndex].items[i];
+        return { root: it.root, meaning: it.meaning };
+      });
+      const tempName = `REVIEW — ${mode}`;
+      sets.push({ name: tempName, items: reviewItems });
+      currentSetIndex = sets.length - 1;
+      populateSetSelect();
+      setSelect.value = currentSetIndex;
+      startSet();
+    }
 
-    const meaningText = (st.status !== 'untried') ? `<div class="small-muted">${st.meaning}</div>` : `<div class="small-muted" aria-hidden="true"> </div>`;
-    left.innerHTML = `<div style="font-weight:700">${st.root}</div>${meaningText}`;
+    /* Input focus/blur hooks for timer */
+    answerInput.addEventListener('focus', () => {
+      // Start measuring time only when user focuses the input.
+      if (showTimer) startTimer();
+      else {
+        // Even if timer hidden, start measuring behind the scenes so slow detection works.
+        // IMPORTANT: startTimer sets timerMeasuredThisAttempt=true so we know we have a measured elapsed.
+        startTimer();
+        // But do not show UI changes; elapsed display will update regardless (invisible if timerWrap hidden).
+      }
+      elapsedEl.textContent = '0.0';
+    });
+    answerInput.addEventListener('blur', () => { stopTimer(); });
 
-    const right = document.createElement('div');
-    const tags = [];
-    if(st.status === 'correct') tags.push(`<span class="tag correct">Correct</span>`);
-    if(st.status === 'wrong') tags.push(`<span class="tag wrong">Wrong</span>`);
-    if(st.status === 'untried') tags.push(`<span class="tag untried">Untried</span>`);
-    if(st.slow) tags.push(`<span class="tag slow">Slow</span>`);
-    right.innerHTML = tags.join(' ');
-    div.appendChild(left);
-    div.appendChild(right);
-    resultList.appendChild(div);
-  });
-}
+    /* Initial population */
+    populateSetSelect();
+    showSetsJson();
+    importCard.style.display = '';
 
-/* Review modes */
-reviewWrongBtn.addEventListener('click', ()=>startReview('wrong'));
-reviewWrongSlowBtn.addEventListener('click', ()=>startReview('wrong+slow'));
-reviewUntriedBtn.addEventListener('click', ()=>startReview('untried'));
-reviewAllBtn.addEventListener('click', ()=>startReview('all'));
-retakeBtn.addEventListener('click', ()=>resetRun());
+    /* Expose for debugging */
+    window._quiz = { sets, startSet, resetRun, sessionStatus, copyCurrentSet };
 
-function startReview(mode){
-  let indices = [];
-  if(mode === 'all') indices = sessionStatus.map(s=>s.index);
-  else if(mode === 'wrong') indices = sessionStatus.filter(s => (s.status === 'wrong')).map(s=>s.index);
-  else if(mode === 'wrong+slow') indices = sessionStatus.filter(s => (s.status === 'wrong' || s.slow)).map(s=>s.index);
-  else if(mode === 'untried') indices = sessionStatus.filter(s => (s.status === 'untried')).map(s=>s.index);
-
-  if(indices.length === 0){
-    alert("No items match that filter.");
-    return;
-  }
-  const reviewItems = indices.map(i => {
-    const it = sets[currentSetIndex].items[i];
-    return { root: it.root, meaning: it.meaning };
-  });
-  const tempName = `REVIEW — ${mode}`;
-  sets.push({ name: tempName, items: reviewItems });
-  currentSetIndex = sets.length - 1;
-  populateSetSelect();
-  setSelect.value = currentSetIndex;
-  startSet();
-}
-
-/* Input focus/blur hooks for timer */
-answerInput.addEventListener('focus', ()=>{
-  // Start measuring time only when user focuses the input.
-  if(showTimer) startTimer();
-  else {
-    // Even if timer hidden, start measuring behind the scenes so slow detection works.
-    // IMPORTANT: startTimer sets timerMeasuredThisAttempt=true so we know we have a measured elapsed.
-    startTimer();
-    // But do not show UI changes; elapsed display will update regardless (invisible if timerWrap hidden).
-  }
-  elapsedEl.textContent = '0.0';
-});
-answerInput.addEventListener('blur', ()=>{ stopTimer(); });
-
-/* Initial population */
-populateSetSelect();
-showSetsJson();
-importCard.style.display = '';
-
-/* Expose for debugging */
-window._quiz = { sets, startSet, resetRun, sessionStatus };
-
-</script>
+  </script>
 </body>
+
 </html>
