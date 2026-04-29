@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chromatic Classic: Vertex Edition</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+            background-color: #020202;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<script>
+/**
+ * CHROMA LIGHT PLATFORMER - Optimized Vertex Raycasting
+ * Casts rays only at geometric corners for perfect performance and visual fidelity.
+ */
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const TILE_SIZE = 32;
+const GRAVITY = 0.4;
+const JUMP_FORCE = -9.15;
+const WALK_SPEED = 3.5;
+
+const LIGHT_MODES = { INFINITE: 0, AMBIENT: 1, RAYCAST: 2 };
+
+const COLORS = {
+    white:   { hex: 0xFFFFFF, char: 'w', key: '1' },
+    red:     { hex: 0xFF0000, char: 'r', key: '2' },
+    green:   { hex: 0x00FF00, char: 'g', key: '3' },
+    blue:    { hex: 0x0000FF, char: 'b', key: '4' },
+    yellow:  { hex: 0xFFFF00, char: 'y', key: '5' },
+    cyan:    { hex: 0x00FFFF, char: 'c', key: '6' },
+    magenta: { hex: 0xFF00FF, char: 'm', key: '7' }
+};
+
+const COLOR_LIST = [COLORS.white, COLORS.red, COLORS.green, COLORS.blue, COLORS.yellow, COLORS.cyan, COLORS.magenta];
+
+const LEVELS = [
+    ["--------------------------","-r----------------------w-","-r---R------------------r-","-r----------------------r-","-r----------------------r-","-r----BRGBRG$BRGBRG-----r-","-bbbbbbbbbbbbbbbbbbbbbbbb-","--------------------------","----------@---------------"],
+    ["wwwwwwwwwwwwwwwwwwwwwwwwww","w$-----------------------w","w-----r---g---b----------w","w-----R---G---B----------w","w---Y--------------------w","w--Yyyyyyyy----ccccccc--@w","w---Y-----Y----C-----C---w","w-----------M------------w","w------b----m------------w","w-----------M------------w","w-----------M---------WWWw","wwwwwyyyyywwwwwwwwwwwwwwww"],
+    ["---------C@C--------------","---------rwr--------------","--------------------------","----r-g-b-y-c-m-----------","----R-G-B-Y-C-M-----------","---$----------------------","wwwwwwwwwwwwwwwwwwwwwwwwww"],
+    ["wwwwwwwwwwwwwwwww","w$--------------w","w--RRRRRRRRRRR--w","w---------------w","w--GGGGGGGGGGG--w","w---------------w","w--BBBBBBBBBBB--w","w---------------w","w--YYYYYYYYYYY--w","w---------------w","w--CCCCCCCCCCC--w","w---------------w","w--MMMMMMMMMMM--w","w---------------w","w-------@-------w","wwwwwwwwwwwwwwwww"]
+];
+
+let currentLevelIndex = 0;
+let levelData = [];
+let segments = []; // For optimized raycasting
+let player = { x: 0, y: 0, vx: 0, vy: 0, width: 20, height: 26, frozen: false, alive: true, onGround: false };
+let currentLight = COLORS.white;
+let lightMode = LIGHT_MODES.RAYCAST;
+let lightLimit = 150; 
+let showTouchUI = true; 
+let fadeAlpha = 0;
+let isTransitioning = false;
+let particles = [];
+
+const keys = {};
+const touchButtons = { left: false, right: false, jump: false };
+
+function initLevel(index) {
+    const raw = LEVELS[index] || LEVELS[0];
+    levelData = [];
+    segments = [];
+    player.alive = true;
+    player.frozen = false;
+    player.vx = 0;
+    player.vy = 0;
+
+    for (let y = 0; y < raw.length; y++) {
+        let row = [];
+        for (let x = 0; x < raw[y].length; x++) {
+            const char = raw[y][x];
+            let cell = { char, type: 'empty', color: 0x000000, rotation: 0 };
+            if (char === '$') {
+                player.x = x * TILE_SIZE + 6;
+                player.y = y * TILE_SIZE + 6;
+            } else if (char === '@') {
+                cell.type = 'portal';
+                cell.color = 0xFFFFFF;
+            } else if (char !== '-') {
+                const isSpike = char === char.toUpperCase();
+                const colorKey = Object.keys(COLORS).find(k => COLORS[k].char === char.toLowerCase());
+                if (colorKey) {
+                    cell.type = isSpike ? 'spike' : 'block';
+                    cell.color = COLORS[colorKey].hex;
+                }
+            }
+            row.push(cell);
+        }
+        levelData.push(row);
+    }
+    
+    // Add level boundaries to segments
+    const lw = levelData[0].length * TILE_SIZE;
+    const lh = levelData.length * TILE_SIZE;
+    segments.push({a:{x:0,y:0}, b:{x:lw,y:0}, color: 0x000000});
+    segments.push({a:{x:lw,y:0}, b:{x:lw,y:lh}, color: 0x000000});
+    segments.push({a:{x:lw,y:lh}, b:{x:0,y:lh}, color: 0x000000});
+    segments.push({a:{x:0,y:lh}, b:{x:0,y:0}, color: 0x000000});
+
+    updateSegments();
+}
+
+function updateSegments() {
+    segments = segments.slice(0, 4); // Keep boundaries
+    for (let y = 0; y < levelData.length; y++) {
+        for (let x = 0; x < levelData[y].length; x++) {
+            const cell = levelData[y][x];
+            if ((cell.color & currentLight.hex) === 0 && cell.type !== 'portal') continue;
+            
+            const x1 = x * TILE_SIZE, y1 = y * TILE_SIZE;
+            const x2 = x1 + TILE_SIZE, y2 = y1 + TILE_SIZE;
+
+            if (cell.type === 'block') {
+                segments.push({a:{x:x1,y:y1}, b:{x:x2,y:y1}, color: cell.color});
+                segments.push({a:{x:x2,y:y1}, b:{x:x2,y:y2}, color: cell.color});
+                segments.push({a:{x:x2,y:y2}, b:{x:x1,y:y2}, color: cell.color});
+                segments.push({a:{x:x1,y:y2}, b:{x:x1,y:y1}, color: cell.color});
+            } else if (cell.type === 'spike') {
+                const rot = calculateSpikeRotation(x, y);
+                cell.rotation = rot;
+                // Triangle vertices
+                const cx = x1 + TILE_SIZE/2, cy = y1 + TILE_SIZE/2;
+                const pts = [
+                    rotatePoint(0, -TILE_SIZE/2, rot),
+                    rotatePoint(TILE_SIZE/2, TILE_SIZE/2, rot),
+                    rotatePoint(-TILE_SIZE/2, TILE_SIZE/2, rot)
+                ].map(p => ({x: p.x + cx, y: p.y + cy}));
+                
+                segments.push({a:pts[0], b:pts[1], color: cell.color});
+                segments.push({a:pts[1], b:pts[2], color: cell.color});
+                segments.push({a:pts[2], b:pts[0], color: cell.color});
+            }
+        }
+    }
+}
+
+function rotatePoint(px, py, ang) {
+    return { x: px * Math.cos(ang) - py * Math.sin(ang), y: px * Math.sin(ang) + py * Math.cos(ang) };
+}
+
+function calculateSpikeRotation(x, y) {
+    const hasB = (nx, ny) => (ny >= 0 && ny < levelData.length && nx >= 0 && nx < levelData[ny].length && levelData[ny][nx].type === 'block');
+    if (hasB(x, y + 1)) return 0;
+    if (hasB(x, y - 1)) return Math.PI;
+    if (hasB(x - 1, y)) return Math.PI / 2;
+    if (hasB(x + 1, y)) return -Math.PI / 2;
+    return 0;
+}
+
+// --- PHYSICS & COLLISION ---
+
+function update() {
+    if (isTransitioning || !player.alive) { updateParticles(); return; }
+    handleInput();
+    applyPhysics();
+    if (!player.frozen) checkCollisions(); else checkFreeze();
+    if (player.y > levelData.length * TILE_SIZE + 100) die();
+    updateParticles();
+}
+
+function handleInput() {
+    let moveDir = 0;
+    if (keys['ArrowLeft'] || keys['a'] || touchButtons.left) moveDir -= 1;
+    if (keys['ArrowRight'] || keys['d'] || touchButtons.right) moveDir += 1;
+    player.vx = moveDir * WALK_SPEED;
+    if ((keys['ArrowUp'] || keys['w'] || keys[' '] || touchButtons.jump) && player.onGround) {
+        player.vy = JUMP_FORCE; player.onGround = false;
+    }
+}
+
+function applyPhysics() {
+    if (player.frozen) return;
+    player.vy += GRAVITY; player.x += player.vx; player.y += player.vy;
+}
+
+function checkCollisions() {
+    player.onGround = false;
+    const x1 = Math.floor(player.x / TILE_SIZE), y1 = Math.floor(player.y / TILE_SIZE);
+    const x2 = Math.floor((player.x + player.width) / TILE_SIZE), y2 = Math.floor((player.y + player.height) / TILE_SIZE);
+
+    for (let y = y1 - 1; y <= y2 + 1; y++) {
+        for (let x = x1 - 1; x <= x2 + 1; x++) {
+            if (y < 0 || y >= levelData.length || x < 0 || x >= levelData[y].length) continue;
+            const cell = levelData[y][x];
+            if (cell.type === 'empty' || ((cell.color & currentLight.hex) === 0 && cell.type !== 'portal')) continue;
+
+            const tR = { x: x * TILE_SIZE, y: y * TILE_SIZE, w: TILE_SIZE, h: TILE_SIZE };
+            const pR = { x: player.x, y: player.y, w: player.width, h: player.height };
+
+            if (cell.type === 'block') resolveAABB(pR, tR);
+            else if (cell.type === 'spike') { if (rectOverlap(pR, tR) && checkTriangleHit(pR, x, y, cell.rotation)) die(); }
+            else if (cell.type === 'portal') { if (rectOverlap(pR, tR)) nextLevel(); }
+        }
+    }
+}
+
+function checkTriangleHit(pR, tx, ty, rot) {
+    const pts = [{x:pR.x,y:pR.y},{x:pR.x+pR.w,y:pR.y},{x:pR.x,y:pR.y+pR.h},{x:pR.x+pR.w,y:pR.y+pR.h},{x:pR.x+pR.w/2,y:pR.y+pR.h/2}];
+    const cx = tx*TILE_SIZE+TILE_SIZE/2, cy = ty*TILE_SIZE+TILE_SIZE/2;
+    for(let p of pts) {
+        let lx = (p.x - cx)/TILE_SIZE, ly = (p.y - cy)/TILE_SIZE;
+        const cos = Math.cos(-rot), sin = Math.sin(-rot);
+        const rx = lx*cos - ly*sin, ry = lx*sin + ly*cos;
+        if (ry <= 0.5 && ry >= (2 * Math.abs(rx) - 0.5)) return true;
+    }
+    return false;
+}
+
+function resolveAABB(p, t) {
+    if (!rectOverlap(p, t)) return;
+    const oX = Math.min(p.x + p.w, t.x + t.w) - Math.max(p.x, t.x);
+    const oY = Math.min(p.y + p.h, t.y + t.h) - Math.max(p.y, t.y);
+    if (oX < oY) { player.x += (p.x < t.x) ? -oX : oX; player.vx = 0; }
+    else { if (p.y < t.y) { player.y -= oY; player.vy = 0; player.onGround = true; } else { player.y += oY; player.vy = 0; } }
+}
+
+function rectOverlap(r1, r2) { return r1.x < r2.x + r2.w && r1.x + r1.w > r2.x && r1.y < r2.y + r2.h && r1.y + r1.h > r2.y; }
+
+function checkFreeze() {
+    const pR = { x: player.x, y: player.y, w: player.width, h: player.height };
+    player.frozen = levelData.some((row, y) => row.some((cell, x) => cell.type === 'block' && (cell.color & currentLight.hex) !== 0 && rectOverlap(pR, {x:x*TILE_SIZE, y:y*TILE_SIZE, w:TILE_SIZE, h:TILE_SIZE})));
+}
+
+function die() {
+    if (!player.alive || isTransitioning) return;
+    player.alive = false; createExplosion(player.x + player.width/2, player.y + player.height/2, '#fff');
+    isTransitioning = true;
+    setTimeout(() => { fadeAlpha = 1; initLevel(currentLevelIndex); isTransitioning = false; let f = setInterval(() => { fadeAlpha -= 0.05; if (fadeAlpha <= 0) { fadeAlpha = 0; clearInterval(f); }}, 20); }, 800);
+}
+
+function createExplosion(x, y, color) { for (let i = 0; i < 15; i++) particles.push({ x, y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 1, color }); }
+function updateParticles() { for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.02; if (p.life <= 0) particles.splice(i, 1); } }
+
+function nextLevel() {
+    if (isTransitioning) return; isTransitioning = true;
+    let f = setInterval(() => { fadeAlpha += 0.1; if (fadeAlpha >= 1) { clearInterval(f); currentLevelIndex = (currentLevelIndex + 1) % LEVELS.length; initLevel(currentLevelIndex); setTimeout(() => { let o = setInterval(() => { fadeAlpha -= 0.1; if (fadeAlpha <= 0) { fadeAlpha = 0; isTransitioning = false; clearInterval(o); }}, 30); }, 200); } }, 30);
+}
+
+// --- OPTIMIZED VERTEX RAYCASTING ---
+
+function getIntersection(ray, segment) {
+    const r_px = ray.a.x, r_py = ray.a.y, r_dx = ray.b.x - ray.a.x, r_dy = ray.b.y - ray.a.y;
+    const s_px = segment.a.x, s_py = segment.a.y, s_dx = segment.b.x - segment.a.x, s_dy = segment.b.y - segment.a.y;
+    const r_mag = Math.sqrt(r_dx*r_dx + r_dy*r_dy);
+    const s_mag = Math.sqrt(s_dx*s_dx + s_dy*s_dy);
+    if(r_dx/r_mag==s_dx/s_mag && r_dy/r_mag==s_dy/s_mag) return null;
+    const T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx);
+    const T1 = (s_px+s_dx*T2-r_px)/r_dx;
+    if(T1<0 || T2<0 || T2>1) return null;
+    return { x: r_px+r_dx*T1, y: r_py+r_dy*T1, param: T1, color: segment.color };
+}
+
+function drawRaycast(px, py) {
+    const angles = [];
+    segments.forEach(s => {
+        const angle = Math.atan2(s.a.y - py, s.a.x - px);
+        angles.push(angle - 0.0001, angle, angle + 0.0001);
+    });
+    angles.sort((a,b) => a - b);
+
+    const hits = [];
+    angles.forEach(ang => {
+        const ray = { a: {x:px, y:py}, b: {x: px + Math.cos(ang), y: py + Math.sin(ang)} };
+        let closest = null;
+        segments.forEach(s => {
+            const intersect = getIntersection(ray, s);
+            if(!intersect || (closest && intersect.param >= closest.param)) return;
+            closest = intersect;
+            closest.seg = s;
+        });
+        if(closest) {
+            closest.angle = ang;
+            hits.push(closest);
+        }
+    });
+
+    // Drawing reflected color triangles
+    for(let i=0; i<hits.length; i++) {
+        const p1 = hits[i];
+        const p2 = hits[(i+1)%hits.length];
+
+        if (p1.seg !== p2.seg) continue;
+        
+        // Calculate the interaction color
+        const colorVal = (p1.color & currentLight.hex);
+        ctx.strokeStyle = "#" + colorVal.toString(16).padStart(6, '0');
+        
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const px = player.x + player.width/2, py = player.y + player.height/2;
+    const camX = canvas.width/2 - px, camY = canvas.height/2 - py;
+
+    ctx.save();
+    ctx.translate(camX, camY);
+
+    if (lightMode === LIGHT_MODES.RAYCAST) {
+        drawRaycast(px, py);
+    } else {
+        levelData.forEach((row, y) => row.forEach((cell, x) => {
+            if ((cell.color & currentLight.hex) === 0) return;
+            const c = "#" + (cell.color & currentLight.hex).toString(16).padStart(6, '0');
+            ctx.fillStyle = c;
+            if (cell.type === 'block') ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            if (cell.type === 'spike') drawSpike(x*TILE_SIZE, y*TILE_SIZE, cell.rotation, c);
+        }));
+    }
+
+    levelData.forEach((row, y) => row.forEach((cell, x) => {
+        if (cell.type === 'portal') {
+            ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x*TILE_SIZE+16, y*TILE_SIZE+16, 16, 0, 7); ctx.fill();
+        }
+    }));
+
+    if (player.alive) { ctx.fillStyle = player.frozen ? '#444' : '#fff'; ctx.fillRect(player.x, player.y, player.width, player.height); }
+    particles.forEach(p => { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); });
+    ctx.restore();
+
+    if (lightMode === LIGHT_MODES.AMBIENT && player.alive) {
+        ctx.save(); ctx.globalCompositeOperation = 'destination-in';
+        const g = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, lightLimit);
+        g.addColorStop(0.5, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore();
+    }
+
+    drawUI();
+    if (fadeAlpha > 0) { ctx.fillStyle = `rgba(0,0,0,${fadeAlpha})`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+    requestAnimationFrame(draw);
+}
+
+function drawSpike(x, y, rot, col) {
+    ctx.save(); ctx.translate(x + 16, y + 16); ctx.rotate(rot);
+    ctx.beginPath(); ctx.moveTo(0, -16); ctx.lineTo(16, 16); ctx.lineTo(-16, 16); ctx.closePath();
+    ctx.fillStyle = col; ctx.fill(); ctx.restore();
+}
+
+function drawUI() {
+    COLOR_LIST.forEach((c, i) => {
+        const cx = 35 + i * 40; if (currentLight === c) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, 35, 18, 0, 7); ctx.stroke(); }
+        ctx.fillStyle = "#" + c.hex.toString(16).padStart(6, '0'); ctx.beginPath(); ctx.arc(cx, 35, 15, 0, 7); ctx.fill();
+    });
+    const tx = canvas.width - 60; ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(tx, 10, 50, 55);
+    ctx.fillStyle = '#fff'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(lightMode === 0 ? "FULL" : (lightMode === 1 ? "AMB" : "VERTEX"), tx + 25, 30);
+    ctx.fillText("MODE (R)", tx + 25, 50);
+
+    if (showTouchUI) {
+        const bw = canvas.width / 4; const by = canvas.height - 80;
+        ['LEFT', 'JUMP', 'JUMP', 'RIGHT'].forEach((l, i) => {
+            ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(i*bw+2, by, bw-4, 78);
+            ctx.fillStyle = '#fff'; ctx.fillText(l, i*bw+bw/2, by+45);
+        });
+    }
+}
+
+function handleInputEvents(mx, my) {
+    for (let i = 0; i < COLOR_LIST.length; i++) if (Math.sqrt((mx-(35+i*40))**2 + (my-35)**2) < 25) { currentLight = COLOR_LIST[i]; updateSegments(); checkFreeze(); return; }
+    if (mx > canvas.width - 60 && my < 70) { lightMode = (lightMode + 1) % 3; updateSegments(); }
+}
+
+function processTouches(e) {
+    if (!showTouchUI) return; e.preventDefault(); const rect = canvas.getBoundingClientRect();
+    const bw = canvas.width / 4; const by = canvas.height - 80;
+    touchButtons.left = touchButtons.right = touchButtons.jump = false;
+    for (let i = 0; i < e.touches.length; i++) {
+        const t = e.touches[i]; const tx = t.clientX - rect.left; const ty = t.clientY - rect.top;
+        if (ty > by) {
+            const idx = Math.floor(tx / bw);
+            if (idx === 0) touchButtons.left = true; if (idx === 1 || idx === 2) touchButtons.jump = true; if (idx === 3) touchButtons.right = true;
+        } else if (e.type === 'touchstart') handleInputEvents(tx, ty);
+    }
+}
+
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize);
+window.addEventListener('keydown', e => { 
+    keys[e.key] = true; const cIdx = parseInt(e.key) - 1; 
+    if (cIdx >= 0 && cIdx < COLOR_LIST.length) { currentLight = COLOR_LIST[cIdx]; updateSegments(); checkFreeze(); }
+    if (e.key === 'r') { lightMode = (lightMode + 1) % 3; updateSegments(); }
+});
+window.addEventListener('keyup', e => keys[e.key] = false);
+canvas.addEventListener('touchstart', processTouches, { passive: false });
+canvas.addEventListener('touchmove', processTouches, { passive: false });
+canvas.addEventListener('touchend', processTouches, { passive: false });
+canvas.addEventListener('mousedown', e => { const r = canvas.getBoundingClientRect(); handleInputEvents(e.clientX - r.left, e.clientY - r.top); });
+
+resize(); initLevel(0); draw(); setInterval(update, 1000 / 60);
+</script>
+</body>
+</html>
