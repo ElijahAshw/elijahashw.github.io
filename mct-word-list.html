@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Roots → Meaning Quiz — Fixed Timer & Behavior + 15 Lists</title>
+  <title>Roots → Meaning Quiz — Fixed Timer & Behavior + 30 Lists</title>
   <style>
     :root {
       --bg: #f6f8fa;
@@ -25,17 +25,30 @@
     }
 
     body.dark {
-      background: #0b0c0e;
-      color: #e6eef3
+      --bg: #0d1117;
+      --panel: #161b22;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-2: #3fb9c4;
+      --correct: #3fb950;
+      --wrong: #f85149;
+      --slow: #f0883e;
+      --text: #c9d1d9;
+      --card-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+      --input-bg: #0d1117;
+      --input-border: #30363d;
+      --btn-foreground: #ffffff;
+      background: #0d1117;
+      color: #c9d1d9;
     }
 
     html,
     body {
-      height: 100%;
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      -webkit-font-smoothing: antialiased
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     :root {
@@ -45,8 +58,8 @@
 
     .wrap {
       max-width: 1100px;
-      margin: 28px auto;
-      padding: 20px;
+      margin: 0px auto;
+      padding: 48px 20px;
       display: flex;
       flex-direction: column;
       gap: 18px
@@ -96,7 +109,8 @@
       border: 1px solid var(--input-border);
       padding: 10px;
       border-radius: 10px;
-      color: var(--text)
+      color: var(--text);
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     }
 
     .btn {
@@ -107,14 +121,24 @@
       color: var(--btn-foreground);
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 6px 12px rgba(43, 108, 176, 0.12)
+      box-shadow: 0 6px 12px rgba(43, 108, 176, 0.12);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(43, 108, 176, 0.18);
     }
 
     .btn.ghost {
       background: transparent;
       border: 1px solid rgba(15, 23, 36, 0.06);
       color: var(--text);
-      box-shadow: none
+      box-shadow: none;
+    }
+
+    body.dark .btn.ghost {
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .btn.small {
@@ -128,7 +152,12 @@
       padding: 8px;
       border-radius: 10px;
       color: var(--muted);
-      cursor: pointer
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark .toggle-btn {
+      border: 1px dashed rgba(255, 255, 255, 0.1);
     }
 
     .tiny {
@@ -147,7 +176,12 @@
       border-radius: var(--radius);
       padding: 18px;
       box-shadow: var(--card-shadow);
-      border: 1px solid rgba(15, 23, 36, 0.04)
+      border: 1px solid rgba(15, 23, 36, 0.04);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    body.dark .card {
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .meta-row {
@@ -176,7 +210,12 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      align-items: flex-start
+      align-items: flex-start;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    body.dark .root-box {
+      background: linear-gradient(180deg, #1c2128, transparent);
     }
 
     .root-text {
@@ -195,7 +234,13 @@
       border: 1px solid var(--input-border);
       background: var(--input-bg);
       outline: none;
-      color: var(--text)
+      color: var(--text);
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
     }
 
     input[type="number"] {
@@ -205,7 +250,8 @@
       background: var(--input-bg);
       outline: none;
       color: var(--text);
-      width: 80px
+      width: 80px;
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     }
 
     .actions {
@@ -223,7 +269,8 @@
     .tag {
       font-size: 0.92rem;
       padding: 7px 10px;
-      border-radius: 999px
+      border-radius: 999px;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
     .tag.correct {
@@ -232,10 +279,20 @@
       border: 1px solid rgba(22, 163, 74, 0.08)
     }
 
+    body.dark .tag.correct {
+      background: rgba(63, 185, 80, 0.15);
+      border: 1px solid rgba(63, 185, 80, 0.2);
+    }
+
     .tag.wrong {
       background: rgba(224, 36, 36, 0.06);
       color: var(--wrong);
       border: 1px solid rgba(224, 36, 36, 0.06)
+    }
+
+    body.dark .tag.wrong {
+      background: rgba(248, 81, 73, 0.15);
+      border: 1px solid rgba(248, 81, 73, 0.2);
     }
 
     .tag.slow {
@@ -244,10 +301,20 @@
       border: 1px solid rgba(217, 119, 6, 0.06)
     }
 
+    body.dark .tag.slow {
+      background: rgba(240, 136, 62, 0.15);
+      border: 1px solid rgba(240, 136, 62, 0.2);
+    }
+
     .tag.untried {
       background: rgba(3, 37, 65, 0.04);
       color: var(--muted);
       border: 1px solid rgba(15, 23, 36, 0.04)
+    }
+
+    body.dark .tag.untried {
+      background: rgba(139, 148, 158, 0.1);
+      border: 1px solid rgba(139, 148, 158, 0.15);
     }
 
     .score-row {
@@ -263,7 +330,12 @@
       background: linear-gradient(180deg, var(--panel), transparent);
       border: 1px solid rgba(15, 23, 36, 0.04);
       color: var(--muted);
-      font-weight: 600
+      font-weight: 600;
+      transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark .pill {
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .result-list {
@@ -283,7 +355,12 @@
       padding: 10px;
       border-radius: 10px;
       background: linear-gradient(180deg, var(--panel), transparent);
-      border: 1px solid rgba(15, 23, 36, 0.02)
+      border: 1px solid rgba(15, 23, 36, 0.02);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    body.dark .result-item {
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .small-muted {
@@ -300,7 +377,8 @@
       color: var(--text);
       max-height: 280px;
       overflow: auto;
-      font-size: 0.85rem
+      font-size: 0.85rem;
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     }
 
     .compact {
@@ -332,7 +410,12 @@
       padding: 6px 8px;
       border-radius: 8px;
       border: 1px solid var(--input-border);
-      background: linear-gradient(180deg, var(--panel), transparent)
+      background: linear-gradient(180deg, var(--panel), transparent);
+      transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark .timer {
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     @media (max-width:640px) {
@@ -1830,6 +1913,31 @@
           },
           { "root": "troph", "meaning": "nourishment" },
         ]
+      },
+      {
+        "name": "Challeging words set 3",
+        "items": [
+          {
+            "root": "caust",
+            "meaning": "burn"
+          },
+          {
+            "root": "flu",
+            "meaning": "flow"
+          },
+          {
+            "root": "chiro",
+            "meaning": "hand"
+          },
+          {
+            "root": "cata",
+            "meaning": "down"
+          },
+          {
+            "root": "algia",
+            "meaning": "pain"
+          }
+        ]
       }
     ];
 
@@ -2024,9 +2132,27 @@
     if (copySetBtn) copySetBtn.addEventListener('click', copyCurrentSet);
 
     /* Theme toggle */
-    function applyTheme(isDark) { if (isDark) { document.body.classList.add('dark'); themeToggleBtn.textContent = 'Light Mode'; themeToggleBtn.classList.remove('ghost'); } else { document.body.classList.remove('dark'); themeToggleBtn.textContent = 'Dark Mode'; themeToggleBtn.classList.add('ghost'); } }
-    let themeIsDark = false; applyTheme(themeIsDark);
-    themeToggleBtn.addEventListener('click', () => { themeIsDark = !themeIsDark; applyTheme(themeIsDark); });
+    function applyTheme(isDark) { 
+      if (isDark) { 
+        document.body.classList.add('dark'); 
+        themeToggleBtn.textContent = 'Light Mode'; 
+        themeToggleBtn.classList.remove('ghost'); 
+      } else { 
+        document.body.classList.remove('dark'); 
+        themeToggleBtn.textContent = 'Dark Mode'; 
+        themeToggleBtn.classList.add('ghost'); 
+      }
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+    
+    // Load saved theme preference or default to light
+    let themeIsDark = localStorage.getItem('theme') === 'dark'; 
+    applyTheme(themeIsDark);
+    
+    themeToggleBtn.addEventListener('click', () => { 
+      themeIsDark = !themeIsDark; 
+      applyTheme(themeIsDark); 
+    });
 
     /* Timer toggle */
     let showTimer = false;
@@ -2211,7 +2337,7 @@
       const item = set.items[itemIndex];
 
       // Reveal marks the item as tried and set to 'wrong' (user saw the answer)
-      if (sessionStatus[itemIndex].status === 'untried') {
+      if (itemIndex && sessionStatus[itemIndex].status === 'untried') {
         sessionStatus[itemIndex].status = 'wrong';
         sessionStatus[itemIndex].attempts += 1;
         // We do not have a measured elapsed time here unless timerMeasuredThisAttempt true

@@ -319,7 +319,7 @@ class GameOfLifeMapObj {
 let boxes = new GameOfLifeMap(), newBoxes = new GameOfLifeMap(), possibleNew = new GameOfLifeMapObj(), prevCells = new GameOfLifeMap();
 let savedBoards = { main: [], redo: [], periodBoard: new GameOfLifeMap() }, placingBoard = null, generations = 0;
 let [minX, minY, maxX, maxY, xOff, yOff] = [Infinity, Infinity, -Infinity, -Infinity, 0, 0];
-let chooseStage = null, maxToSave = 20, numW = 1600, numH = 1000, w, h;
+let chooseStage = null, maxToSave = 20, numW = 800, numH = 500, w, h;
 
 
 canvas.setAttribute("width", `${w = numW * boxSize + 1}px`);
