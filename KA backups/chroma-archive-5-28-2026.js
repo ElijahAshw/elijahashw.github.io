@@ -71,6 +71,7 @@
  *    Make 4 worlds: basic, collecting, jewels, and "light mode" (others + light mode)!?
  *    Add flashlight to player graphic
  *    Tutorial comments in level (with on/off toggle)
+ *    "Internal" type of viewing on options scene
  *    Revise beginning comments text?
  *    there is still a memory leak
  *    Mapping angles to pixels should work
@@ -83,25 +84,19 @@
  *    Add debug mode to print sizes of all pools?
  * 
  * ** Internal / first person mode notes** 
- *    Enhance first person mode death shake
+ *    Rename internal to first-person
  *    Add white box around portal and gems
- *    Fix blocks squishing strangely when too close?
+ *    "Flashlight mode" for the 60 degree light that you can rotate
+ *    Immediate camera flip when crossing +-90 degrees border
+ *    Disable anti-aliasing in delag mode
+ *    Only compute left half of screen and mirror to right half in raycast renderer
+ *    cache trig values for row/don't recompute them, store in local variable
+ *    Row major iteration
+ *    Map angles onto columns as well as mapping angles onto rows?
+ * 
  * }
  * 
  * @Completed Todos: {
- *    "Internal" type of viewing on options scene
- *    "Flashlight mode" for the 60 degree light that you can rotate
- *    (cancelled) Only compute left half of screen and 
- *          mirror to right half in raycast renderer
- *    cache trig values for row/don't recompute them, store in local variable
- *    (cancelled) Map angles onto columns as well as mapping angles onto rows?
- *    (cancelled) Row major iteration
- *    (cancelled) Disable anti-aliasing in delag mode
- *    Add portal to first person mode
- *    Make blocks look actually red/green/blue when light changes?
- *    (done) Extend width of blocks to 3
- *    Immediate camera flip when crossing +-90 degrees border
- *    Rename internal to first-person
  *    Fix colorblind mode for jewels
  *    Only grab jewels with matching light color, but display always?
  *    Particles behind jewels
@@ -199,8 +194,8 @@ var currentLevelNumber = 0;
 var currentLevelArrays = {};
 var currentLevelSegments = {};
 var internalModeVars = {
-    lightTheta: -40,
-    lightDelta: 80,
+    lightTheta: -30,
+    lightDelta: 60,
     camThetaSpeed: 3, // Degrees
     isMirrored: false,
 };
@@ -226,17 +221,15 @@ var player = {
 };
 var portals = {
     x: [], y: [], // Particles
-    color1: color(207, 148, 255),
+    color: color(207, 148, 255),
     color2: color(167, 59, 255),
-    color1Dark: color(148, 148, 148),
-    color2Dark: color(59, 59, 59),
 };
 var jewels = {
     x: [], y: [], colors: [], // Positions of jewels
     allX: [], allY: [], allColors: [], // For reset
     maskBright: 0x444444,
-    normalDarken: 68,
-    darkDarken: 136,
+    maskNormal: 0xBBBBBB,
+    maskDark: 0x777777,
     strokeColor: color(255, 255, 255),
     strokeWeight: 3
 };
@@ -248,8 +241,7 @@ var gameSceneDraw, buttonsByScene, mobileButtons; // Keeps Oh noes happy
 // Clear emptyArrays, if it has length
 if (emptyArrays && emptyArrays.length) {
     emptyArrays.length = 0;
-} 
-else {
+} else {
     emptyArrays = [];
 }
 
@@ -272,6 +264,19 @@ for (var colorInd = 0; colorInd < lightColorsArray.length; colorInd++) {
     lightColorsByHex[colorObj.hex] = colorObj;
     lightColorsOnly.push(colorObj.hex);
 }
+
+// var colorMaps = {};
+// for (var c in lightColorsByLetter) {
+//     colorMaps[lightColorsByLetter[c].hex] = {
+//         0: lightColorsByLetter[c].KAColor,
+//         1: lightColorsByLetter[c].KAColor & color(163, 163, 163)
+//     };
+// }
+// var bitmap = [
+//     "010",
+//     "101",
+//     "010"
+// ];
 
 // Particles
 var deathParticles = {
@@ -670,6 +675,51 @@ function isInMyRect(pointX, pointY, x, y, w, h, r1, r2, r3, r4) {
     return result;
 }
 
+// Something(s) I just wrote
+function toKAColor(c) {
+    return color((c & 0xFF0000) >> 16, (c & 0xFF00) >> 8, c & 0xFF);
+}
+
+// Two graphics helpers (both mine)
+function drawGradient(canvas, cx, cy, maxR, minR, color1, color2, dx, dy, dw, dh) {
+    // Return boolean indicating state of success
+    if (!canvas.loadPixels) { return false; }
+    canvas.loadPixels();
+    var pixels = canvas.imageData.data;
+    var c1R = red(color1), c1G = green(color1), c1B = blue(color1), c1A = alpha(color1);
+    var c2R = red(color2), c2G = green(color2), c2B = blue(color2), c2A = alpha(color2);
+    var cw = dw || canvas.width, ch = dh || canvas.height, trueWidth = canvas.width;
+    var radMult = 1 / (minR - maxR), firstY = dy || 0, firstX = dx || 0;
+    for (var y = firstY; y < ch; y++) {
+        for (var x = firstX; x < cw; x++) {
+            var index = (y * trueWidth + x) * 4;
+            var lerpAmount = (Math.hypot(x - cx, y - cy) - maxR) * radMult;
+            lerpAmount = lerpAmount < 0? 0 : lerpAmount > 1? 1 : lerpAmount;
+            pixels[index  ] = c1R + (c2R - c1R) * lerpAmount;
+            pixels[index+1] = c1G + (c2G - c1G) * lerpAmount;
+            pixels[index+2] = c1B + (c2B - c1B) * lerpAmount;
+            pixels[index+3] = c1A + (c2A - c1A) * lerpAmount;
+        }
+    }
+    canvas.updatePixels();
+    return true;
+}
+
+function drawStar(cx, cy, numPoints, radius1, radius2, clr, angle) {
+    angle = angle || 0;
+    fill(clr);
+    noStroke();
+    beginShape();
+    for (var i = 0; i < numPoints * 2; i++) {
+        var radius = i % 2 === 0? radius1 : radius2;
+        var theta = i * Math.PI / numPoints - Math.PI / 2 + angle;
+        var x = cx + radius * Math.cos(theta);
+        var y = cy + radius * Math.sin(theta);
+        vertex(x, y);
+    }
+    endShape(CLOSE);
+}
+
 // Erroring helpers
 function error(msg) {
     println(msg);
@@ -722,61 +772,6 @@ function reportError(err, clean) {
 function dbgr() {
     debugger; /* jshint ignore:line */
 }
-
-// Something(s) I just wrote
-function toKAColor(c) {
-    if (arguments.length > 1) {
-        error("toKAColor called with more than 1 argument (perhaps you meant to use toKAColor2?): " + Array.from(arguments));
-    }
-    return color((c & 0xFF0000) >>> 16, (c & 0xFF00) >>> 8, c & 0xFF);
-}
-
-function toKAColor2(c, darken) {
-    darken = darken || 0;
-    return color(((c & 0xFF0000) >>> 16) - darken, 
-        ((c & 0xFF00) >>> 8) - darken, (c & 0xFF) - darken);
-}
-
-// Two graphics helpers (both mine)
-function drawGradient(canvas, cx, cy, maxR, minR, color1, color2, dx, dy, dw, dh) {
-    // Return boolean indicating state of success
-    if (!canvas.loadPixels) { return false; }
-    canvas.loadPixels();
-    var pixels = canvas.imageData.data;
-    var c1R = red(color1), c1G = green(color1), c1B = blue(color1), c1A = alpha(color1);
-    var c2R = red(color2), c2G = green(color2), c2B = blue(color2), c2A = alpha(color2);
-    var cw = dw || canvas.width, ch = dh || canvas.height, trueWidth = canvas.width;
-    var radMult = 1 / (minR - maxR), firstY = dy || 0, firstX = dx || 0;
-    for (var y = firstY; y < ch; y++) {
-        for (var x = firstX; x < cw; x++) {
-            var index = (y * trueWidth + x) * 4;
-            var lerpAmount = (Math.hypot(x - cx, y - cy) - maxR) * radMult;
-            lerpAmount = lerpAmount < 0? 0 : lerpAmount > 1? 1 : lerpAmount;
-            pixels[index  ] = c1R + (c2R - c1R) * lerpAmount;
-            pixels[index+1] = c1G + (c2G - c1G) * lerpAmount;
-            pixels[index+2] = c1B + (c2B - c1B) * lerpAmount;
-            pixels[index+3] = c1A + (c2A - c1A) * lerpAmount;
-        }
-    }
-    canvas.updatePixels();
-    return true;
-}
-
-function drawStar(cx, cy, numPoints, radius1, radius2, clr, angle) {
-    angle = angle || 0;
-    fill(clr);
-    noStroke();
-    beginShape();
-    for (var i = 0; i < numPoints * 2; i++) {
-        var radius = i % 2 === 0? radius1 : radius2;
-        var theta = i * Math.PI / numPoints - Math.PI / 2 + angle;
-        var x = cx + radius * Math.cos(theta);
-        var y = cy + radius * Math.sin(theta);
-        vertex(x, y);
-    }
-    endShape(CLOSE);
-}
-
 
 // Credit to Bob Lyon for this collision function!
 function isBetween(c, a, b) {
@@ -1709,33 +1704,34 @@ var Light = (function() {
             // startFraction and endFraction represent which part of the
             // segment is illuminated
             var newSeg = wallSlice.portion;
-            var v1 = seg.vertices[0], v2 = seg.vertices[1];
-            var useX = Math.abs(v2.y - v1.y) < Math.abs(v2.x - v1.x);
-            var startFraction = useX?
-                (beginX - v1.x) / (v2.x - v1.x) : 
-                (beginY - v1.y) / (v2.y - v1.y);
-            var endFraction = useX?
-                (endX - v1.x) / (v2.x - v1.x) : 
-                (endY - v1.y) / (v2.y - v1.y);
-            if (v2.x === v1.x && v2.y === v1.y) {
-                newSeg.startFraction = 0;
-                newSeg.endFraction = 1;
-            } else {
-                // Make sure startFraction is less than or equal to endFraction
-                if (startFraction < endFraction) {
-                    newSeg.startFraction = startFraction;
-                    newSeg.endFraction = endFraction;
-                } else {
-                    newSeg.startFraction = endFraction;
-                    newSeg.endFraction = startFraction;
+            // var len1
+            var startFractionX = map(seg.vertices[0].x, beginX, endX, 0, 1);
+            var startFractionY = map(seg.vertices[0].y, beginY, endY, 0, 1);
+            var endFractionX = map(seg.vertices[1].x, beginX, endX, 0, 1);
+            var endFractionY = map(seg.vertices[1].y, beginY, endY, 0, 1);
+            // Compute both and in case of div by 0
+            var startFraction = startFractionX;
+            if (!(startFractionX >= 0 && startFractionX <= 1)) {
+                startFraction = startFractionY;
+                if (!(startFractionY >= 0 && startFractionY <= 1)) {
+                    startFraction = 0;
                 }
             }
-            newSeg.parentSeg = seg;
-            // if (v2.x !== beginX && v2.x !== endX || v1.x !== beginX && v1.x !== endX) {
-                
-            // } else {
-            //     dbgr();
-            // }
+            var endFraction = endFractionX;
+            if (!(endFractionX >= 0 && endFractionX <= 1)) {
+                endFraction = endFractionY;
+                if (!(endFractionY >= 0 && endFractionY <= 1)) {
+                    endFraction = 1;
+                }
+            }
+            // Make sure startFraction is less than or equal to endFraction
+            if (startFraction < endFraction) {
+                newSeg.startFraction = startFraction;
+                newSeg.endFraction = endFraction;
+            } else {
+                newSeg.startFraction = endFraction;
+                newSeg.endFraction = startFraction;
+            }
         }
         wallSlice.current = seg;
     }
@@ -1901,10 +1897,6 @@ function getScreenX(blockX, player) {
 
 function getScreenY(blockY, player) {
     return (blockY - player.y - player.h/2) * blockSize + height/2;
-}
-
-function canEnterPortal() {
-    return jewels.allX.length > 0? jewels.x.length === 0 : true;
 }
 
 function boxHitBox(x1, y1, w1, h1, x2, y2, w2, h2) {
@@ -2460,20 +2452,17 @@ function updatePlayer(levelArray, player) {
     p.yVelocity = newYVelocity;
 }
 
-// Drawing functions for the player, portal, and jewels
-function drawPortal(portalBlockX, portalBlockY, player, drawDarkPortal) {
+// Draws the player, portal, and jewels
+function drawPortal(portalBlockX, portalBlockY, player) {
     var portalX = getScreenX(portalBlockX + 0.5, player);
     var portalY = getScreenY(portalBlockY + 0.5, player);
-    var portalImg = drawDarkPortal? cachedImages.portalDark : cachedImages.portal;
-    if (portalImg) {
+    if (cachedImages.portal) {
         imageMode(CENTER);
-        image(portalImg, portalX, portalY, blockSize*2, blockSize*2);
+        image(cachedImages.portal, portalX, portalY, blockSize*2, blockSize*2);
     } else {
-        var color1 = drawDarkPortal? portals.color1Dark : portals.color1;
-        var color2 = drawDarkPortal? portals.color2Dark : portals.color2;
         var numRings = 5;
         for (var i = 0; i < numRings; i++) {
-            var ringColor = i % 2 === 0? color1 : color2;
+            var ringColor = i % 2 === 0? portals.color : portals.color2;
             var ringSize = blockSize - i * blockSize / numRings;
             fill(ringColor);
             ellipse(portalX, portalY, ringSize, ringSize);
@@ -2515,7 +2504,7 @@ function drawJewels() {
         } else {
             var js = blockSize, x = jewelX, y = jewelY;
             var hexColor = lightColorsByLetter[jewels.colors[i]].hex;
-            var jewelColor = toKAColor2(hexColor, jewels.normalDarken);
+            var jewelColor = toKAColor(hexColor & jewels.maskNormal);
             stroke(jewels.strokeColor);
             strokeWeight(js*0.05);
             fill(jewelColor);
@@ -2597,14 +2586,11 @@ function drawColorlessObjects(player) {
     }
     
     // Draw the portal(s) and their particles
-    var portalCurrentlyDark = canEnterPortal();
-    if (!portalCurrentlyDark) {//is this what i want? todo:
-        drawParticles(portalParticles);
-    }
+    drawParticles(portalParticles);
     for (var i = 0; i < portals.x.length; i++) {
         var x = portals.x[i];
         var y = portals.y[i];
-        drawPortal(x, y, p, portalCurrentlyDark);
+        drawPortal(x, y, p);
     }
     
     // Draw the jewels and their particles
@@ -2613,19 +2599,10 @@ function drawColorlessObjects(player) {
 }
 
 function getPortalImg() {
-    if (cachedImages.portal && cachedImages.portalDark) {
+    if (cachedImages.portal) {
         return;
     }
     try {
-        // Determine portal type to draw
-        var drawDarkPortal = !cachedImages.portalDark && (
-            cachedImages.portal || canEnterPortal());
-        var color1 = portals.color1, color2 = portals.color2;
-        if (drawDarkPortal) {
-            color1 = portals.color1Dark;
-            color2 = portals.color2Dark;
-        }
-        
         // Draw image
         var portalSize = 40; // Portal gets scaled later, what matters is a nice image
         var canvas = createGraphics(portalSize*2, portalSize*2, JAVA2D);
@@ -2638,7 +2615,7 @@ function getPortalImg() {
         var numRings = 5;
         canvas.noStroke();
         for (var i = 0; i < numRings; i++) {
-            var ringColor = i % 2 === 0? color1 : color2;
+            var ringColor = i % 2 === 0? portals.color : portals.color2;
             var ringSize = portalSize*0.8 - i * portalSize / numRings;
             canvas.fill(ringColor);
             // The +0.5 is to counter some strange misalignment error
@@ -2646,11 +2623,7 @@ function getPortalImg() {
         }
         
         // Save
-        if (drawDarkPortal) {
-            cachedImages.portalDark = canvas.get();
-        } else {
-            cachedImages.portal = canvas.get();
-        }
+        cachedImages.portal = canvas.get();
     } catch (err) {
         reportError(err, true);
         println("Nice portal graphics failed to load.");
@@ -2676,7 +2649,7 @@ function getJewelImg(jewelColorLetter) {
         canvas.strokeJoin(ROUND);
         
         // Actual jewel shape
-        canvas.fill(toKAColor2(hexColor, jewels.normalDarken));
+        canvas.fill(toKAColor(hexColor & jewels.maskNormal));
         canvas.stroke(jewels.strokeColor);
         canvas.strokeWeight(js*0.05);
         // Jewel shape (starts and begins at top middle)
@@ -2689,7 +2662,7 @@ function getJewelImg(jewelColorLetter) {
         canvas.vertex(js*0.8, js*0.7);
         canvas.endShape(CLOSE);
         // Darker jewel parts
-        canvas.fill(toKAColor2(hexColor, jewels.darkDarken));
+        canvas.fill(toKAColor(hexColor & jewels.maskDark));
         // Left side
         canvas.beginShape();
         canvas.vertex(js, js*1.4);
@@ -2926,7 +2899,7 @@ function drawRaycast(levelSegments, levelArray) {
         var walls = player.light.trace(levelSegments, player.walls);
         player.walls = walls;
         var lightColor = lightColorsByLetter[currentLightColor].hex;
-        var rayColor = toKAColor2(lightColor, 204);
+        var rayColor = toKAColor(lightColor & 0x333333);
         if (walls) {
             player.light.drawWalls(walls, lightColor, rayColor);
             if (colorblindMode) {
@@ -2945,7 +2918,7 @@ function drawRaycast(levelSegments, levelArray) {
 function drawPlainLevel(levelArray) {
     // Colored background
     var lightColor = lightColorsByLetter[currentLightColor].hex;
-    var rayColor = toKAColor2(lightColor, 204);
+    var rayColor = toKAColor(lightColor & 0x333333);
     background(rayColor);
     
     // Blocks
@@ -3066,7 +3039,7 @@ function drawFlashlight(levelSegments, levelArray) {
         var walls = player.light.trace(levelSegments, player.walls);
         player.walls = walls;
         var lightColor = lightColorsByLetter[currentLightColor].hex;
-        var rayColor = toKAColor2(lightColor, 204);
+        var rayColor = toKAColor(lightColor & 0x333333);
         if (walls) {
             player.light.drawWalls(walls, lightColor, rayColor);
             if (colorblindMode) {
@@ -3119,13 +3092,13 @@ function rotateSegmentsAround(segs, cx, cy, theta, mirrorVert) {
 
 // Based on my program https://www.khanacademy.org/computer-programming/p/5664297758081024
 function scaleNodeX(nodeX, nodeZ, camX, camZ, w) {
-    var newX = (nodeX - camX) * w  / Math.max(nodeZ - camZ + w * 0.005, 0.5) + w * 0.5;
+    var newX = (nodeX - camX) * w  / Math.max(nodeZ - camZ + 1, 1) + w * 0.5;
     return newX;
 }
 function scaleNodeY(nodeY, nodeZ, camY, camZ, h) {
-    return (nodeY - camY) * h / Math.max(nodeZ - camZ + h * 0.005, 0.5) + h * 0.5;
+    return (nodeY - camY) * h / Math.max(nodeZ - camZ + 1, 1) + h * 0.5;
 }
-function quadCheckerboard(c1,c2,w,h,x1,y1,x2,y2,x3,y3,x4,y4,startY,stopY,strokClr) {
+function quadCheckerboard(c1, c2, w, h, x1, y1, x2, y2, x3, y3, x4, y4, startY, stopY) {
     // Background
     // Vars
     var leftXDiff = x4 - x1, leftYDiff = y4 - y1;
@@ -3133,25 +3106,23 @@ function quadCheckerboard(c1,c2,w,h,x1,y1,x2,y2,x3,y3,x4,y4,startY,stopY,strokCl
     var yStart = startY >= 0? startY <= 1? startY : 1 : 0;
     var yStop = stopY <= 1? stopY >= 0? stopY : 0 : 1;
     // Top
-    var fullLeftX1 = x1 + leftXDiff * yStart;
-    var fullLeftY1 = y1 + leftYDiff * yStart;
-    var fullRightX1 = x2 + rightXDiff * yStart;
-    var fullRightY1 = y2 + rightYDiff * yStart;
+    var leftX1 = x1 + leftXDiff * yStart;
+    var leftY1 = y1 + leftYDiff * yStart;
+    var rightX1 = x2 + rightXDiff * yStart;
+    var rightY1 = y2 + rightYDiff * yStart;
     // Bottom
-    var fullLeftX2 = x1 + leftXDiff * yStop;
-    var fullLeftY2 = y1 + leftYDiff * yStop;
-    var fullRightX2 = x2 + rightXDiff * yStop;
-    var fullRightY2 = y2 + rightYDiff * yStop;
+    var leftX2 = x1 + leftXDiff * yStop;
+    var leftY2 = y1 + leftYDiff * yStop;
+    var rightX2 = x2 + rightXDiff * yStop;
+    var rightY2 = y2 + rightYDiff * yStop;
     // Background quad
     noStroke();
     fill(c1);
     // quad(x1, y1, x2, y2, x3, y3, x4, y4);
-    quad(fullLeftX1, fullLeftY1, fullRightX1, fullRightY1, 
-        fullRightX2, fullRightY2, fullLeftX2, fullLeftY2);
+    quad(leftX1, leftY1, rightX1, rightY1, rightX2, rightY2, leftX2, leftY2);
     
     // Boxes overlay
     fill(c2);
-    noStroke();
     var xPercent = 0, yPercent = 0, xCount = 0, yCount = 0;
     var xInc = 1 / w, nextX = 0, yInc = 1 / h, nextY = yPercent;
     // Thanks to Gemini for reminding me about the QUADS option
@@ -3207,146 +3178,64 @@ function quadCheckerboard(c1,c2,w,h,x1,y1,x2,y2,x3,y3,x4,y4,startY,stopY,strokCl
         xCount = 0;
     }
     endShape();
-    // Optional stroke
-    if (strokClr !== undefined) {
-        stroke(strokClr);
-        noFill();
-        quad(fullLeftX1, fullLeftY1, fullRightX1, fullRightY1, 
-            fullRightX2, fullRightY2, fullLeftX2, fullLeftY2);
-    }
 }
 
-// THIS FUNCTION MUTATES THE INPUT ARRAY! BE WARNED!
-function drawInternalWalls(walls, player) {
-    // Add the portal to the walls array?
-    
-    // Sort blocks back to front
-    var playerX = (player.x + player.w * 0.5) * blockSize;
-    var playerY = (player.y + player.h * 0.5) * blockSize;
-    function compareWalls(w1, w2) {
-        var v11 = w1.vertices[0], v12 = w1.vertices[1];
-        var v21 = w2.vertices[0], v22 = w2.vertices[1];
-        var x11 = v11.x - playerX, y11 = v11.y - playerY;
-        var x21 = v21.x - playerX, y21 = v21.y - playerY;
-        var x12 = v12.x - playerX, y12 = v12.y - playerY;
-        var x22 = v22.x - playerX, y22 = v22.y - playerY;
-        var dist1 = (x21*x21 + y21*y21) - (x11*x11 + y11*y11);
-        var dist2 = (x22*x22 + y22*y22) - (x12*x12 + y12*y12);
-        return dist1 + dist2;
-    }
-    walls.sort(compareWalls);
-    
+// todo: draw portal
+// Extend width of blocks to 3?
+// Make blocks look actually red/green/blue when light changes?
+// Fix blocks squishing strangely when too close
+// Sort blocks back to front
+function drawBetterInternalWalls(walls, player) {
     // Start by rotating all the points to be directly in front of the player
     // Also mirror if past directly overhead to keep scene right side up
-    // Rotation is now computed later, to avoid mutating
     var vars = internalModeVars, lightT = vars.lightTheta;
     var lightD = vars.lightDelta, hlightD = lightD * 0.5;
     var toRadiansFraction = Math.PI / 180;
+    var playerX = (player.x + player.w * 0.5) * blockSize;
+    var playerY = (player.y + player.h * 0.5) * blockSize;
     var theta = -(hlightD + lightT) * toRadiansFraction;
     var mirror = vars.isMirrored;
-    var sinTheta = Math.sin(theta);
-    var cosTheta = Math.cos(theta);
+    rotateSegmentsAround(walls, playerX, playerY, theta, mirror);
     
-    // Draw the segments (this runs shockingly fast)
+    
+    // Draw the segments (shockingly fast)
     var w = width, h = height;
     var spikeColor = color(240, 240, 240);
     var blockColor = color(120, 120, 120);
-    var cameraZ = playerX, cameraY = playerY, cameraX = 0;
-    var blockWidth = blockSize*1.5;
-    var currentLightHex = lightColorsByLetter[currentLightColor].hex;
+    var cz = playerX, cy = playerY, cx = 0, bw = blockSize;
     for (var i = 0; i < walls.length; i++) {
-        // Draw the parent segment, not the current one to avoid squishing bitmaps
-        var seg = walls[i].parentSeg;
+        var seg = walls[i];
         var verts = seg.vertices;
-        var v1 = verts[0], v2 = verts[1];
         var baseWallColor = seg.color;
-        var wallColor = baseWallColor & 0xFFFFFF & currentLightHex;
+        var wallColor = baseWallColor & 0xffffff;
         var isSpike = baseWallColor & 0x1000000;
-        
-        // Rotation {
-        var rotationCenterX = playerX, rotationCenterY = playerY;
-        var originalv1x = v1.x - rotationCenterX;
-        var originalv1y = v1.y - rotationCenterY;
-        var originalv2x = v2.x - rotationCenterX;
-        var originalv2y = v2.y - rotationCenterY;
-        var v1x, v1y, v2x, v2y;
-        if (mirror) {
-            v1x =  originalv1x * cosTheta - originalv1y * sinTheta + rotationCenterX;
-            v1y = -originalv1x * sinTheta - originalv1y * cosTheta + rotationCenterY;
-            v2x =  originalv2x * cosTheta - originalv2y * sinTheta + rotationCenterX;
-            v2y = -originalv2x * sinTheta - originalv2y * cosTheta + rotationCenterY;
-        } else {
-            v1x = originalv1x * cosTheta - originalv1y * sinTheta + rotationCenterX;
-            v1y = originalv1x * sinTheta + originalv1y * cosTheta + rotationCenterY;
-            v2x = originalv2x * cosTheta - originalv2y * sinTheta + rotationCenterX;
-            v2y = originalv2x * sinTheta + originalv2y * cosTheta + rotationCenterY;
-        }
-        // }
-        
-        // Guards {
         if (!wallColor) {
             continue;
         }
         if (!lightColorsByHex[wallColor]) {
             error("Undefined wall color: '" + wallColor + "' (at drawInternalWalls)");
         }
-        // Portal
-        if (seg.isPortal) {
-            continue;
-        }
-        // }
+        // The game's x is the viewer's z #current
+        var color1 = toKAColor(isSpike? wallColor & 0xeeeeee: wallColor);
+        var color2 = toKAColor(isSpike? wallColor & 0x434343 : wallColor & 0xa3a3a3);
+        var x1 = scaleNodeX(-bw, verts[0].x, cx, cz, w);
+        var y1 = scaleNodeY(verts[0].y, verts[0].x, cy, cz, h);
+        var x2 = scaleNodeX(bw, verts[0].x, cx, cz, w);
+        var y2 = scaleNodeY(verts[0].y, verts[0].x, cy, cz, h);
+        var x3 = scaleNodeX(bw, verts[1].x, cx, cz, w);
+        var y3 = scaleNodeY(verts[1].y, verts[1].x, cy, cz, h);
+        var x4 = scaleNodeX(-bw, verts[1].x, cx, cz, w);
+        var y4 = scaleNodeY(verts[1].y, verts[1].x, cy, cz, h);
+        quadCheckerboard(color1, color2, 3, 3, x1, y1, x2, y2, x3, y3, x4, y4,
+            seg.startFraction, seg.endFraction);
         
-        // Draw the quad(s) {
-        // The game's x is the viewer's z
-        var color1 = toKAColor2(wallColor, isSpike? 17: 0);
-        var color2 = toKAColor2(wallColor, isSpike? 188 : 92);
-        var x1 = scaleNodeX(-blockWidth, v1x, cameraX, cameraZ, w);
-        var y1 = scaleNodeY(v1y, v1x, cameraY, cameraZ, h);
-        var x2 = scaleNodeX( blockWidth, v1x, cameraX, cameraZ, w);
-        var y2 = scaleNodeY(v1y, v1x, cameraY, cameraZ, h);
-        var x3 = scaleNodeX( blockWidth, v2x, cameraX, cameraZ, w);
-        var y3 = scaleNodeY(v2y, v2x, cameraY, cameraZ, h);
-        var x4 = scaleNodeX(-blockWidth, v2x, cameraX, cameraZ, w);
-        var y4 = scaleNodeY(v2y, v2x, cameraY, cameraZ, h);
-        
-        // Draw the quad, with a border
-        strokeWeight(Math.min(width / (v2x - cameraZ), width * 0.01));
-        quadCheckerboard(color1, color2, 6, 3, x1, y1, x2, y2, x3, y3, x4, y4,
-            0, 1,
-            // seg.startFraction, seg.endFraction,
-            isSpike? spikeColor : blockColor);
-        // }
+        // Border around quad
+        noFill();
+        strokeWeight(Math.min(width / (verts[1].x - cz), width * 0.01));
+        stroke(isSpike? spikeColor : blockColor);
+        quad(x1, y1, x2, y2, x3, y3, x4, y4);
     }
     
-    // Draw the portal(s)
-    imageMode(CENTER);
-    var portalImage = cachedImages.portal;
-    var portalSize = blockSize*2;
-    var portalX = w*0.5;
-    for (var i = 0; i < portals.x.length; i++) {
-        // Base coords
-        var rawPortalX = portals.x[i] * blockSize;
-        var rawPortalY = portals.y[i] * blockSize;
-        // Rotate
-        var rotationCenterX = playerX, rotationCenterY = playerY;
-        var originalX = rawPortalX - rotationCenterX;
-        var originalY = rawPortalY - rotationCenterY;
-        var rotPortalX, rotPortalY;
-        if (mirror) {
-            rotPortalX =  originalX * cosTheta - originalY * sinTheta + rotationCenterX;
-            rotPortalY = -originalX * sinTheta - originalY * cosTheta + rotationCenterY;
-        } else {
-            rotPortalX = originalX * cosTheta - originalY * sinTheta + rotationCenterX;
-            rotPortalY = originalX * sinTheta + originalY * cosTheta + rotationCenterY;
-        }
-        // Scale
-        var portalY = scaleNodeY(rotPortalY, rotPortalX, cameraY, cameraZ, h);
-        var portalWidth = scaleNodeX(portalSize, rotPortalX, cameraX, cameraZ, w) - w*0.5;
-        // Image, only if drawing this portal isn't a terrible idea
-        if (rotPortalX > 0) {
-            image(portalImage, portalX, portalY, portalWidth, portalWidth);
-        }
-    }
 }
 
 function drawInternal(levelSegments) {
@@ -3361,14 +3250,14 @@ function drawInternal(levelSegments) {
         
         // Draw the background
         var lightColor = lightColorsByLetter[currentLightColor].hex;
-        var rayColor = toKAColor2(lightColor, 170);
+        var rayColor = toKAColor(lightColor & 0x555555);
         background(rayColor);
         
         // Run the raycast
         var walls = player.light.trace(levelSegments, player.walls);
         player.walls = walls;
         if (walls) {
-            drawInternalWalls(walls, player);
+            drawBetterInternalWalls(walls, player);
         }
         
         // Draw "You're stuck" text
@@ -3533,9 +3422,6 @@ function runGame() {
 }
 
 function drawGame() {
-    // Init portal graphics
-    getPortalImg();
-
     // Shake effect
     pushMatrix();
     if (deathTimer > 0) {
@@ -3588,20 +3474,14 @@ function drawGame() {
     popMatrix();
     
     // Level number and jewel count
-    // The background for the text
-    noStroke();
-    fill(0, 0, 0, 100);
-    myRect(0, height*0.848, width*0.18, height*0.09, 0, width*0.01, width*0.01, 0);
-    // The messages
-    var lvlMsg = "Level " + (currentLevelNumber + 1) + " / " + levels.length;
-    var jewelsCollected = jewels.allX.length - jewels.x.length;
-    var jewelMsg = "" + jewelsCollected + " / " + jewels.allX.length + " jewels";
-    // The text
-    fill(230, 230, 230);
+    fill(168, 168, 168);
     textSize(width*0.031);
     textAlign(LEFT, BOTTOM);
-    text(lvlMsg, width*0.008, height*0.931);
-    text(jewelMsg, width*0.008, height*0.893);
+    var msg = "Level " + (currentLevelNumber + 1) + " / " + levels.length;
+    text(msg, width*0.008, height*0.933);
+    var jewelsCollected = jewels.allX.length - jewels.x.length;
+    var msg = "" + jewelsCollected + " / " + jewels.allX.length + " jewels";
+    text(msg, width*0.008, height*0.895);
 }
 
 // Transition functions
@@ -3652,7 +3532,8 @@ function drawBoxedFadeTransition() {
         for (var c = 0; c < chunkCount; c++) {
             var a = fadeAlpha + (r * 3 + c * 4) * inc * chunkADiff / 5;
             a = Math.max(0, Math.min(255, a));
-            fill(0, 0, 0, a);
+            var hex = 0x000000;
+            fill(toKAColor(hex), a);
             rect(c * chunkSize, r * chunkSize, chunkSize, chunkSize);
         }
     }
@@ -3937,7 +3818,7 @@ buttonsByScene = {
         }
     },
     "play": Object.assign({
-        /* Partly populated by loop */
+        /* Populated by loop */
         
         // More buttons
         "home": {
@@ -4029,7 +3910,7 @@ buttonsByScene = {
         for (var i = 0; i < colors.length; i++) {
             var c = colors[i].letter;
             var hexColor = colors[i].hex;
-            var btnColor = toKAColor2(hexColor, 32);
+            var btnColor = toKAColor(hexColor & 0xDFDFDF);
             btns[c] = {
                 x: width*0.025 + i * (btnW + gap),
                 y: height*0.025, w: btnW, h: btnW,
@@ -4113,7 +3994,7 @@ buttonsByScene = {
             y: height*0.535,
             w: width*0.4,
             h: height*0.12,
-            keys: "",
+            keys: "f",
             message: "Full",
             color: color(200, 200, 150),
             stroke: color(0, 0, 0),
@@ -4131,7 +4012,7 @@ buttonsByScene = {
             y: height*0.67,
             w: width*0.50,
             h: height*0.12,
-            keys: "f",
+            keys: "m",
             message: "First-person",
             color: color(220, 220, 90),
             stroke: color(0, 0, 0),
@@ -4421,9 +4302,10 @@ for (var scene in mobileButtons) {
     }
 }
 
-// Storage init
+// Storage and img init
 changeScene(currentScene, true);
 setTransitionState("done");
+getPortalImg();
 
 // Set frame rate and activate draw if needed (precaution)
 frameRate(60);
@@ -4448,18 +4330,12 @@ if (width !== height) {
 }
 
 // Env functions (and time logging)
-var startT = 0, lastT = 0, logcachemin = {}, logcachemax = {}, logcacheavg = {};
+var startT = 0, lastT = 0, logcachemin = {}, logcachemax = {};
 function logT(msg) {
     var now = millis(), time = now - lastT;
     // println(msg + " took " + time + "ms");
     if (!logcachemax[msg] || logcachemax[msg] < time) { logcachemax[msg] = time; }
     if (!logcachemin[msg] || logcachemin[msg] > time) { logcachemin[msg] = time; }
-    if (!logcacheavg[msg + "_time"] && !logcacheavg[msg + "_count"]) {
-        logcacheavg[msg + "_time"] = 0;
-        logcacheavg[msg + "_count"] = 0;
-    }
-    logcacheavg[msg + "_time"] += time;
-    logcacheavg[msg + "_count"]++;
     lastT = now;
 }
 
@@ -4553,16 +4429,8 @@ keyPressed = function() {
     if (key.toString() === "o") {
         loop();
     }
-    if (key.toString() === "t" ) {
-        var avgs = {};
-        for (var k in logcachemin) {
-            avgs[k + "_avg"] = (
-                logcacheavg[k + "_time"] / 
-                logcacheavg[k + "_count"]).toFixed(4);
-        }
-        debug(logcachemin, logcachemax, avgs);
-    }
-    if (key.toString() === "a" ) { logcachemin = {}; logcachemax = {}; logcacheavg = {}; }
+    if (key.toString() === "t" ) { debug(logcachemin, logcachemax); }
+    if (key.toString() === "a" ) { logcachemin = {}; logcachemax = {}; }
     Button.keyPressedForScene(currentScene, keys);
 };
 
