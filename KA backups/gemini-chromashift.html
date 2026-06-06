@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChromaShift: Spectrum Platformer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0d0d11;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 960px;
+            aspect-ratio: 16 / 9;
+            background: #141419;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        /* UI Overlays */
+        .ui-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(15, 15, 20, 0.9);
+            color: #ffffff;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+            display: none !important;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+            background: linear-gradient(45deg, #ff3366, #3399ff, #33cc66);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        .btn {
+            padding: 12px 30px;
+            margin: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+            background: #2a2a35;
+            border: 2px solid #444454;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            min-width: 200px;
+            text-align: center;
+        }
+        .btn:hover {
+            background: #3a3a4b;
+            border-color: #3399ff;
+            box-shadow: 0 0 10px rgba(51, 153, 255, 0.5);
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .option-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1c1c24;
+            padding: 10px 15px;
+            border-radius: 6px;
+        }
+        .info-text {
+            max-width: 600px;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #ccc;
+            padding: 0 20px;
+        }
+        /* Mobile Touch Controls Layer */
+        #mobile-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .touch-btn {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            pointer-events: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .touch-btn:active {
+            background: rgba(255, 255, 255, 0.25);
+            color: #fff;
+        }
+        /* Color selection hotbar for mobile */
+        #mobile-colorbar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: auto;
+        }
+        .mobile-col-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid #111;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .mobile-col-btn.active {
+            border-color: #fff;
+            transform: scale(1.15);
+        }
+        /* Toggle Switch styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #444; transition: .3s; border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #3399ff; }
+        input:checked + .slider:before { transform: translateX(22px); }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas" width="960" height="540"></canvas>
+
+    <div id="main-menu" class="ui-screen">
+        <h1>ChromaShift</h1>
+        <button class="btn" onclick="game.changeScreen('play')">Play Game</button>
+        <button class="btn" onclick="game.changeScreen('options')">Options</button>
+        <button class="btn" onclick="game.changeScreen('info')">How to Play</button>
+    </div>
+
+    <div id="options-screen" class="ui-screen hidden">
+        <h2>Options</h2>
+        <div class="options-grid">
+            <div class="option-row">
+                <span>Colorblind Tags</span>
+                <label class="switch"><input type="checkbox" id="opt-colorblind" onchange="game.toggleOpt('colorblind', this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="option-row">
+                <span>Mobile HUD Layout</span>
+                <label class="switch"><input type="checkbox" id="opt-mobile" onchange="game.toggleOpt('mobile', this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="option-row">
+                <span>Performance (No FX)</span>
+                <label class="switch"><input type="checkbox" id="opt-perf" onchange="game.toggleOpt('perf', this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="option-row">
+                <span>Screen Fades</span>
+                <label class="switch"><input type="checkbox" id="opt-fade" checked onchange="game.toggleOpt('fade', this.checked)"><span class="slider"></span></label>
+            </div>
+        </div>
+        <button class="btn" onclick="game.changeScreen('menu')">Back to Menu</button>
+    </div>
+
+    <div id="info-screen" class="ui-screen hidden">
+        <h2>How To Play</h2>
+        <div class="info-text">
+            <p>Navigate platforms and dangerous traps to reach the spatial gateway.</p><br>
+            <p><strong>Mechanic:</strong> Elements match specific light spectrum channels. Changing your light configuration toggles physical reality. Matches pass solids, mismatches block your path.</p><br>
+            <p><strong>Controls:</strong><br>
+            Move: A/D or Left/Right Arrow Keys<br>
+            Jump: W, Space, or Up Arrow Key<br>
+            Spectrum Keys: Numbers 1 through 7 match the top display channels.<br>
+            R: Instantly restart your immediate level matrix.</p>
+        </div>
+        <button class="btn" onclick="game.changeScreen('menu')">Back to Menu</button>
+    </div>
+
+    <div id="win-screen" class="ui-screen hidden">
+        <h1 id="win-title">Spectrum Synthesized</h1>
+        <p id="win-desc" style="margin-bottom:20px; color:#aaa;">All matrices have been parsed.</p>
+        <button class="btn" id="win-next-btn" onclick="game.nextLevel()">Next Matrix</button>
+        <button class="btn" onclick="game.changeScreen('menu')">Main Menu</button>
+    </div>
+
+    <div id="mobile-controls" class="hidden">
+        <div class="touch-btn" id="btn-left" style="left:20px; bottom:20px; width:70px; height:70px;">&larr;</div>
+        <div class="touch-btn" id="btn-right" style="left:110px; bottom:20px; width:70px; height:70px;">&rarr;</div>
+        <div class="touch-btn" id="btn-jump" style="right:20px; bottom:20px; width:80px; height:80px;">JUMP</div>
+        <div class="touch-btn" id="btn-restart" style="left:20px; top:10px; width:50px; height:40px; font-size:0.8rem;">RESET</div>
+        <div class="touch-btn" id="btn-home" style="left:80px; top:10px; width:50px; height:40px; font-size:0.8rem;">MENU</div>
+        
+        <div id="mobile-colorbar"></div>
+    </div>
+</div>
+
+<script>
+// Spectrum Identity Bitmasks
+const COLOR_CHANNELS = {
+    1: { name: 'WHITE',   mask: 0b111, hex: '#ffffff', tag: 'W' },
+    2: { name: 'RED',     mask: 0b100, hex: '#ff3333', tag: 'R' },
+    3: { name: 'GREEN',   mask: 0b010, hex: '#33cc33', tag: 'G' },
+    4: { name: 'BLUE',    mask: 0b001, hex: '#3366ff', tag: 'B' },
+    5: { name: 'CYAN',    mask: 0b011, hex: '#33ffff', tag: 'C' },
+    6: { name: 'MAGENTA', mask: 0b101, hex: '#ff33ff', tag: 'M' },
+    7: { name: 'YELLOW',  mask: 0b110, hex: '#ffff33', tag: 'Y' }
+};
+
+// Map file char conversion indices
+const CHAR_MAP = {
+    '.': { type: 'empty' },
+    'P': { type: 'spawn' },
+    'O': { type: 'portal' },
+    // Solid Blocks
+    'W': { type: 'block', channel: 1 },
+    'R': { type: 'block', channel: 2 },
+    'G': { type: 'block', channel: 3 },
+    'B': { type: 'block', channel: 4 },
+    'C': { type: 'block', channel: 5 },
+    'M': { type: 'block', channel: 6 },
+    'Y': { type: 'block', channel: 7 },
+    // Spikes
+    'r': { type: 'spike', channel: 2 },
+    'g': { type: 'spike', channel: 3 },
+    'b': { type: 'spike', channel: 4 },
+    // Jewels
+    '1': { type: 'jewel', channel: 1 },
+    '2': { type: 'jewel', channel: 2 },
+    '3': { type: 'jewel', channel: 3 },
+    '4': { type: 'jewel', channel: 4 },
+    '5': { type: 'jewel', channel: 5 },
+    '6': { type: 'jewel', channel: 6 },
+    '7': { type: 'jewel', channel: 7 }
+};
+
+// Multi-Level Matrix Definitions
+const GAME_LEVELS = [
+    {
+        msg: "Matrix 01: Change light colors (Keys 1-7 or UI) to reveal matching platforms.",
+        grid: [
+            "................................",
+            "................................",
+            "................................",
+            "................................",
+            "......2.......3.......4.........",
+            "......#.......#.......#.........",
+            ".....RRR.....GGG.....BBB........",
+            "................................",
+            "P..............................O",
+            "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+            "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+        ]
+    },
+    {
+        msg: "Matrix 02: Colored spikes only exist when their wavelength is active.",
+        grid: [
+            "................................",
+            "................................",
+            "....................5...........",
+            "...................CCC..........",
+            ".............7..................",
+            "............YYY.................",
+            "......6.........................",
+            ".....MMM........................",
+            "P............r....g....b.......O",
+            "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+            "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+        ]
+    },
+    {
+        msg: "Matrix 03: Collect ALL identity rings to synthesize extraction gateway.",
+        grid: [
+            "................................",
+            "................................",
+            "........2................3......",
+            ".......RRR..............GGG.....",
+            ".............4......6...........",
+            "............BBB....MMM..........",
+            "................................",
+            "    r  g  b  r  g  b            ",
+            "P   R  G  B  R  G  B           O",
+            "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+            "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+        ]
+    },
+    {
+        msg: "Matrix 04: Phase shift while inside empty paths, avoid clipping yourself into solid material!",
+        grid: [
+            "................................",
+            "....................7...........",
+            ".................YYYYYY.........",
+            "............5...................",
+            ".........CCCCCC.................",
+            "....3...........................",
+            ".......GGGGGGGG.................",
+            "...................bbbb.........",
+            "P.................RGGGB........O",
+            "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+            "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+        ]
+    }
+];
+
+class ParticleSystem {
+    constructor() {
+        this.particles = [];
+    }
+    spawn(x, y, color, speedScale=1, count=8) {
+        for(let i=0; i<count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = (Math.random() * 3 + 1) * speedScale;
+            this.particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                radius: Math.random() * 4 + 2,
+                color: color,
+                alpha: 1,
+                decay: Math.random() * 0.03 + 0.01
+            });
+        }
+    }
+    update() {
+        for(let i = this.particles.length - 1; i >= 0; i--) {
+            let p = this.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.alpha -= p.decay;
+            if(p.alpha <= 0) this.particles.splice(i, 1);
+        }
+    }
+    draw(ctx) {
+        ctx.save();
+        for(let p of this.particles) {
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+}
+
+class GameEngine {
+    constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.currentScreen = 'menu';
+        
+        // Game Settings Defaults
+        this.options = { colorblind: false, mobile: false, perf: false, fade: true };
+        
+        // Engine Environment States
+        this.currentLevelIndex = 0;
+        this.activeChannel = 1; // Start with White
+        this.jewelsTotal = 0;
+        this.jewelsCollected = 0;
+        this.levelMessage = "";
+        this.isStuck = false;
+        this.screenShake = 0;
+        this.fadeAlpha = 0;
+        this.targetFadeAlpha = 0;
+        this.portalOpen = false;
+
+        // Level Actors Data
+        this.tiles = [];
+        this.jewels = [];
+        this.spikes = [];
+        this.portal = { x: 0, y: 0, w: 40, h: 60 };
+        this.player = {
+            x: 100, y: 100, w: 20, h: 32,
+            vx: 0, vy: 0,
+            grounded: false,
+            speed: 4, jumpForce: 9.5,
+            pulseTime: 0
+        };
+
+        this.fx = new ParticleSystem();
+        this.keys = {};
+        this.touchControls = { left: false, right: false, jump: false };
+
+        this.initInput();
+        this.initMobileUI();
+        this.loop();
+    }
+
+    initInput() {
+        window.addEventListener('keydown', e => {
+            this.keys[e.key.toLowerCase()] = true;
+            // Hotkey actions
+            if(e.key >= '1' && e.key <= '7') this.switchSpectrum(parseInt(e.key));
+            if(e.key.toLowerCase() === 'r') this.resetLevel();
+        });
+        window.addEventListener('keyup', e => {
+            this.keys[e.key.toLowerCase()] = false;
+        });
+
+        // Map mobile buttons touch actions
+        const mapTouch = (id, property) => {
+            const el = document.getElementById(id);
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); this.touchControls[property] = true; });
+            el.addEventListener('touchend', (e) => { e.preventDefault(); this.touchControls[property] = false; });
+        };
+        mapTouch('btn-left', 'left');
+        mapTouch('btn-right', 'right');
+        mapTouch('btn-jump', 'jump');
+
+        document.getElementById('btn-restart').addEventListener('touchstart', (e) => { e.preventDefault(); this.resetLevel(); });
+        document.getElementById('btn-home').addEventListener('touchstart', (e) => { e.preventDefault(); this.changeScreen('menu'); });
+    }
+
+    initMobileUI() {
+        const bar = document.getElementById('mobile-colorbar');
+        bar.innerHTML = '';
+        for(let key in COLOR_CHANNELS) {
+            let ch = COLOR_CHANNELS[key];
+            let btn = document.createElement('div');
+            btn.className = `mobile-col-btn ${key == this.activeChannel ? 'active' : ''}`;
+            btn.style.backgroundColor = ch.hex;
+            btn.id = `mob-ch-${key}`;
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.switchSpectrum(parseInt(key));
+            });
+            bar.appendChild(btn);
+        }
+    }
+
+    changeScreen(screen) {
+        if (this.options.fade) {
+            this.targetFadeAlpha = 1;
+            setTimeout(() => {
+                this.setScreenState(screen);
+                this.targetFadeAlpha = 0;
+            }, 250);
+        } else {
+            this.setScreenState(screen);
+        }
+    }
+
+    setScreenState(screen) {
+        this.currentScreen = screen;
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('options-screen').classList.add('hidden');
+        document.getElementById('info-screen').classList.add('hidden');
+        document.getElementById('win-screen').classList.add('hidden');
+        document.getElementById('mobile-controls').classList.add('hidden');
+
+        if(screen === 'play') {
+            if(this.options.mobile) document.getElementById('mobile-controls').classList.remove('hidden');
+            this.loadLevel(this.currentLevelIndex);
+        } else {
+            let el = document.getElementById(screen === 'menu' ? 'main-menu' : screen + '-screen');
+            if(el) el.classList.remove('hidden');
+        }
+    }
+
+    toggleOpt(key, val) {
+        this.options[key] = val;
+        if(key === 'mobile') {
+            if(val && this.currentScreen === 'play') document.getElementById('mobile-controls').classList.remove('hidden');
+            else document.getElementById('mobile-controls').classList.add('hidden');
+        }
+    }
+
+    switchSpectrum(channelIndex) {
+        if(!COLOR_CHANNELS[channelIndex]) return;
+        this.activeChannel = channelIndex;
+
+        // Update UI highlights
+        for(let k in COLOR_CHANNELS) {
+            let btn = document.getElementById(`mob-ch-${k}`);
+            if(btn) {
+                if(k == channelIndex) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+        }
+
+        // Trigger environment evaluation instantly
+        this.checkStuckCondition();
+        if(!this.options.perf) {
+            this.fx.spawn(this.player.x + this.player.w/2, this.player.y + this.player.h/2, COLOR_CHANNELS[channelIndex].hex, 0.6, 6);
+        }
+    }
+
+    loadLevel(idx) {
+        if(idx >= GAME_LEVELS.length) {
+            // End Matrix Win Condition reached
+            document.getElementById('win-title').innerText = "Universe Synchronized";
+            document.getElementById('win-desc').innerText = "All testing matrices completed successfully.";
+            document.getElementById('win-next-btn').classList.add('hidden');
+            this.setScreenState('win');
+            return;
+        }
+
+        this.currentLevelIndex = idx;
+        const lvl = GAME_LEVELS[idx];
+        this.levelMessage = lvl.msg;
+        
+        this.tiles = [];
+        this.jewels = [];
+        this.spikes = [];
+        this.jewelsCollected = 0;
+        this.jewelsTotal = 0;
+        this.isStuck = false;
+        this.portalOpen = false;
+
+        const rowCount = lvl.grid.length;
+        const colCount = lvl.grid[0].length;
+        this.tileW = this.canvas.width / colCount;
+        this.tileH = this.canvas.height / rowCount;
+
+        for(let r=0; r<rowCount; r++) {
+            for(let c=0; c<colCount; c++) {
+                let char = lvl.grid[r][c];
+                let x = c * this.tileW;
+                let y = r * this.tileH;
+
+                if (char === '#') { // Simple multi-layer solid configuration mapping context
+                    this.tiles.push({ x, y, w: this.tileW, h: this.tileH, type: 'block', mask: 0b111, fallbackColor: '#444454' });
+                    continue;
+                }
+
+                let spec = CHAR_MAP[char];
+                if(!spec) continue;
+
+                if(spec.type === 'spawn') {
+                    this.player.x = x + (this.tileW - this.player.w)/2;
+                    this.player.y = y + (this.tileH - this.player.h);
+                    this.player.vx = 0; this.player.vy = 0;
+                } else if(spec.type === 'portal') {
+                    this.portal.x = x + (this.tileW - this.portal.w)/2;
+                    this.portal.y = y + (this.tileH - this.portal.h);
+                } else if(spec.type === 'block') {
+                    this.tiles.push({
+                        x, y, w: this.tileW, h: this.tileH,
+                        type: 'block', mask: COLOR_CHANNELS[spec.channel].mask, channel: spec.channel
+                    });
+                } else if(spec.type === 'spike') {
+                    this.spikes.push({
+                        x, y, w: this.tileW, h: this.tileH,
+                        channel: spec.channel, mask: COLOR_CHANNELS[spec.channel].mask
+                    });
+                } else if(spec.type === 'jewel') {
+                    this.jewels.push({
+                        x: x + this.tileW/2, y: y + this.tileH/2, r: 8,
+                        channel: spec.channel, mask: COLOR_CHANNELS[spec.channel].mask, collected: false
+                    });
+                    this.jewelsTotal++;
+                }
+            }
+        }
+        if(this.jewelsTotal === 0) this.portalOpen = true;
+    }
+
+    resetLevel() {
+        this.screenShake = 10;
+        if(!this.options.perf) {
+            this.fx.spawn(this.player.x+this.player.w/2, this.player.y+this.player.h/2, '#ff3333', 1.5, 25);
+        }
+        this.loadLevel(this.currentLevelIndex);
+    }
+
+    nextLevel() {
+        this.currentLevelIndex++;
+        this.changeScreen('play');
+    }
+
+    isColliding(r1, r2) {
+        return r1.x < r2.x + r2.w && r1.x + r1.w > r2.x && r1.y < r2.y + r2.h && r1.y + r1.h > r2.y;
+    }
+
+    checkStuckCondition() {
+        let activeMask = COLOR_CHANNELS[this.activeChannel].mask;
+        this.isStuck = false;
+
+        for(let tile of this.tiles) {
+            if((tile.mask & activeMask) !== 0) { // Solid in current light configuration
+                if(this.isColliding(this.player, tile)) {
+                    this.isStuck = true;
+                    return;
+                }
+            }
+        }
+    }
+
+    update() {
+        if(this.currentScreen !== 'play') return;
+
+        // Sync Fade Timers
+        this.fadeAlpha += (this.targetFadeAlpha - this.fadeAlpha) * 0.1;
+
+        this.fx.update();
+        if(this.screenShake > 0) this.screenShake -= 0.5;
+
+        // Player Pulse Animation Tracker
+        this.player.pulseTime += 0.05;
+
+        if(this.isStuck) {
+            // Force core freeze unless player re-shifts wavelength configuration logic
+            this.checkStuckCondition();
+            return;
+        }
+
+        // Process horizontal controller mechanics
+        let moveX = 0;
+        if (this.keys['a'] || this.keys['arrowleft'] || this.touchControls.left) moveX = -this.player.speed;
+        if (this.keys['d'] || this.keys['arrowright'] || this.touchControls.right) moveX = this.player.speed;
+        
+        this.player.vx = moveX;
+
+        // Process Vertical Jump Physics Axis
+        if ((this.keys['w'] || this.keys[' '] || this.keys['arrowup'] || this.touchControls.jump) && this.player.grounded) {
+            this.player.vy = -this.player.jumpForce;
+            this.player.grounded = false;
+        }
+
+        // Apply constant gravity vector forces
+        this.player.vy += 0.4; 
+        if(this.player.vy > 12) this.player.vy = 12; // Terminal Velocity Limit
+
+        let activeMask = COLOR_CHANNELS[this.activeChannel].mask;
+
+        // Axis-Separated Collision Resolution Loop
+        // X-Axis movement evaluation
+        this.player.x += this.player.vx;
+        for(let tile of this.tiles) {
+            if((tile.mask & activeMask) !== 0) {
+                if(this.isColliding(this.player, tile)) {
+                    if(this.player.vx > 0) this.player.x = tile.x - this.player.w;
+                    if(this.player.vx < 0) this.player.x = tile.x + tile.w;
+                }
+            }
+        }
+
+        // Y-Axis movement evaluation
+        this.player.y += this.player.vy;
+        this.player.grounded = false;
+        for(let tile of this.tiles) {
+            if((tile.mask & activeMask) !== 0) {
+                if(this.isColliding(this.player, tile)) {
+                    if(this.player.vy > 0) {
+                        this.player.y = tile.y - this.player.h;
+                        this.player.vy = 0;
+                        this.player.grounded = true;
+                    }
+                    else if(this.player.vy < 0) {
+                        this.player.y = tile.y + tile.w;
+                        this.player.vy = 0;
+                    }
+                }
+            }
+        }
+
+        // Process Interactive Hazards Collisions
+        for(let spike of this.spikes) {
+            if((spike.mask & activeMask) !== 0) {
+                if(this.isColliding(this.player, spike)) {
+                    this.resetLevel();
+                    return;
+                }
+            }
+        }
+
+        // Matrix Void Boundary Check
+        if(this.player.y > this.canvas.height + 50) {
+            this.resetLevel();
+            return;
+        }
+
+        // Process Collectibles Ring Detections
+        for(let jewel of this.jewels) {
+            if(!jewel.collected && (jewel.mask & activeMask) !== 0) {
+                // Circular vector point collision parsing
+                let pCenterX = this.player.x + this.player.w/2;
+                let pCenterY = this.player.y + this.player.h/2;
+                let dist = Math.hypot(jewel.x - pCenterX, jewel.y - pCenterY);
+                if(dist < jewel.r + Math.max(this.player.w, this.player.h)/2) {
+                    jewel.collected = true;
+                    this.jewelsCollected++;
+                    if(!this.options.perf) {
+                        this.fx.spawn(jewel.x, jewel.y, COLOR_CHANNELS[jewel.channel].hex, 1, 12);
+                    }
+                    if(this.jewelsCollected >= this.jewelsTotal) {
+                        this.portalOpen = true;
+                    }
+                }
+            }
+        }
+
+        // Gateway Synthesis Target Checking Logic
+        if(this.portalOpen && this.isColliding(this.player, this.portal)) {
+            if(this.currentLevelIndex + 1 < GAME_LEVELS.length) {
+                document.getElementById('win-title').innerText = "Matrix Clear";
+                document.getElementById('win-desc').innerText = `Matrix ${this.currentLevelIndex + 1} processed cleanly.`;
+                document.getElementById('win-next-btn').classList.remove('hidden');
+                this.setScreenState('win');
+            } else {
+                this.loadLevel(this.currentLevelIndex + 1); // Triggers world final scene
+            }
+        }
+    }
+
+    draw() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.ctx.save();
+        // Render Camera Screen Shake offsets
+        if(this.screenShake > 0) {
+            let dx = (Math.random() - 0.5) * this.screenShake;
+            let dy = (Math.random() - 0.5) * this.screenShake;
+            this.ctx.translate(dx, dy);
+        }
+
+        let activeMask = COLOR_CHANNELS[this.activeChannel].mask;
+
+        // Render System Environment Grid
+        for(let tile of this.tiles) {
+            let matches = (tile.mask & activeMask) !== 0;
+            this.ctx.fillStyle = tile.fallbackColor ? tile.fallbackColor : COLOR_CHANNELS[tile.channel].hex;
+            
+            if(matches) {
+                this.ctx.globalAlpha = 1.0;
+                this.ctx.fillRect(tile.x, tile.y, tile.w, tile.h);
+                this.ctx.strokeStyle = "rgba(0,0,0,0.4)";
+                this.ctx.strokeRect(tile.x, tile.y, tile.w, tile.h);
+            } else {
+                // Out of spectrum channel range
+                this.ctx.globalAlpha = 0.12;
+                this.ctx.fillRect(tile.x, tile.y, tile.w, tile.h);
+                this.ctx.strokeStyle = "rgba(255,255,255,0.05)";
+                this.ctx.strokeRect(tile.x, tile.y, tile.w, tile.h);
+            }
+            this.ctx.globalAlpha = 1.0;
+
+            // Accessibility Overlays Injection
+            if(this.options.colorblind && tile.channel) {
+                this.ctx.fillStyle = matches ? '#000' : 'rgba(255,255,255,0.4)';
+                this.ctx.font = "bold 10px monospace";
+                this.ctx.fillText(COLOR_CHANNELS[tile.channel].tag, tile.x + 4, tile.y + 12);
+            }
+        }
+
+        // Render Spikes
+        for(let spike of this.spikes) {
+            let matches = (spike.mask & activeMask) !== 0;
+            this.ctx.save();
+            this.ctx.globalAlpha = matches ? 1.0 : 0.15;
+            this.ctx.fillStyle = COLOR_CHANNELS[spike.channel].hex;
+            
+            // Draw standard structural hazard triangle elements
+            this.ctx.beginPath();
+            this.ctx.moveTo(spike.x, spike.y + spike.h);
+            this.ctx.lineTo(spike.x + spike.w/2, spike.y);
+            this.ctx.lineTo(spike.x + spike.w, spike.y + spike.h);
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.restore();
+        }
+
+        // Render Spatial Extraction Gateway Portal
+        this.ctx.save();
+        if(this.portalOpen) {
+            let glow = Math.sin(this.player.pulseTime * 2) * 5 + 10;
+            this.ctx.shadowBlur = glow;
+            this.ctx.shadowColor = "#33ffff";
+            this.ctx.fillStyle = "#114466";
+            this.ctx.strokeStyle = "#66ffff";
+            this.ctx.lineWidth = 3;
+        } else {
+            this.ctx.fillStyle = "#222";
+            this.ctx.strokeStyle = "#444";
+            this.ctx.lineWidth = 2;
+        }
+        
+        // Render Portal Geometry
+        this.ctx.beginPath();
+        this.ctx.roundRect(this.portal.x, this.portal.y, this.portal.w, this.portal.h, [20, 20, 0, 0]);
+        this.ctx.fill();
+        this.ctx.stroke();
+        this.ctx.restore();
+
+        // Render Collectibles Jewels Components
+        for(let jewel of this.jewels) {
+            if(jewel.collected) continue;
+            let matches = (jewel.mask & activeMask) !== 0;
+            this.ctx.save();
+            this.ctx.globalAlpha = matches ? 1.0 : 0.2;
+            
+            // Apply floating animation modifiers
+            let bounceY = Math.sin(this.player.pulseTime * 3 + jewel.x) * 4;
+            this.ctx.translate(jewel.x, jewel.y + bounceY);
+            
+            this.ctx.fillStyle = COLOR_CHANNELS[jewel.channel].hex;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, -jewel.r);
+            this.ctx.lineTo(jewel.r, 0);
+            this.ctx.lineTo(0, jewel.r);
+            this.ctx.lineTo(-jewel.r, 0);
+            this.ctx.closePath();
+            this.ctx.fill();
+
+            if(matches) {
+                this.ctx.strokeStyle = "#fff";
+                this.ctx.lineWidth = 1;
+                this.ctx.stroke();
+            }
+
+            if(this.options.colorblind) {
+                this.ctx.fillStyle = '#000';
+                this.ctx.font = "bold 9px Arial";
+                this.ctx.textAlign = "center";
+                this.ctx.textBaseline = "middle";
+                this.ctx.fillText(COLOR_CHANNELS[jewel.channel].tag, 0, 0);
+            }
+            this.ctx.restore();
+        }
+
+        // Render Responsive Dynamic FX particles
+        this.fx.draw(this.ctx);
+
+        // Render Player Avatar Entity Block
+        this.ctx.save();
+        this.ctx.fillStyle = COLOR_CHANNELS[this.activeChannel].hex;
+        if(this.isStuck) {
+            // Apply standard emergency oscillation rendering values
+            let shakeX = Math.sin(this.player.pulseTime * 25) * 3;
+            this.ctx.translate(shakeX, 0);
+            this.ctx.fillStyle = "#ff3333";
+        }
+        this.ctx.fillRect(this.player.x, this.player.y, this.player.w, this.player.h);
+        
+        // Visual detailing inside player cube
+        this.ctx.fillStyle = "#141419";
+        let eyeSize = 4;
+        this.ctx.fillRect(this.player.x + 4, this.player.y + 6, eyeSize, eyeSize);
+        this.ctx.fillRect(this.player.x + this.player.w - 8, this.player.y + 6, eyeSize, eyeSize);
+        this.ctx.restore();
+
+        this.ctx.restore(); // Camera Restore point
+
+        // Render Top Play Session HUD Indicators 
+        if(this.currentScreen === 'play') {
+            this.drawHUD();
+        }
+
+        // Render Full Overlay Layer Elements
+        if(this.fadeAlpha > 0) {
+            this.ctx.fillStyle = `rgba(13, 13, 17, ${this.fadeAlpha})`;
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+    }
+
+    drawHUD() {
+        // Upper text analytics readout
+        this.ctx.fillStyle = "rgba(20, 20, 25, 0.8)";
+        this.ctx.fillRect(0, 0, this.canvas.width, 45);
+        this.ctx.strokeStyle = "#2e2e3a";
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath(); this.ctx.moveTo(0,45); this.ctx.lineTo(this.canvas.width,45); this.ctx.stroke();
+
+        this.ctx.fillStyle = "#ffffff";
+        this.ctx.font = "14px monospace";
+        this.ctx.textAlign = "left";
+        this.ctx.fillText(`MATRIX: ${String(this.currentLevelIndex+1).padStart(2,'0')}`, 15, 26);
+        
+        let countString = `DATA RINGS: ${this.jewelsCollected} / ${this.jewelsTotal}`;
+        if(this.jewelsTotal === 0) countString = `EXTRACTION SYNCED`;
+        this.ctx.fillText(countString, 150, 26);
+
+        // System Help context readout text placement
+        this.ctx.fillStyle = "#8a8a9e";
+        this.ctx.font = "12px sans-serif";
+        this.ctx.fillText(this.levelMessage, 340, 26);
+
+        // Spectrum Channel Selector UI layout map
+        let startX = this.canvas.width - 240;
+        let idIndex = 1;
+        this.ctx.textAlign = "center";
+        for(let key in COLOR_CHANNELS) {
+            let ch = COLOR_CHANNELS[key];
+            let x = startX + (idIndex * 26);
+            let y = 14;
+
+            this.ctx.fillStyle = ch.hex;
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, 9, 0, Math.PI*2);
+            this.ctx.fill();
+
+            if(this.activeChannel == key) {
+                this.ctx.strokeStyle = "#ffffff";
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, 12, 0, Math.PI*2);
+                this.ctx.stroke();
+            }
+
+            this.ctx.fillStyle = (key == 1 || key == 7) ? "#000" : "#fff";
+            this.ctx.font = "9px monospace";
+            this.ctx.fillText(this.options.colorblind ? ch.tag : key, x, y + 3);
+
+            idIndex++;
+        }
+
+        // Locked Matrix Immobilized Warning Sign
+        if(this.isStuck) {
+            this.ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+            this.ctx.fillRect(0, 45, this.canvas.width, this.canvas.height-45);
+
+            this.ctx.fillStyle = "#ff3355";
+            this.ctx.font = "bold 24px sans-serif";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText("CRITICAL REFRACTION ERROR: STUCK", this.canvas.width/2, this.canvas.height/2 - 10);
+            this.ctx.fillStyle = "#ffffff";
+            this.ctx.font = "14px monospace";
+            this.ctx.fillText("Shift your active wavelength configuration to escape geometry clipping.", this.canvas.width/2, this.canvas.height/2 + 20);
+        }
+    }
+
+    loop() {
+        this.update();
+        this.draw();
+        requestAnimationFrame(() => this.loop());
+    }
+}
+
+// Instantiate engine configuration context
+const game = new GameEngine();
+</script>
+
+</body>
+</html>

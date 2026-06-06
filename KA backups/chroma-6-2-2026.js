@@ -53,7 +53,7 @@
  * https://www.khanacademy.org/computer-programming/3d-object-renderer/5664297758081024
  * 
  *    Also thanks to ChatGPT (and a bit Gemini) for help pointing out lots of errors, 
- * and for a few suggestions (performance and asthetic)
+ * and for a few suggestions.
  *    However, I did *not* copy paste *any* AI code into this project.
  *    The core game idea is NOVEL as far as I know, though I saw a slightly related
  * concept (but not light based or related) in a game called RRGGBB on puzzle playground.
@@ -71,53 +71,43 @@
  * }
  * 
  * @TODO (not prioritized): {
- * Ideas:{
- *    Better tutorial levels
- *    Varying particle sizes
- *    Pulse effect on portal
- *    Varying fade
- *    Player particle burst effect on color change
- *    Rainbow masked text
- *    Animated button growth
- *    Consider adding player trail
- *    (done) Tutorial level for cmy that uses spikes instead of walls, so more visibility
- *    Similar to above but with devious floor
- * }
+ *    Consider adding player trail and camera gliding?
+ *    Consider pushable crates (like in jumphase)
  *    Animate everything I can (player box, ??, ...)
  *    Render jewels in first person mode
- *    Add more levels!
- *    Tutorial comments in level (with on/off toggle)
- *    Make sure all added and existing levels are possible *and fun*!
- * 
- *    Ensure (a feel of) level progression
- * 
- * Medium priority:
- *    Add in-game "cheat sheet"?
- *    Add flashlight to player graphic?
- *    Consider death counter for added challenge?
- *    Add background story?
  *    Add white box around portal and gems? (first person mode)
- *    Checkerboard background to aid depth perception (fp mode)?
+ *    Fix blocks squishing strangely when too close? (first person mode)
+ *    Add background story?
+ *    Add in-game "cheat sheet"?
+ *    Add more levels!
+ *    Add flashlight to player graphic?
+ *    Tutorial comments in level (with on/off toggle)
+ *    Revise beginning comments text?
+ *    there is still a memory leak, does it need fixing?
+ *    Make sure all added and existing levels are possible *and fun*!
  * Low priortity:
- *    Does memory leak only occur with frequent editing or does it happen when playing too?
- *    Sounds? Should have toggle (and perhaps controlled by delag mode in part)
+ *    Reuse vertices??
+ * 
+ * New:
+ *    Checkerboard background to aid depth perception 
  *    Get startfraction working for speed?
- *    Colorblind mode for first person mode??
- *    Reuse vertices?!?
+ *    Add shift + arrow for slower motion?
+ *    Figure out how to make oh noes point to a line (when width !== height; use error for better erroring)
+ *    Sounds? Should have toggle (and perhaps controlled by delag mode in part)
+ *    First person mode: change f and s to +-90 degrees?
+ *    Ensure (a feel of) level progression
+ *    Does memory leak only occur with frequent editing or does it happen when playing too?
+ *    Consider if I ought to add more if error statements 
+ *    Tutorial level for cmy that uses spikes instead of walls, so more visibility and nicer
+ *    Similar to above but with devious floor
+ *    Hint appears after a time?
+ *    Consider timer/death counter for added challenge?
+ *    Better tutorial levels (though mine is nice) (move the jewel?) (nah)
+ *    Subtle Viginette in all modes?
+ *    Colorblind mode for first person mode
  * }
  * 
- * @Completed Todos (done unless marked cancelled): {
- *    (cancelled) Consider pushable crates (like in jumphase)
- *    (cancelled) Revise beginning comments text?
- *    (done) Fix blocks squishing strangely when too close? (first person mode)
- *    (cancelled) Subtle Viginette in all modes?
- *    (cancelled) Consider if I ought to add more if error statements (NO)
- *    Load home screen should set intro to 0 to fix bug
- *    Add "drawnColor" to level text
- *    Improve particle systems!
- *    (not used but done) Figure out how to make oh noes point to a line (when width !== height; use error for better erroring)
- *    (cancelled) Add shift + arrow for slower motion?
- *    (cancelled) First person mode: change f and s to +-90 degrees?
+ * @Completed Todos: {
  *    Clearly note that returning home will not lose your progress. 
  *    (cancelled) Hint appears after a time?
  *    (cancelled) DecreaseLag mode should simplify transitions: no old image? (but ensure the call that draws said image is guarded!)
@@ -239,7 +229,7 @@ var strictMode = true;
 /** Variable init **/
 var currentScene = "home";
 var sceneNames = ["home", "info", "options", "play", "end", "sub", "restart"];
-var currentLightType = "raycast";
+var currentLightType = "raycast"; // Todo: change to "raycast" when finished
 var lightTypes = ["raycast", "internal", "circular", "full", "flashlight"];
 var currentLightColor = "w";
 var blockSize = Math.max(width / 20, height / 20);
@@ -263,18 +253,10 @@ var sceneStorageDefaults = {
 var cachedImages = {
     circularOverlay: cachedImages && cachedImages.circularOverlay,
     portal: cachedImages && cachedImages.portal,
-    jewel_w: cachedImages && cachedImages.jewel_w,
-    jewel_r: cachedImages && cachedImages.jewel_r,
-    jewel_g: cachedImages && cachedImages.jewel_g,
-    jewel_b: cachedImages && cachedImages.jewel_b,
-    jewel_c: cachedImages && cachedImages.jewel_c,
-    jewel_m: cachedImages && cachedImages.jewel_m,
-    jewel_y: cachedImages && cachedImages.jewel_y,
 };
 var currentLevelNumber = 0;
 var currentLevelArrays = {};
 var currentLevelSegments = {};
-var currentLevelMessages = {};
 var internalModeVars = {
     lightTheta: -40,
     lightDelta: 80,
@@ -357,54 +339,45 @@ for (var colorInd = 0; colorInd < lightColorsArray.length; colorInd++) {
 
 // Particles
 var deathParticles = {
-    all: [],
-    config: {
-        minVX: -0.1, maxVX: 0.1,
-        minVY: -0.3, maxVY: -0.1,
-        gravity: 0.01, count: 30,
-        minOpacity: 200, maxOpacity: 255,
-        color: player.color,
-        minSize: width*0.009, maxSize: width*0.015,
-        age: 100, // Frames
-    }
+    x: [], y: [], vx: [], vy: [], ages: [],
+    minVX: -0.1, maxVX: 0.1,
+    minVY: -0.3, maxVY: -0.1,
+    gravity: 0.01, count: 30,
+    color: player.color,
+    size: width*0.01 || blockSize*0.1 || 4,
+    age: 100, // Frames
 };
 var playerParticles = {
-    all: [],
-    config: {
-        minVX: -0.1, maxVX: 0.1,
-        minVY: -0.09, maxVY: 0.01,
-        gravity: 0.001, count: 300,
-        minOpacity: 0, maxOpacity: 70,
-        color: color(255, 255, 255),
-        minSize: width*0.008, maxSize: width*0.012,
-        minAge: 10, maxAge: 30,
-    }
+    x: [], y: [], vx: [], vy: [], ages: [],
+    minVX: -0.1, maxVX: 0.1,
+    minVY: -0.09, maxVY: 0,
+    gravity: 0.001, count: 300,
+    minOpacity: 0, maxOpacity: 70,
+    color: color(255, 255, 255),
+    size: width*0.01 || blockSize*0.1 || 4,
+    minAge: 10, maxAge: 30,
 };
 var portalParticles = {
-    all: [],
-    config: {
-        minVX: -0.05, maxVX: 0.05,
-        minVY: -0.05, maxVY: 0.05,
-        gravity: 0, count: 30,
-        minOpacity: 0, maxOpacity: 70,
-        color: color(255, 255, 255),
-        minSize: width*0.005, maxSize: width*0.015,
-        minAge: 10, maxAge: 30,
-        countPer: 30,
-    }
+    x: [], y: [], vx: [], vy: [], ages: [],
+    minVX: -0.05, maxVX: 0.05,
+    minVY: -0.05, maxVY: 0.05,
+    gravity: 0, count: 30,
+    minOpacity: 0, maxOpacity: 70,
+    color: color(255, 255, 255),
+    size: width*0.01 || 4,
+    minAge: 10, maxAge: 30,
+    countPer: 30,
 };
 var jewelParticles = {
-    all: [],
-    config: {
-        minVX: -0.05, maxVX: 0.05,
-        minVY: -0.05, maxVY: 0.05,
-        gravity: 0, count: 30,
-        minOpacity: 0, maxOpacity: 100,
-        color: color(255, 255, 255),
-        minSize: width*0.005, maxSize: width*0.015,
-        minAge: 10, maxAge: 30,
-        countPer: 100,
-    }
+    x: [], y: [], vx: [], vy: [], ages: [],
+    minVX: -0.05, maxVX: 0.05,
+    minVY: -0.05, maxVY: 0.05,
+    gravity: 0, count: 30,
+    minOpacity: 0, maxOpacity: 100,
+    color: color(255, 255, 255),
+    size: width*0.01 || 4,
+    minAge: 10, maxAge: 30,
+    countPer: 100,
 };
 
 /** Levels **/
@@ -416,51 +389,7 @@ var jewelParticles = {
  @: Portal
  -: Empty space
 */
-currentLevelNumber=2;currentScene="play";
-// scale(0.5);
 var levels = [
-    [
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "w--------------------------------------------w",
-    "w----------------------------------------@---w",
-    "w--------------------------------------------w",
-    "w----------------------------------------r---w",
-    "w----------------------------------------r---w",
-    "w----------------------------------------r---w",
-    "w----------------------------------------r---w",
-    "w------------------------------------rrrrr---w",
-    "w------------------------------ggg-----------w",
-    "w----$-------------------bbb-----------------w",
-    "wwwwwwwwww------WWW--------------------------w",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    { message: "Welcome!", size: 1, x: 5.5, y: 7, color: "w" },
-    { message: "Avoid spikes.\nThey kill you.", size: 0.8, x: 17.5, y: 9, color: "w" },
-    { message: "Reach the portal\nto move on.", size: 0.8, x: 37, y: 3, color: "w" }],
-    [
-    "w--------------------------------w",
-    "w--------------------------------w",
-    "w---1----------------------------w",
-    "w--------------------------------w",
-    "w----------2---3---4---5---6---7-w",
-    "w--$---@-------------------------w",
-    "w--------------------------------w",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    { message: "You must collect all the jewels\nbefore you can enter the portal.", 
-        size: 0.8, x: 7.5, y: 9, color: "w" }],
-    [
-    "w------b------------w",
-    "w------b------------w",
-    "w------b------------w",
-    "w------b---@-----4--w",
-    "w--$---b------------w",
-    "w------b------------w",
-    "wwwwwwwwwwwwwwwwwwwww",
-    { message: "Change the light color to\nget through the blue wall.", 
-        size: 0.8, x: 5.5, y: 7, color: "b", drawnColor: "y" },
-    { message: "Change the light color\nagain to collect the gem.", 
-        size: 0.9, x: 16, y: 7, color: "b", negate: true, drawnColor: "c" },
-    { message: "Nice!", size: 1, x: 16, y: 7, color: "b", drawnColor: "w" }],
-    
     [
     "wwwwwwwwww-----------------------w",
     "wwwwwwwwwr-----------------------w",
@@ -498,13 +427,13 @@ var levels = [
     "wwww-----------------------------w",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"],
     [
-    "w------------------------------------------------------------------------------w",
-    "w-$--------------------------------------------------------------------------@-w",
-    "w------------------------------------------------------------------------------w",
-    "w------------------------------------------------------------------------------w",
-    "w------------------------------------------------------------------------------w",
-    "wwwwwRRRRRRRRwwwwGGGGGGGGwwwwBBBBBBBBwwwwYYYYYYYYwwwwCCCCCCCCwwwwMMMMMMMMwwwwwww",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"],
+    "w---r---g---b---y---c---m---w",
+    "w---r---g---b---y---c---m-@-w",
+    "w---r---g---b---y---c---m---w",
+    "w---r---g---b---y---c---m---w",
+    "w-$-r---g---b---y---c---m---w",
+    "w---r---g---b---y---c---m---w",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwwww"],
     [
     "--------------------------------------------------mmm",
     "--------------------------------------------------m@m",
@@ -1120,9 +1049,6 @@ var Button = (function() {
         this.selectedStroke = config.selectedStroke || this.stroke;
         this.hoverColor = config.hoverColor || darkenColor(this.color, 40);
         this.hoverGrow = config.hoverGrow || config.grow || 1.05;
-        this.easeHover = 0;
-        this.easeSelect = 0;
-        this.easeSpeed = config.easeSpeed || 0.2;
     }
     
     Button.prototype.mouseClicked = function(mx, my) {
@@ -1173,24 +1099,16 @@ var Button = (function() {
         textAlign(CENTER, CENTER);
         myRectMode(CORNER);
         
-        // Hover
+        // Background color
+        fill(this.color);
         var hover = isInMyRect(mx, my, this.x, this.y, this.w, this.h, this.r);
-        
-        // Ease
-        this.easeHover += hover? this.easeSpeed : -this.easeSpeed;
-        this.easeHover = Math.min(Math.max(this.easeHover, 0), 1);
-        this.easeSelect += selected? this.easeSpeed : -this.easeSpeed;
-        this.easeSelect = Math.min(Math.max(this.easeSelect, 0), 1);
-        
-        // Background
-        var hoverColor = lerpColor(this.color, this.hoverColor, this.easeHover);
-        var finalColor = lerpColor(hoverColor, this.selectedColor, this.easeSelect);
-        fill(finalColor);
+        var mult = hover? this.hoverGrow : 1;
+        if (hover || selected) {
+            fill(selected ? this.selectedColor : this.hoverColor);
+        }
         
         // Draw the button
-        var mult = lerp(1, this.hoverGrow, this.easeHover);
-        var strokeColor = lerpColor(this.stroke, this.selectedStroke, this.easeSelect);
-        stroke(strokeColor);
+        stroke(selected? this.selectedStroke : this.stroke);
         if (this.strokeWeight === 0) {
             noStroke();
         } else {
@@ -1289,60 +1207,6 @@ var Button = (function() {
     return Button;
 })();
 Button.safeNew = whatNewDoes; // Deleak
-
-/** Particle class **/
-var Particle = (function() {
-    var freedParticles = [];
-    
-    function Particle() {
-        return Object.create(Particle.prototype);
-    }
-    
-    Particle.new = function(x, y, config) {
-        var p = freedParticles.pop() || Particle();
-        p.freed = false;
-        p.x = x || 0;
-        p.y = y || 0;
-        p.vx = random(config.minVX, config.maxVX) || config.vx || 0;
-        p.vy = random(config.minVY, config.maxVY) || config.vy || 0;
-        p.age = random(config.minAge, config.maxAge) || config.age || 10;
-        p.initialAge = p.age;
-        p.size = random(config.minSize, config.maxSize) || config.size || width*0.01;
-        p.gravity = config.gravity || 0;
-        p.minOpacity = config.minOpacity || config.opacity || 0;
-        p.maxOpacity = config.maxOpacity || config.opacity || 255;
-        p.color = config.color || color(255, 0, 0);
-        return p;
-    };
-    
-    Particle.prototype.free = function() {
-        if (!this.freed) {
-            freedParticles.push(this);
-            this.freed = true;
-        }
-    };
-    
-    Particle.prototype.update = function() {
-        this.vy += this.gravity;
-        this.x += this.vx;
-        this.y += this.vy;
-        this.age--;
-        return this.age <= 0; // Should this particle be removed?
-    };
-    
-    Particle.prototype.draw = function(getScreenX, getScreenY, player) {
-        var alpha = map(this.age, 0, this.initialAge, this.minOpacity, this.maxOpacity);
-        noStroke();
-        fill(this.color, alpha);
-        ellipse(
-            getScreenX(this.x, player),
-            getScreenY(this.y, player),
-            this.size, this.size
-        );
-    };
-    
-    return Particle;
-})();
 
 /** Raycasting code (Tons of credit to Bob Lyon for this) **/
 // I did tweak it so that segments will store their color, and the light will obey that.
@@ -2339,14 +2203,14 @@ function touchesLitBlock(x, y, w, h, levelArray, type) {
 }
 
 // Load level
-// Probably the biggest, messiest function
-// Takes in a levelMap, returns a levelArray and adds segments to levelSegments
-function loadLevel(levelMap, levelSegments, levelMessages, lightColor, isFirstColor) {
+// Takes in a levelMap, returns a levelArray
+function loadLevel(levelMap, levelSegments, lightColor) {
     // In case blockSize was incorrectly initialized
     blockSize = Math.max(width / 20, height / 20);
     var levelArray = getEmptyArray();
     var levelWidth = levelMap[0] && levelMap[0].length || 0;
     var levelHeight = levelMap.length;
+    var firstLightColor = lightColorsArray[0].letter;
     // Helpers
     var lightHex = lightColorsByLetter[lightColor].hex;
     function isIlluminated(c) {
@@ -2368,16 +2232,6 @@ function loadLevel(levelMap, levelSegments, levelMessages, lightColor, isFirstCo
     // Loop
     for (var r = 0; r < levelMap.length; r++) {
         var row = levelMap[r] || "";
-        // Test for a message row
-        if (typeof row.message === "string") {
-            if (!row.color || (row.strictColor || row.strict? 
-                    (!!row.negate || !!row.negated) ^ (row.color === lightColor) : 
-                    (!!row.negate || !!row.negated) ^ isIlluminated(row.color))) {
-                levelMessages.push(row);
-            }
-            continue;
-        }
-        // Otherwise parse a row string
         levelArray[r] = getEmptyArray();
         levelWidth = Math.max(levelWidth, levelMap[r].length);
         for (var c = 0; c < row.length; c++) {
@@ -2411,7 +2265,7 @@ function loadLevel(levelMap, levelSegments, levelMessages, lightColor, isFirstCo
             }
             // Check for portal(s)
             if (type === "portal") {
-                if (isFirstColor) {
+                if (lightColor === firstLightColor) {
                     portals.x.push(c);
                     portals.y.push(r);
                 }
@@ -2419,7 +2273,7 @@ function loadLevel(levelMap, levelSegments, levelMessages, lightColor, isFirstCo
             }
             // Check for jewels
             if (type.includes("jewel")) {
-                if (isFirstColor) {
+                if (lightColor === firstLightColor) {
                     jewels.x.push(c);
                     jewels.y.push(r);
                     jewels.colors.push(type[0]);
@@ -2458,47 +2312,58 @@ function loadLevel(levelMap, levelSegments, levelMessages, lightColor, isFirstCo
     );
     
     // Set the max portal particles (and jewel particles)
-    portalParticles.config.count = portalParticles.config.countPer * portals.x.length;
-    jewelParticles.config.count = jewelParticles.config.countPer * jewels.x.length;
+    portalParticles.count = portalParticles.countPer * portals.x.length;
+    jewelParticles.count = jewelParticles.countPer * jewels.x.length;
     
     // Return (finally!)
     return levelArray;
 }
 
 // Particle helpers
-function addParticle(p, x, y) {
-    if (p.all.length < p.config.count && !decreaseLag) {
-        p.all.push(Particle.new(x, y, p.config));
+function addParticle(p, x, y, i) {
+    i = i || p.x.length;
+    if (p.x.length < p.count && !decreaseLag) {
+        p.x[i] = x;
+        p.y[i] = y;
+        p.vx[i] = random(p.minVX, p.maxVX);
+        p.vy[i] = random(p.minVY, p.maxVY);
+        p.ages[i] = p.age || random(p.minAge, p.maxAge);
     }
 }
 
 function removeParticle(particlesObj, index) {
     // Remove the particle without leaking memory
     var p = particlesObj, i = index;
-    if (i === p.all.length - 1) {
-        p.all[i].free();
-        p.all.length = i;
+    if (i === p.x.length - 1) {
+        p.x.length = i;
+        p.y.length = i;
+        p.vx.length = i;
+        p.vy.length = i;
+        p.ages.length = i;
     } else {
-        p.all[i].free();
-        p.all[i] = p.all.pop();
+        p.x[i] = p.x.pop();
+        p.y[i] = p.y.pop();
+        p.vx[i] = p.vx.pop();
+        p.vy[i] = p.vy.pop();
+        p.ages[i] = p.ages.pop();
     }
 }
 
 function initParticles(particlesObj, x, y) {
     if (particlesObj && !decreaseLag) {
         var p = particlesObj;
-        for (var i = 0; i < p.config.count; i++) {
-            addParticle(p, x, y);
+        for (var i = 0; i < p.count; i++) {
+            addParticle(p, x, y, i);
         }
     }
 }
 
 function clearParticles(particlesObj) {
     if (particlesObj) {
-        for (var i = 0; i < particlesObj.all.length; i++) {
-            particlesObj.all[i].free();
-        }
-        particlesObj.all.length = 0;
+        particlesObj.x.length = 0;
+        particlesObj.y.length = 0;
+        particlesObj.vx.length = 0;
+        particlesObj.vy.length = 0;
     }
 }
 
@@ -2506,8 +2371,12 @@ function updateParticles(particlesObj) {
     if (particlesObj && !decreaseLag) {
         var p = particlesObj;
         // Iterate backward to handle removal correctly
-        for (var i = p.all.length; i-- > 0;) {
-            if (p.all[i].update()) {
+        for (var i = p.x.length; i-- > 0;) {
+            p.vy[i] += p.gravity;
+            p.x[i] += p.vx[i];
+            p.y[i] += p.vy[i];
+            p.ages[i]--;
+            if (p.ages[i] < 0) {
                 removeParticle(p, i);
             }
         }
@@ -2517,8 +2386,17 @@ function updateParticles(particlesObj) {
 function drawParticles(particlesObj) {
     if (particlesObj && !decreaseLag) {
         var p = particlesObj;
-        for (var i = 0; i < p.all.length; i++) {
-            p.all[i].draw(getScreenX, getScreenY, player);
+        var pColor = p.color || p.getColor && p.getColor() || 100;
+        noStroke();
+        for (var i = 0; i < p.x.length; i++) {
+            var alpha = map(p.ages[i], 0, p.maxAge || p.age, 
+                p.minOpacity || 0, p.maxOpacity || 255);
+            fill(pColor, alpha);
+            ellipse(
+                getScreenX(p.x[i], player),
+                getScreenY(p.y[i], player),
+                p.size, p.size
+            );
         }
     }
 }
@@ -2543,9 +2421,10 @@ function spawnSplash(count, relativeX, relativeY) {
     if (playerParticles && !decreaseLag) {
         var x = player.x + player.w * 0.5 + (relativeX || 0);
         var y = player.y + player.h * 0.5 + (relativeY || 0);
-        var p = playerParticles, index = p.all.length;
-        for (var i = 0; i < count && p.all.length < p.config.count; i++, index++) {
-            addParticle(p, x, y);
+        relativeY = relativeY || 0;
+        var p = playerParticles, index = p.x.length;
+        for (var i = 0; i < count && p.x.length < p.count; i++, index++) {
+            addParticle(p, x, y, index);
         }
     }
 }
@@ -2586,7 +2465,7 @@ function updatePlayer(levelArray, player) {
     // Limit x motion to the allowed speed
     newX = constrain(newX, p.x - p.runSpeed, p.x + p.runSpeed);
     // Particle half size (to help keep them entirely under the player)
-    var particleSize = playerParticles.config.maxSize / (2 * blockSize);
+    var particleSize = playerParticles.size / (2 * blockSize);
     // Visual direction
     if (p.x !== newX) {
         p.currentDir = newX < p.x? LEFT : RIGHT;
@@ -2668,6 +2547,70 @@ function drawPortal(x, y, drawDarkPortal, portalSize) {
         }
     }
 }
+
+// function drawJewels() {
+//     var lightHex = lightColorsByLetter[currentLightColor].hex;
+//     var jewelTimer = storage().jewelTimer;
+//     // Only draw jewel *ring* if light color matches jewel color
+//     for (var i = 0; i < jewels.x.length; i++) {
+//         var jewelBounce = Math.sin((jewelTimer + i*2) * 0.1) * 0.1;
+//         var jewelPulse = Math.cos((jewelTimer + i*2) * 0.05) * 0.09;
+//         var jewelX = getScreenX(jewels.x[i] + 0.5, player);
+//         var jewelY = getScreenY(jewels.y[i] + 0.5 + jewelBounce, player);
+//         var jewelColor = jewels.colors[i];
+//         var jewelLabel = "jewel_" + jewelColor;
+//         var jewelHex = lightColorsByLetter[jewelColor].hex;
+//         var drawRing = (jewelHex & lightHex) !== 0;
+        
+//         // Ring
+//         if (drawRing) {
+//             var ringSize = blockSize*1.5 + blockSize*jewelPulse;
+//             stroke(jewels.strokeColor, 20);
+//             strokeWeight(blockSize*0.2);
+//             noFill();
+//             ellipse(jewelX, jewelY, ringSize, ringSize);
+//         }
+        
+//         // Jewel
+//         if (cachedImages[jewelLabel]) {
+//             imageMode(CENTER);
+//             image(cachedImages[jewelLabel], jewelX, jewelY, blockSize*2, blockSize*2);
+//         } else {
+//             var js = blockSize, x = jewelX, y = jewelY;
+//             var hexColor = lightColorsByLetter[jewels.colors[i]].hex;
+//             var jewelColor = toKAColor2(hexColor, jewels.normalDarken);
+//             stroke(jewels.strokeColor);
+//             strokeWeight(js*0.05);
+//             fill(jewelColor);
+//             strokeCap(ROUND);
+//             strokeJoin(ROUND);
+//             // Jewel shape (starts and begins at top middle)
+//             beginShape();
+//             vertex(js, js*0.7);
+//             vertex(js*1.2, js*0.7);
+//             vertex(js*1.4, js*0.9);
+//             vertex(js, js*1.4);
+//             vertex(js*0.6, js*0.9);
+//             vertex(js*0.8, js*0.7);
+//             endShape(CLOSE);
+//             // Extra lines
+//             line(js*0.6, js*0.9, js*1.37, js*0.9);
+//             line(js*1.10, js*0.7, js*1.18, js*0.9);
+//             line(js*0.9, js*0.7, js*0.82, js*0.9);
+//             line(js*1.18, js*0.9, js, js*1.4);
+//             line(js*0.82, js*0.9, js, js*1.4);
+//         }
+        
+//         // Colorblind mode
+//         if (colorblindMode) {
+//             var squareObj = lightColorsByLetter[jewelColor];
+//             if (squareObj) {
+//                 fill(255, 255, 255);
+//                 text(squareObj.letter, jewelX, jewelY + blockSize*0.7);
+//             }
+//         }
+//     }
+// }
 
 function drawJewel(x, y, i, s) {
     s = s === undefined? blockSize : s;
@@ -2862,8 +2805,7 @@ function getPortalImg() {
 }
 
 function getJewelImg(jewelColorLetter) {
-    var jewelKey = "jewel_" + jewelColorLetter;
-    if (cachedImages[jewelKey]) {
+    if (cachedImages["jewel_" + jewelColorLetter]) {
         return;
     }
     try {
@@ -2923,7 +2865,7 @@ function getJewelImg(jewelColorLetter) {
         canvas.line(js*0.82, js*0.9, js, js*1.4);
         
         // Save
-        cachedImages[jewelKey] = canvas.get();
+        cachedImages["jewel_" + jewelColorLetter] = canvas.get();
     } catch (err) {
         reportError(err, true);
         println("Nice jewel graphics failed to load.");
@@ -2985,7 +2927,7 @@ function clearAllParticles() {
 }
 
 function clearLevelData() {
-    // Clean up raycasting and level arrays and level messages
+    // Clean up raycasting and level arrays
     var arrays = currentLevelArrays;
     for (var i = 0; i < lightColorsArray.length; i++) {
         var letter = lightColorsArray[i].letter;
@@ -3003,9 +2945,6 @@ function clearLevelData() {
             saveEmptyArray(arrays[letter]);
             arrays[letter] = null;
         }
-        // Level message cleanup
-        currentLevelMessages[letter].length = 0; // Objects are saved in levels
-        saveEmptyArray(currentLevelMessages[letter]);
     }
     // Clean up player walls segments
     if (player.walls) {
@@ -3083,32 +3022,6 @@ function checkWinLose() {
     }
 }
 
-// Helper to draw messages on the screen
-function drawMessages(messages) {
-    textAlign(CENTER, CENTER);
-    for (var iMessage = 0; iMessage < messages.length; iMessage++) {
-        var message = messages[iMessage];
-        var colorLetter = message.drawnColor || message.color || "w";
-        var txtColor = lightColorsByLetter[colorLetter].KAColor;
-        var txtSize = message.size * blockSize || 0.7 * blockSize;
-        var x = message.x * blockSize, y = message.y * blockSize;
-        fill(txtColor);
-        textSize(txtSize);
-        // Paragraphing from my info scene
-        var txt = message.message.split("\n");
-        var lineHeight = message.lineHeight || 1.3, paragraphDecrease = 0.7;
-        var yPos = y - txt.length * 0.5 * txtSize * lineHeight;
-        for (var i = 0; i < txt.length; i++) {
-            yPos += txtSize * lineHeight;
-            text(txt[i], x, yPos);
-            // Partly shrink paragraph breaks
-            if (txt[i].length === 0) {
-                yPos -= txtSize * lineHeight * paragraphDecrease;
-            }
-        }
-    }
-}
-
 // Raycast
 function drawRaycastColorblindLetters(walls, levelArray) {
     textSize(blockSize * 0.7);
@@ -3159,9 +3072,14 @@ function drawRaycast(levelSegments, levelArray) {
         player.light.position.x = lightScreenX;
         player.light.position.y = lightScreenY;
         player.light.delta = player.lightDelta;
+        
         // Translate the visual
         pushMatrix();
-        translate(-lightScreenX + width/2, -lightScreenY + height/2);
+        translate(
+            -lightScreenX + width/2,
+            -lightScreenY + height/2
+        );
+        
         // Run the raycast
         var walls = player.light.trace(levelSegments, player.walls);
         player.walls = walls;
@@ -3189,8 +3107,7 @@ function drawRaycast(levelSegments, levelArray) {
                 drawRaycastColorblindLetters(walls, levelArray);
             }
         }
-        // Level messages
-        drawMessages(currentLevelMessages[currentLightColor]);
+        
         // Pop
         popMatrix();
     } else {
@@ -3291,8 +3208,6 @@ function drawFull(levelArray) {
     if (colorblindMode) {
         drawFullColorblindLetters(levelArray);
     }
-    // Level messages
-    drawMessages(currentLevelMessages[currentLightColor]);
     // Overlay
     fill(0, 0, 0, 100);
     rect(0, 0, width, height);
@@ -3327,8 +3242,6 @@ function drawCircular(levelArray) {
     if (colorblindMode) {
         drawFullColorblindLetters(levelArray);
     }
-    // Level messages
-    drawMessages(currentLevelMessages[currentLightColor]);
     // Overlay
     if (cachedImages.circularOverlay) {
         imageMode(CORNER);
@@ -3677,9 +3590,8 @@ function drawInternalWalls(walls, player) {
             wallDistSq = ((x21*x21 + y21*y21) + (x11*x11 + y11*y11)) * 0.5;
         }
         // Consider drawing the portal
-        var drawThePortal = portalDistSq && 
-            (!wallDistSq || portalDistSq > wallDistSq) && 
-            (!jewelDistSq || portalDistSq > jewelDistSq);
+        var drawThePortal = portalDistSq && (!wallDistSq && !jewelDistSq || 
+            portalDistSq > wallDistSq && portalDistSq > jewelDistSq);
         if (drawThePortal) {
             // Draw the portal {
             // Rotate
@@ -3999,15 +3911,10 @@ function loadGame() {
     // Load it
     if (toLoad && (!segs[toLoad] || !currentLevelArrays[toLoad])) {
         segs[toLoad] = getEmptyArray();
-        currentLevelMessages[toLoad] = getEmptyArray();
-        // It's always safe to load jewels again if there aren't any
-        var isFirstLightColor = portals.x.length <= 0? jewels.x.length <= 0 : false;
         currentLevelArrays[toLoad] = loadLevel(
             levels[currentLevelNumber], 
             segs[toLoad],
-            currentLevelMessages[toLoad],
-            toLoad, 
-            isFirstLightColor
+            toLoad
         );
     }
 }
@@ -4181,7 +4088,7 @@ function runHomeScene() {
 }
 function drawHomeScene() {
     // Animation variable
-    var intro = storage().intro || 0;
+    var intro = storage().intro;
     
     // Background
     background(0, 0, 0);
@@ -4282,9 +4189,6 @@ function drawHomeScene() {
 }
 
 // Play scene
-function loadPlayScene() {
-    loadGame();
-}
 function runPlayScene() {
     runGame();
 }
@@ -4693,10 +4597,10 @@ buttonsByScene = {
             selectedStroke: color(217, 217, 217),
             isSelected: isLightType.bind(null, "circular"),
         },
-        "flashlight": {
-            x: width*0.29,
+        "full": {
+            x: width*0.3,
             y: height*0.535,
-            w: width*0.42,
+            w: width*0.4,
             h: height*0.12,
             keys: "",
             message: "Flashlight",
@@ -4705,11 +4609,11 @@ buttonsByScene = {
             strokeWeight: width * 0.01,
             textSize: width*0.078,
             onClick: function () {
-                setLightType("flashlight");
+                setLightType("Flashlight");
             },
             selectedColor: color(200, 200, 150),
             selectedStroke: color(217, 217, 217),
-            isSelected: isLightType.bind(null, "flashlight"),
+            isSelected: isLightType.bind(null, "full"),
         },
         "first person": {
             x: width*0.25,
@@ -5012,7 +4916,7 @@ gameSceneDraw = {
     "restart": drawRestartScene
 };
 var gameSceneLoad = {
-    "play": loadPlayScene,
+    "play": loadGame,
 };
 
 // Button init
@@ -5120,6 +5024,11 @@ draw = function() {
         // Add some small additions
         displayFrameRate();
         displayMyName();
+        
+        // Debug (again)
+        if (keys["?"]) {
+            dbgr();
+        }
         
         // Limit emptyArrays length
         if (emptyArrays.length > maxEmptyArrays) {
