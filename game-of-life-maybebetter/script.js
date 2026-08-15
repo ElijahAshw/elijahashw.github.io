@@ -703,7 +703,8 @@ function drawBoard() {
     // }
     boxes.forEach((x, y) => {
         let newX = x + xOff, newY = y + yOff, drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
-        if (!drawPlacingBoard && boxes.has(x, y)) {
+        let onScreen = x >= 0 && y >= 0 && x < numW && y < numH;
+        if (!drawPlacingBoard && onScreen) {
             cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
         }
     });

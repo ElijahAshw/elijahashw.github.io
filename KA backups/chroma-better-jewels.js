@@ -355,9 +355,9 @@ var portals = {
     color2Dark: color(59, 59, 59),
 };
 var jewels = {
-    // current: [], all: [],
-    x: [], y: [], colors: [], // Positions of jewels
-    allX: [], allY: [], allColors: [], // For reset
+    current: [], all: [],
+    // x: [], y: [], colors: [], // Positions of jewels
+    // allX: [], allY: [], allColors: [], // For reset
     maskBright: 0x444444,
     normalDarken: 68,
     darkDarken: 136,
@@ -1473,7 +1473,7 @@ var Jewel = (function() {
         j.freed = false;
         j.x = x;
         j.y = y;
-        j.c = c;
+        j.color = c;
         return j;
     };
     
@@ -2260,7 +2260,7 @@ function getScreenY(blockY, player) {
 }
 
 function canEnterPortal() {
-    return jewels.x.length === 0;
+    return jewels.current.length === 0;
 }
 
 function boxHitBox(x1, y1, w1, h1, x2, y2, w2, h2) {
@@ -2576,12 +2576,9 @@ function loadLevel(levelMap, levelSegments, levelMessages, lightColor, isFirstCo
             // Check for jewels
             if (type.includes("jewel")) {
                 if (isFirstColor) {
-                    jewels.x.push(c);
-                    jewels.y.push(r);
-                    jewels.colors.push(type[0]);
-                    jewels.allX.push(c);
-                    jewels.allY.push(r);
-                    jewels.allColors.push(type[0]);
+                    var j = Jewel.new(c, r, type[0]);
+                    jewels.current.push(j);
+                    jewels.all.push(j);
                 }
                 continue;
             }
@@ -2622,7 +2619,7 @@ function loadLevel(levelMap, levelSegments, levelMessages, lightColor, isFirstCo
     
     // Set the max portal particles (and jewel particles)
     portalParticles.config.count = portalParticles.config.countPer * portals.x.length;
-    jewelParticles.config.count = jewelParticles.config.countPer * jewels.x.length;
+    jewelParticles.config.count = jewelParticles.config.countPer * jewels.current.length;
     
     // Return (finally!)
     return levelArray;
@@ -2694,14 +2691,11 @@ function drawParticles(particlesObj) {
 function removeJewel(index) {
     // Remove the particle without leaking memory
     var j = jewels, i = index;
-    if (i === j.x.length - 1) {
-        j.x.length = i;
-        j.y.length = i;
-        j.colors.length = i;
+    j.current[i].free();
+    if (i === j.current.length - 1) {
+        j.current.length = i;
     } else {
-        j.x[i] = j.x.pop();
-        j.y[i] = j.y.pop();
-        j.colors[i] = j.colors.pop();
+        j.current[i] = j.current.pop();
     }
 }
 
@@ -2858,7 +2852,7 @@ function drawJewel(x, y, i, s, fpMode) {
     var jewelPulse = decreaseLag? 0 : Math.cos((jewelTimer + i*2) * 0.05) * 0.09;
     var jewelX = x;
     var jewelY = y + jewelBounce * s;
-    var jewelColor = jewels.colors[i];
+    var jewelColor = jewels.current[i].color;
     var jewelLabel = "jewel_" + jewelColor;
     var jewelHex = lightColorsByLetter[jewelColor].hex;
     var drawRing = (jewelHex & lightHex) !== 0;
@@ -2878,7 +2872,7 @@ function drawJewel(x, y, i, s, fpMode) {
         image(cachedImages[jewelLabel], jewelX, jewelY, s*2, s*2);
     } else {
         var js = s, x = jewelX, y = jewelY;
-        var hexColor = lightColorsByLetter[jewels.colors[i]].hex;
+        var hexColor = lightColorsByLetter[jewels.current[i].color].hex;
         var jewelColor = toKAColor2(hexColor, jewels.normalDarken);
         stroke(jewels.strokeColor);
         strokeWeight(js*0.05);
@@ -2921,9 +2915,9 @@ function drawJewel(x, y, i, s, fpMode) {
 
 function drawJewels() {
     // Only draw jewel *ring* if light color matches jewel color
-    for (var i = 0; i < jewels.x.length; i++) {
-        var jewelX = getScreenX(jewels.x[i] + 0.5, player);
-        var jewelY = getScreenY(jewels.y[i] + 0.5, player);
+    for (var i = 0; i < jewels.current.length; i++) {
+        var jewelX = getScreenX(jewels.current[i].x + 0.5, player);
+        var jewelY = getScreenY(jewels.current[i].y + 0.5, player);
         var margin = blockSize * 3;
         var onScreen = jewelX > -margin && jewelX < width + margin &&
             jewelY > -margin && jewelY < height + margin;
@@ -3191,9 +3185,9 @@ function runPortals() {
 
 // Adds particles and updates bounce timer, and collision checks jewels
 function runJewels() {
-    for (var i = 0; i < jewels.x.length; i++) {
-        var x = jewels.x[i] + 0.5;
-        var y = jewels.y[i] + 0.5;
+    for (var i = 0; i < jewels.current.length; i++) {
+        var x = jewels.current[i].x + 0.5;
+        var y = jewels.current[i].y + 0.5;
         addParticle(jewelParticles, x, y);
     }
     // Update the particles
@@ -3205,10 +3199,11 @@ function runJewels() {
     var lightHex = lightColorsByLetter[currentLightColor].hex;
     var px = player.x, py = player.y, pw = player.w, ph = player.h;
     // Iterate backward to handle removal correctly
-    for (var i = jewels.x.length; i-- > 0;) {
-        var x = jewels.x[i];
-        var y = jewels.y[i];
-        var jewelHex = lightColorsByLetter[jewels.colors[i]].hex;
+    for (var i = jewels.current.length; i-- > 0;) {
+        var x = jewels.current[i].x;
+        var y = jewels.current[i].y;
+        var jewelColorObj = lightColorsByLetter[jewels.current[i].color];
+        var jewelHex = jewelColorObj && jewelColorObj.hex || 0;
         var illuminated = (jewelHex & lightHex) !== 0;
         var hit = boxHitBox(px, py, pw, ph, x, y, 1, 1);
         if (hit && illuminated) {
@@ -3234,8 +3229,13 @@ function clearAllParticles() {
 function clearLevelData() {
     // Clear portals and jewels
     portals.x.length = portals.y.length = 0;
-    jewels.x.length = jewels.y.length = jewels.colors.length = 0;
-    jewels.allX.length = jewels.allY.length = jewels.allColors.length = 0;
+    for (var i = 0; i < jewels.current.length; i++) {
+        jewels.current[i].free();
+    }
+    for (var i = 0; i < jewels.all.length; i++) {
+        jewels.all[i].free();
+    }
+    jewels.current.length = jewels.all.length = 0;
     // Clean up raycasting and level arrays and level messages
     var arrays = currentLevelArrays;
     for (var i = 0; i < lightColorsArray.length; i++) {
@@ -3319,10 +3319,8 @@ function onLose() {
         player.y = player.firstY;
         player.yVelocity = 0;
         // Reset jewels
-        for (var i = 0; i < jewels.allX.length; i++) {
-            jewels.x[i] = jewels.allX[i];
-            jewels.y[i] = jewels.allY[i];
-            jewels.colors[i] = jewels.allColors[i];
+        for (var i = 0; i < jewels.all.length; i++) {
+            jewels.current[i] = jewels.all[i];
         }
     }
 }
@@ -3875,30 +3873,15 @@ var internalModeFunctions = (function() {
             } while (swapped);
         }
         
-        // Sort the jewels back to front (just like for portals, a simple bubble sort)
-        if (jewels.x.length > 1) {
-            var swapped = false;
-            do {
-                swapped = false;
-                var xs = jewels.x, ys = jewels.y, clrs = jewels.colors, len = xs.length;
-                for (var i = 0; i < len - 1; i++) {
-                    var nextI = i + 1;
-                    var doSwap = compareDistances(xs[i], ys[i], xs[nextI], ys[nextI]) < 0;
-                    if (doSwap) {
-                        // Swap!
-                        swapped = true;
-                        var temp = xs[i];
-                        xs[i] = xs[nextI];
-                        xs[nextI] = temp;
-                        temp = ys[i];
-                        ys[i] = ys[nextI];
-                        ys[nextI] = temp;
-                        temp = clrs[i];
-                        clrs[i] = clrs[nextI];
-                        clrs[nextI] = temp;
-                    }
-                }
-            } while (swapped);
+        // Sort the jewels back to front
+        function compareDistancesObjects(a, b) {
+            var x1 = a.x, y1 = a.y, x2 = b.x, y2 = b.y;
+            var xDist1 = x1*blockSize - playerX, yDist1 = y1*blockSize - playerY;
+            var xDist2 = x2*blockSize - playerX, yDist2 = y2*blockSize - playerY;
+            return (xDist1*xDist1 + yDist1*yDist1) - (xDist2*xDist2 + yDist2*yDist2);
+        }
+        if (jewels.current.length > 1) {
+            jewels.current.sort(compareDistancesObjects);
         }
         
         // Start by rotating all the points to be directly in front of the player
@@ -3929,7 +3912,8 @@ var internalModeFunctions = (function() {
         var jewelSize = blockSize*2;
         var jewelX = w*0.5;
         // The loop!
-        var wallLen = walls.length, portalLen = portals.x.length, jewelLen = jewels.x.length;
+        var wallLen = walls.length, portalLen = portals.x.length, 
+            jewelLen = jewels.current.length;
         var iWall = 0, iPortal = 0, iJewel = 0, iters = 0;
         if (wallLen + portalLen + jewelLen >= 10000) {
             // Let the user know something is off
@@ -3959,8 +3943,8 @@ var internalModeFunctions = (function() {
             // Compute jewel distance
             if (iJewel < jewelLen) {
                 // Jewel dist
-                var rawJewelX = jewels.x[iJewel] * blockSize;
-                var rawJewelY = jewels.y[iJewel] * blockSize;
+                var rawJewelX = jewels.current[iJewel].x * blockSize;
+                var rawJewelY = jewels.current[iJewel].y * blockSize;
                 var jewelDistX = rawJewelX - playerX, jewelDistY = rawJewelY - playerY;
                 jewelDistSq = jewelDistX*jewelDistX + jewelDistY*jewelDistY;
             }
@@ -4028,8 +4012,8 @@ var internalModeFunctions = (function() {
             if (jewelDistSq && (Number.isNaN(wallDistSq) || jewelDistSq > wallDistSq)) {
                 // Draw the jewel {
                 // Rotate
-                var rawJewelX = jewels.x[iJewel] * blockSize;
-                var rawJewelY = jewels.y[iJewel] * blockSize;
+                var rawJewelX = jewels.current[iJewel].x * blockSize;
+                var rawJewelY = jewels.current[iJewel].y * blockSize;
                 var rotationCenterX = playerX, rotationCenterY = playerY;
                 var originalX = rawJewelX - rotationCenterX;
                 var originalY = rawJewelY - rotationCenterY;
@@ -4294,7 +4278,7 @@ function loadGame() {
         segs[toLoad] = getEmptyArray();
         currentLevelMessages[toLoad] = getEmptyArray();
         // It's always safe to load jewels again if there aren't any
-        var isFirstLightColor = portals.x.length <= 0? jewels.x.length <= 0 : false;
+        var isFirstLightColor = portals.x.length <= 0? jewels.current.length <= 0 : false;
         currentLevelArrays[toLoad] = loadLevel(
             levels[currentLevelNumber], 
             segs[toLoad],
@@ -4400,8 +4384,8 @@ function drawGame() {
     // Level number and jewel count
     // The messages to display here
     var lvlMsg = "Level " + (currentLevelNumber + 1) + " / " + levels.length;
-    var jewelsCollected = jewels.allX.length - jewels.x.length;
-    var jewelMsg = "" + jewelsCollected + " / " + jewels.allX.length + " jewels";
+    var jewelsCollected = jewels.all.length - jewels.current.length;
+    var jewelMsg = "" + jewelsCollected + " / " + jewels.all.length + " jewels";
     // Background for the text
     textSize(width*0.031);
     var bgWidth = Math.max(textWidth(lvlMsg), textWidth(jewelMsg)) + width*0.02;

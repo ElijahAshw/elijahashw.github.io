@@ -1,5 +1,7 @@
 /** 
  *  This is a WIP, currently titled "Chroma". It is nearly finished.
+ **/ var SOUND_VOLUME = 1; /** 0-1  !! IF the SOUNDS are TOO LOUD, adjust this variable !!
+ *   Instructions:
  *     Arrow keys or WASD to move.
  *     Returning to the home screen while playing will *not* lose your progress.
  * Letter keys that match a light color change the light to that color. 1-7 also work.
@@ -51,11 +53,11 @@
  * and the scale node math from
  * https://www.khanacademy.org/computer-programming/3d-object-renderer/5664297758081024
  * 
- *    Also thanks to ChatGPT (and a bit Gemini) for help pointing out lots of errors, 
+ *    Also thanks to ChatGPT and Gemini for help pointing out lots of errors, 
  * and for a few suggestions (performance and asthetic)
  *    However, I did *not* copy paste *any* AI code into this project.
  *    The core game idea is NOVEL as far as I know, though I saw a slightly related
- * concept (but not light based or related) in a game called RRGGBB on puzzle playground.
+ * concept (but not light based or related) in a game called RRGGBB on Puzzle Playground.
  * 
  * This is easily my biggest project, doubling my previous 2708 LoC (Weatherman).
  * I think I have maintained total bugs ever in this program < lines of code!
@@ -66,39 +68,50 @@
  * @Finished... ??
  * 
  * @Bugs {
- *     None that I am aware of!
+ *     Leaks memory, at least while editing
+ *     First person mode draws all faces, and the whole face, even though it doesn't need to
+ *     There is no time smoothing, so it gets jittery if the frame rate is dropping
  * }
  * 
  * @TODO: {
- *    Particle burst/feedback in first person mode for jewel collection
- *    Add more instructions to level 5
  *    Add tutorial level for down (and restart?)
- * 
  *    Add more levels!
+ *    Better next level sound
+ *    Make win scene cooler (gradients? Falling jewels?)
+ *    Consider adding sound toggle to play scene
+ *    Split button.run into button.draw and button.update out of draw scene function
+ *    Don't permit recording
+ * 
  *    Give all instructions in levels for those who refuse to read instructions
  *    Make sure all added and existing levels are possible *and fun*!
  *    Ensure (a feel of) level progression
  * 
- *    Add background story?
  *    Mobile mode for first person mode
- *    Colorblind mode for first person mode
- *    Sounds? Should have toggle (and perhaps controlled by delag mode in part)
- *    Buttons get even darker when mouse is pressed?
- * 
- *    Rainbow masked text?
- *    Consider adding player trail?
+ *    Colorblind mode for first person mode?
+ *    Buttons get even darker when mouse is pressed in addition to hover?
+ *    Add background story?
  *    Button growth overshoot animation?
- *    Make win scene cooler (gradients?)
- *    Consider dropdown colorwheel   
  * 
- * Low priortity:
+ * Low priortity (performance only):
  *    Implement time smoothing?
- *    Does memory leak only occur with frequent editing or does it happen when playing too?
  *    Get startfraction working for speed?
+ *    Fix memory leak
  *    Reuse vertices?!
  * }
  * 
  * @Completed Todos (done or cancelled): {
+ *    Explain player thud condition in updatePlayer with comment
+ *    (CANCELLED) Faint indication of what will appear
+ *    Scan code for TO-DOs
+ *    Does memory leak only occur with frequent editing or does it happen when playing too?
+ *      ^ I think only frequent editing
+ *    (cancelled) Rainbow masked text?
+ *    (cancelled) Consider adding player trail?
+ *    Consider dropdown colorwheel (small colorwheel button added)
+ *    Add sounds to first person mode
+ *    Sounds? Should have toggle (and perhaps controlled by delag mode in part)
+ *    Add more instructions to level 5
+ *    Particle burst/feedback in first person mode for jewel collection
  *    (cancelled) Consider death counter for added challenge?
  *    Add in-game "cheat sheet"? (Done via color wheel button)
  *    Remove flashlight strobe
@@ -161,7 +174,7 @@
  *    Parallax background ( several moving components)? Extremely cool! … and not very cheap (remove in delag mode)
  *    !!! 2.5D effect in normal modes for parallax effect?!? Wow!!!
  *    Intro wham effect
- *    Add intro wham effect to completed todos list
+ *    Add intro wham effect to completed to-dos list
  * (hah) Wow ai wants to fix stuck mechanic and add pattern to colorblind mode, but I won’t!
  *    Make sure logT logs whole frame time as well
  *    Don't clear (portal & jewel) arrays in loadLevel, 
@@ -171,7 +184,8 @@
  *    Player should scale from bottom middle, not middle middle
  *    Resting animation for player? Bobbing height
  *    More obvious "stuckness"? (all modes)
- *      ^ (giant colored exclamation mark in colo of sticking block)
+ *      ^ (giant colored exclamation mark in colo of sticking block) *(later removed)*
+ *      ^ Later note: added sound effect, which helps
  *    Add delag mode button to options scene
  *    Enhance first person mode death shake
  *    (cancelled) Remove performance logging code?
@@ -304,7 +318,7 @@ var sceneStorageDefaults = {
         w: 0, r: 0, g: 0, b: 0, c: 0, m: 0, y: 0, hovering: ""
     }
 };
-// Persist across restarts to lighten cpu load
+// Persist some images across restarts to lighten cpu load
 var cachedImages = {
     circularOverlay: cachedImages && cachedImages.circularOverlay,
     portal: cachedImages && cachedImages.portal,
@@ -320,6 +334,7 @@ var currentLevelNumber = 0;
 var currentLevelArrays = {};
 var currentLevelSegments = {};
 var currentLevelMessages = {};
+var useSounds = true;
 var internalModeVars = {
     lightTheta: -40,
     lightDelta: 80,
@@ -355,9 +370,7 @@ var portals = {
     color2Dark: color(59, 59, 59),
 };
 var jewels = {
-    // current: [], all: [],
-    x: [], y: [], colors: [], // Positions of jewels
-    allX: [], allY: [], allColors: [], // For reset
+    current: [], all: [],
     maskBright: 0x444444,
     normalDarken: 68,
     darkDarken: 136,
@@ -366,14 +379,23 @@ var jewels = {
 };
 var deathTimer = 0, deathLength = 50;
 var parallaxIntensity = 0.07;
-var timeWarpMode = false, targetFrameRate = 60;
+var timeWarpMode = false, baseFrameRate = 60, warpFrameRate = 120;
+var targetFrameRate = timeWarpMode? warpFrameRate : baseFrameRate;
+var lastFrameRateDrop = 0;
 // Bindings to reuse some objects
 var spikePoints, playerPoints, around, emptyArrays;
 var maxEmptyArrays = 400;
 var gameSceneDraw, buttonsByScene, mobileButtons; // Keeps Oh noes happy
+var collisionObjects = {
+    stuck: {}, y: {}, x: {}, won: {}, lost: {}, grounded: {},
+};
 // For performance logger
 var startT = 0, lastT = 0, logcacheavg = {};
 var logcachemin = {}, logcachemax = {};
+// For recording for teaser
+var recordedData = [], recording = false, permitRecording = true; // todo: don't permit rec
+// For stopping non-draw handlers, as suggested by Gemini
+var hitError = false;
 // Clear emptyArrays, if it has length
 if (emptyArrays && emptyArrays.length) {
     emptyArrays.length = 0;
@@ -394,12 +416,10 @@ var lightColorsArray = [
 ];
 var lightColorsByLetter = {};
 var lightColorsByHex = {};
-var lightColorsOnly = [];
 for (var colorInd = 0; colorInd < lightColorsArray.length; colorInd++) {
     var colorObj = lightColorsArray[colorInd];
     lightColorsByLetter[colorObj.letter] = colorObj;
     lightColorsByHex[colorObj.hex] = colorObj;
-    lightColorsOnly.push(colorObj.hex);
 }
 
 // Particles
@@ -425,20 +445,7 @@ var playerParticles = {
         color: color(255, 255, 255),
         minSize: width*0.008, maxSize: width*0.012,
         minAge: 10, maxAge: 30,
-    },
-    config2: {
-        minVX: 0.05, maxVX: 0.1,
-        minVY: -0.08, maxVY: 0.03,
-        gravity: 0, count: 0,
-        minOpacity: 0, maxOpacity: 150,
-        // color: color(255, 255, 255),
-        minSize: width*0.008, maxSize: width*0.012,
-        minAge: 5, maxAge: 25,
-        getColor: function() {
-            var lightColor = lightColorsByLetter[currentLightColor].KAColor;
-            return lightColor;
-        },
-    },
+    }
 };
 var portalParticles = {
     all: [],
@@ -477,6 +484,26 @@ var jewelParticles = {
  -: Empty space
 */
 var levels = [
+    [
+    "w----------w----------------w",
+    "w----------w----------------w",
+    "w----------w----------------w",
+    "w----------b--------------@-w",
+    "w----$-----b----------------w",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwwww"],
+    [
+    "w------------------w",
+    "w------------------w",
+    "w------------------w",
+    "w----$-------------w",
+    "wwwwwwccyy--RRRR---w",
+    "wwwwwwwwwwwwrrrrwwww",
+    "w------------------w",
+    "w------------@-----w",
+    "w------------------w",
+    "w------------------w",
+    "w------------------w",
+    "w------------------w"],
     [
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "w--------------------------------------------w",
@@ -643,7 +670,10 @@ var levels = [
     "g----g----r----b----y----c----m---w",
     "g-$--w----w----w----w----w----w---w",
     "wwwwwwwwwwwwwwwwwyyywwcccwwmmmwwwww",
-    { message: "Careful.", size: 0.8, x: 18, y: 4.5, color: "w" }],
+    { message: "The walls\nhave holes.", size: 0.8, x: 8, y: 2.5, color: "w" },
+    { message: "Careful.", size: 0.8, x: 18, y: 4.5, color: "w" },
+    { message: "The floors have holes too.", 
+        size: 0.8, x: 18, y: 16.5, color: "b", drawnColor: "c" }],
     [
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "-----CCCCCCMMMMMM-----------1234567123456712345671234--",
@@ -663,7 +693,7 @@ var levels = [
     "w-------------------------------w",
     "w--W----------------------------w",
     "w-WwW---------Y-----------------w",
-    "w-------2----YyY------4------MMMw",
+    "w-------2----YyY------6------MMMw",
     "w------------YyY------------Mmmmw",
     "w------------YyY------bb----Mm@-w",
     "w-$-W--RRR---YyY-BBBBBbbbb--Mm--w",
@@ -677,7 +707,7 @@ var levels = [
     "mM-$-Mm----B----R----B-----M---B--R---G--C---M-----Y----",
     "w--w--w----g----b----r-----y---g--r---r--b---g-----w----",
     { message: "There are spikes now.", x: 13, y: 2.5, color: "w" },
-    { message: "Yep, I'm tricky.\nWhat you needed was blue.", 
+    { message: "Yep, I'm tricky.\nWhat you likely needed was blue.", 
         x: 3.5, y: 0, color: "r", strict: true, drawnColor: "w" }],
     [
     "w--------w",
@@ -785,7 +815,7 @@ Segment.safeNew = whatNewDoes;
 Light.safeNew = whatNewDoes;
 */ //
 
-/** Utility functions**/
+/** Utility functions (aren't tied to other parts of program) **/
 // This is mostly mine, made with some help from Bob Lyon's program
 // MyRect is a set of functions for drawing rounded rectangles with near-perfect rounding
 function myRectMode(mode) {
@@ -939,6 +969,7 @@ function reportError(err, clean) {
         println('If this happens too much, please let the creator (ElijaKen) know.');
         if (strictMode) {
             noLoop();
+            hitError = true;
             println('Press "o" to attempt to resume play.');
         }
     } else {
@@ -957,13 +988,14 @@ function reportError(err, clean) {
             println("If you are willing, please try to describe what you did\nleading up to this bug.");
             if (strictMode) {
                 noLoop();
+                hitError = true;
                 println('(Press "o" to resume play if the error is gone)');
             }
         }
     }
 }
 
-// Debugger helper
+// Debugger helper (So much easier to type!)
 function dbgr() {
     debugger; /* jshint ignore:line */
 }
@@ -1022,7 +1054,7 @@ function drawStar(cx, cy, numPoints, radius1, radius2, clr, angle) {
     endShape(CLOSE);
 }
 
-// Credit to Bob Lyon for this collision function!
+// Credit to Bob Lyon for these collision functions!
 function isBetween(c, a, b) {
     return (a - c) * (b - c) <= 0;
 }
@@ -1075,9 +1107,79 @@ function polygonPolygonCollide(poly1, poly2) {
 }
 
 // My own map function, based on formula from googling
-// Funny that Oh noes doesn't complain about this, as long as I put in 5 args
+// Funny that Oh noes doesn't complain about this, as long as I give it 5 args
 function map(value, minOrig, maxOrig, minNew, maxNew) {
     return (value - minOrig) * (maxNew - minNew) / (maxOrig - minOrig) + minNew;
+}
+
+/** Sound helpers **/
+var loadedSounds = {};
+var soundVolumes = {
+    // I've seen something like this, that sounds have to be included in the
+    // program code to work, but not with an auto-checking method like this.
+    // This doubles as a volume map, and a list of sounds in the program.
+    'getSound("retro/hit1");': 1, // For landing hard
+    'getSound("retro/coin");': 0.5, // For collecting jewels
+    'getSound("retro/jump1");': 0.1, // For jumping
+    'getSound("retro/jump2");': 0.4, // For light switches
+    'getSound("retro/laser2");': 1, // For getting stuck
+    'getSound("retro/boom2");': 0.6, // For death
+    'getSound("rpg/battle-swing");': 1, // For transitions
+};
+// Plays a sound
+function runSound(soundName) {
+    if (decreaseLag || !useSounds) {
+        return; // Skip sounds
+    }
+    var name = soundName;
+    // Permit simpler names
+    if (!name.includes("/")) {
+        name = "retro/" + name;
+    }
+    // Load the sound if needed
+    if (!loadedSounds[name]) {
+        // Match the special key in soundVolumes
+        var wrappedName = 'getSound("' + name + '");';
+        if (!(wrappedName in soundVolumes)) {
+            error("Attempting to play sound that was not " + 
+                "prepped for KA, or an invalid sound. Input name: " + soundName + 
+                ", parsed to " + name);
+            return;
+        }
+        var sound = null;
+        try {
+            sound = getSound(name);
+            // Thanks to Gemini for teaching me the basics of how to change the volume
+            sound.audio.volume = soundVolumes[wrappedName] * SOUND_VOLUME;
+        } catch (err) {
+            println("Failed to load sound " + name + 
+                "\nTurn off sounds in options to make this message go away.");
+        }
+        if (sound) {
+            loadedSounds[name] = sound;
+        }
+    }
+    // Play the sound
+    try {
+        var wrappedName = 'getSound("' + name + '");';
+        var sound = loadedSounds[name];
+        // Thanks to Gemini for teaching me the basics of how to change the volume
+        sound.audio.volume = soundVolumes[wrappedName] * SOUND_VOLUME;
+        // Play it!
+        playSound(sound);
+    } catch(err) {
+        println("Failed to play sound " + name + 
+            "\nTurn off sounds in options to make this message go away.");
+    }
+    
+}
+function verifySoundVolumesFormat() {
+    var verificationRegEx = /^getSound\("[\w\/\-]+"\);$/;
+    for (var name in soundVolumes) {
+        if (!verificationRegEx.test(name)) {
+            error("Invalid sound in soundVolumes: " + name);
+        }
+    }
 }
 
 /** Scene switcher and switch guards **/
@@ -1097,8 +1199,8 @@ function isTransitionState(state) {
 }
 
 function startTransition() {
-    if (transition.timer > 0) {
-        // Get a fresh image
+    if (transition.timer > 0 && useTransitions) {
+        // Was transitioning, so draw the scene to get a fresh image
         gameSceneDraw[currentScene]();
     }
     transition.oldSceneImage = get();
@@ -1107,6 +1209,9 @@ function startTransition() {
     transition.timer = 0;
     if (!useTransitions) {
         setTransitionState("done");
+    } else {
+        // Run sound
+        runSound("rpg/battle-swing");
     }
 }
 
@@ -1157,17 +1262,21 @@ function setLightType(newLightType) {
     }
 }
 
-function isLightType(lightType) {
+function isLightType(lightType, currentType) {
     if (!lightTypes.includes(lightType)) {
         error("Invalid light type: " + lightType);
     }
-    return currentLightType === lightType;
+    if (currentType === undefined) {
+        currentType = currentLightType;
+    }
+    return currentType === lightType;
 }
 
 function changeLightWrapped(newLightColor) {
     function changeLightColor() {
         if (lightColorsByLetter[newLightColor]) {
             currentLightColor = newLightColor;
+            runSound("jump2"); // The sound I chose for light changes
         } else {
             error("Invalid light color: " + newLightColor);
         }
@@ -1225,14 +1334,19 @@ var Button = (function() {
             config.strokeWeight : width * 0.005;
         // Background
         this.color = config.color || color(255, 225, 94);
-        // Hover and select stuff
+        // Hover, select, and press styles
         this.selectedColor = config.selectedColor || darkenColor(this.color, 60);
         this.selectedStroke = config.selectedStroke || this.stroke;
         this.hoverColor = config.hoverColor || darkenColor(this.color, 40);
         this.hoverGrow = config.hoverGrow || config.grow || 1.05;
+        this.pressColor = config.pressColor || darkenColor(this.hoverColor, 40);
+        this.pressGrow = config.pressGrow || config.grow || this.hoverGrow + 0.03;
+        // Init eases
         var isCurrentlySelected = this.isSelected && this.isSelected();
         this.easeHover = 0;
         this.easeSelect = isCurrentlySelected? 1 : 0;
+        this.easePress = 0;
+        // Set easeSpeed
         this.easeSpeed = config.easeSpeed || 0.2;
     }
     
@@ -1268,38 +1382,44 @@ var Button = (function() {
         }
     };
     
-    Button.prototype.draw = function(mx, my, selected) {
-        // Load image
-        if (!cachedImages[this.id + "image"]) {
+    Button.prototype.update = function(mx, my, mPressed, selected) {
+        // Selected
+        var isSelected = selected || this.isSelected && this.isSelected();
+        // Hover
+        var isHover = isInMyRect(mx, my, this.x, this.y, this.w, this.h, this.r);
+        // Pressed
+        var isPressed = isHover && mPressed;
+        // Easing
+        this.easeHover += isHover? this.easeSpeed : -this.easeSpeed;
+        this.easeHover = Math.min(Math.max(this.easeHover, 0), 1);
+        this.easeSelect += isSelected? this.easeSpeed : -this.easeSpeed;
+        this.easeSelect = Math.min(Math.max(this.easeSelect, 0), 1);
+        this.easePress += isPressed? this.easeSpeed : -this.easeSpeed;
+        this.easePress = Math.min(Math.max(this.easePress, 0), 1);
+    };
+    
+    Button.prototype.draw = function() {
+        // Load image if message is a function
+        if (!cachedImages[this.id + "image"] && typeof this.message === "function") {
             cachedImages[this.id + "image"] = this.getImage();
         }
-        
         // Get the message as an image
-        this.messageImage = cachedImages[this.id + "image"];
-        
-        // Selected?
-        selected = selected || this.isSelected && this.isSelected();
-        
+        if (!this.messageImage) {
+            this.messageImage = cachedImages[this.id + "image"];
+        }
         // Alignment
         textAlign(CENTER, CENTER);
         myRectMode(CORNER);
-        
-        // Hover
-        var hover = isInMyRect(mx, my, this.x, this.y, this.w, this.h, this.r);
-        
-        // Ease
-        this.easeHover += hover? this.easeSpeed : -this.easeSpeed;
-        this.easeHover = Math.min(Math.max(this.easeHover, 0), 1);
-        this.easeSelect += selected? this.easeSpeed : -this.easeSpeed;
-        this.easeSelect = Math.min(Math.max(this.easeSelect, 0), 1);
-        
-        // Background
+        // Background (fill)
         var hoverColor = lerpColor(this.color, this.hoverColor, this.easeHover);
-        var finalColor = lerpColor(hoverColor, this.selectedColor, this.easeSelect);
-        fill(finalColor);
-        
-        // Draw the button
-        var mult = lerp(1, this.hoverGrow, this.easeHover);
+        var selectColor = lerpColor(hoverColor, this.selectedColor, this.easeSelect);
+        var pressColor = lerpColor(selectColor, this.pressColor, this.easePress);
+        fill(pressColor);
+        // Mult for sizing
+        var hoverMult = lerp(1, this.hoverGrow, this.easeHover);
+        var pressMult = lerp(hoverMult, this.pressGrow, this.easePress);
+        var mult = pressMult;
+        // Stroke
         var strokeColor = lerpColor(this.stroke, this.selectedStroke, this.easeSelect);
         stroke(strokeColor);
         if (this.strokeWeight === 0) {
@@ -1307,6 +1427,7 @@ var Button = (function() {
         } else {
             strokeWeight(this.strokeWeight);
         }
+        // Background rect
         var x = this.x, y = this.y, w = this.w, h = this.h, r = this.r;
         if (mult !== 1) {
             x -= w * (mult - 1) * 0.5;
@@ -1316,9 +1437,16 @@ var Button = (function() {
             r *= mult;
         }
         myRect(x, y, w, h, r);
-        
-        imageMode(CORNER);
-        image(this.messageImage, x, y, w, h);
+        // Message
+        if (this.messageImage) {
+            imageMode(CORNER);
+            image(this.messageImage, x, y, w, h);
+        } else {
+            fill(this.textColor);
+            textSize(this.textSize * mult);
+            textAlign(CENTER, CENTER);
+            text(this.message, this.x + this.w / 2, this.y + this.h / 2);
+        }
     };
     
     Button.prototype.getImage = function() {
@@ -1338,7 +1466,7 @@ var Button = (function() {
         return graphics.get(0, 0, this.w, this.h);
     };
     
-    Button.drawForScene = function(scene, mx, my) {
+    Button.runForScene = function(scene) {
         if (typeof scene === "string") {
             if (!buttonsByScene[scene]) {
                 return;
@@ -1347,7 +1475,34 @@ var Button = (function() {
             }
         }
         for (var name in scene) {
-            scene[name].draw(mx, my);
+            scene[name].update(mouseX, mouseY, mouseIsPressed, false);
+            scene[name].draw();
+        }
+    };
+    
+    Button.updateForScene = function(scene, mx, my, mPressed) {
+        if (typeof scene === "string") {
+            if (!buttonsByScene[scene]) {
+                return;
+            } else {
+                scene = buttonsByScene[scene];
+            }
+        }
+        for (var name in scene) {
+            scene[name].update(mx, my, mPressed);
+        }
+    };
+    
+    Button.drawForScene = function(scene) {
+        if (typeof scene === "string") {
+            if (!buttonsByScene[scene]) {
+                return;
+            } else {
+                scene = buttonsByScene[scene];
+            }
+        }
+        for (var name in scene) {
+            scene[name].draw();
         }
     };
     
@@ -1441,18 +1596,18 @@ var Particle = (function() {
         this.x += this.vx;
         this.y += this.vy;
         this.age--;
-        return this.age <= 0; // Should this particle be removed?
+        return this.age <= 0; // Return whether this particle be removed
     };
     
-    Particle.prototype.draw = function(getScreenX, getScreenY, player) {
+    Particle.prototype.draw = function() {
         var alpha = map(this.age, 0, this.initialAge, this.minOpacity, this.maxOpacity);
         noStroke();
         fill(this.color, alpha);
-        ellipse(
-            getScreenX(this.x, player),
-            getScreenY(this.y, player),
-            this.size, this.size
-        );
+        ellipse(this.x * blockSize, this.y * blockSize, this.size, this.size);
+    };
+    
+    Particle.clearCache = function() {
+        freedParticles.length = 0;
     };
     
     return Particle;
@@ -1473,7 +1628,7 @@ var Jewel = (function() {
         j.freed = false;
         j.x = x;
         j.y = y;
-        j.c = c;
+        j.color = c;
         return j;
     };
     
@@ -1482,6 +1637,10 @@ var Jewel = (function() {
             freedJewels.push(this);
             this.freed = true;
         }
+    };
+    
+    Jewel.clearCache = function() {
+        freedJewels.length = 0;
     };
     
     return Jewel;
@@ -2252,22 +2411,28 @@ function getLvlArray() {
 }
 
 function getScreenX(blockX, player) {
+    if (!player) {
+        error("player is falsy (at getScreenX)");
+    }
     return (blockX - player.x - player.w/2) * blockSize + width/2;
 }
 
 function getScreenY(blockY, player) {
+    if (!player) {
+        error("player is falsy (at getScreenY)");
+    }
     return (blockY - player.y - player.h/2) * blockSize + height/2;
 }
 
 function canEnterPortal() {
-    return jewels.x.length === 0;
+    return jewels.current.length === 0;
 }
 
 function boxHitBox(x1, y1, w1, h1, x2, y2, w2, h2) {
     return x1 + w1 > x2 && x1 < x2 + w2 && y1 + h1 > y2 && y1 < y2 + h2;
 }
 
-// Three very similar functions.
+// Two very similar functions
 function addPoly(segments, type, x, y, w, h, around, clr) {
     if (!around) {
         error("addPoly was passed a falsy value for around: " + around);
@@ -2439,7 +2604,16 @@ function getSpikePoints(dir, x, y, w, h, oldSpikePoints) {
 
 // "Lit" as in "lit up by a light ray"
 // Returns an object with x and y OR false
-function touchesLitBlock(x, y, w, h, levelArray, type) {
+function touchesLitBlock(x, y, w, h, levelArray, type, outputObject) {
+    // Thanks to Gemini for suggesting the outputObject method for deleaking
+    if (!outputObject) {
+        println("Warning: outputObject is falsy. Creating a new " +
+            "object in touchesLitBlock(" +
+            x+", "+y+", "+w+", "+h+", <"+(typeof levelArray)+" levelArray>, "+
+            type+", "+outputObject+"); This is a potential memory leak.");
+        outputObject = {};
+    }
+    
     // Test if the given character touches that type of block.
     var minX = Math.floor(x);
     var maxX = Math.ceil(x + w) - 1;
@@ -2471,8 +2645,10 @@ function touchesLitBlock(x, y, w, h, levelArray, type) {
                 var currentLight = lightColorsByLetter[currentLightColor].hex;
                 var illuminated = currentLight & lightColorsByLetter[blockColor].hex;
                 if (illuminated !== 0) {
-                    // Potential memory leak!
-                    return {x: c, y: r};
+                    // No more potential memory leak here!
+                    outputObject.x = c;
+                    outputObject.y = r;
+                    return outputObject;
                 }
             } else if (type === "portal" && blockType.includes("portal")) {
                 return {x: c, y: r};
@@ -2484,8 +2660,10 @@ function touchesLitBlock(x, y, w, h, levelArray, type) {
                 if (illuminated !== 0) {
                     spikePoints = getSpikePoints(dir, c, r, 1, 1, spikePoints);
                     if (polygonPolygonCollide(spikePoints, playerPoints)) {
-                        // Potential memory leak!
-                        return {x: c, y: r};
+                        // No more potential memory leak here!
+                        outputObject.x = c;
+                        outputObject.y = r;
+                        return outputObject;
                     }
                 }
             }
@@ -2576,12 +2754,9 @@ function loadLevel(levelMap, levelSegments, levelMessages, lightColor, isFirstCo
             // Check for jewels
             if (type.includes("jewel")) {
                 if (isFirstColor) {
-                    jewels.x.push(c);
-                    jewels.y.push(r);
-                    jewels.colors.push(type[0]);
-                    jewels.allX.push(c);
-                    jewels.allY.push(r);
-                    jewels.allColors.push(type[0]);
+                    var j = Jewel.new(c, r, type[0]);
+                    jewels.current.push(j);
+                    jewels.all.push(j);
                 }
                 continue;
             }
@@ -2590,12 +2765,12 @@ function loadLevel(levelMap, levelSegments, levelMessages, lightColor, isFirstCo
             around.down = isLitBlockAt(c, r + 1);
             around.left = isLitBlockAt(c - 1, r);
             around.right = isLitBlockAt(c + 1, r);
-            // Error check (happens if I click "cheat" really fast)=
+            // Error check
             if (!levelArray[r][c]) {
                 levelArray.length = 0;
                 levelSegments.length = 0;
                 levelMessages.length = 0;
-                error("levelArray got broken (at loadLevel)\nDon't click so fast.");
+                error("levelArray got broken (at loadLevel)");
             }
             // Add Segments
             if (type.includes("block") || type.includes("spike")) {
@@ -2622,7 +2797,7 @@ function loadLevel(levelMap, levelSegments, levelMessages, lightColor, isFirstCo
     
     // Set the max portal particles (and jewel particles)
     portalParticles.config.count = portalParticles.config.countPer * portals.x.length;
-    jewelParticles.config.count = jewelParticles.config.countPer * jewels.x.length;
+    jewelParticles.config.count = jewelParticles.config.countPer * jewels.current.length;
     
     // Return (finally!)
     return levelArray;
@@ -2685,7 +2860,7 @@ function drawParticles(particlesObj) {
     if (particlesObj && !decreaseLag) {
         var p = particlesObj;
         for (var i = 0; i < p.all.length; i++) {
-            p.all[i].draw(getScreenX, getScreenY, player);
+            p.all[i].draw();
         }
     }
 }
@@ -2694,14 +2869,11 @@ function drawParticles(particlesObj) {
 function removeJewel(index) {
     // Remove the particle without leaking memory
     var j = jewels, i = index;
-    if (i === j.x.length - 1) {
-        j.x.length = i;
-        j.y.length = i;
-        j.colors.length = i;
+    j.current[i].free();
+    if (i === j.current.length - 1) {
+        j.current.length = i;
     } else {
-        j.x[i] = j.x.pop();
-        j.y[i] = j.y.pop();
-        j.colors[i] = j.colors.pop();
+        j.current[i] = j.current.pop();
     }
 }
 
@@ -2718,9 +2890,31 @@ function spawnSplash(count, relativeX, relativeY) {
 }
 
 // Game play
-function updatePlayer(levelArray, player, useWASD) {
+function updatePlayer(levelArray, player, keyMode) {
+    var keyUP = false, keyLEFT = false, keyRIGHT = false, keyDOWN = false;
+    if (keyMode === undefined || keyMode === "normal") {
+        keyUP = keys.w || keys[UP] || keys[" "];
+        keyLEFT = keys.a || keys[LEFT];
+        keyDOWN = keys.s || keys[DOWN];
+        keyRIGHT = keys.d || keys[RIGHT];
+    } else if (keyMode === "noWASD") {
+        keyUP = keys[UP] || keys[" "];
+        keyLEFT = keys[LEFT];
+        keyRIGHT = keys[RIGHT];
+        keyDOWN = keys[DOWN];
+    } else if (keyMode === "internal") {
+        var mirrored = internalModeVars.isMirrored;
+        keyUP = keys[" "];
+        keyLEFT = mirrored? keys.w || keys[UP] : keys.s || keys[DOWN];
+        keyRIGHT = mirrored? keys.s || keys[DOWN] : keys.w || keys[UP];
+        keyDOWN = false;
+    } else {
+        error("Unknown keyMode (at updatePlayer): " + keyMode);
+    }
+    
     // For easier access
-    var p = player;
+    var p = player, objs = collisionObjects;
+    var playerWasStuck = p.isStuck;
     p.isStuck = false; // Clears this every frame
     
     // Compute jumpSpeed
@@ -2731,25 +2925,29 @@ function updatePlayer(levelArray, player, useWASD) {
     var newYVelocity = p.yVelocity + p.gravity;
     
     // Test if stuck
-    var isStuck = touchesLitBlock(p.x, p.y, p.w, p.h, levelArray, "block");
+    var isStuck = touchesLitBlock(p.x, p.y, p.w, p.h, levelArray, "block", objs.stuck);
     if (isStuck) {
         // Player freezes until light color changes again
         p.yVelocity = 0;
-        p.isStuck = getBlockAt(levelArray, isStuck.x, isStuck.y, "empty") || true;
+        p.isStuck = true;
+        // Play sound once
+        if (!playerWasStuck) {
+            runSound("laser2");
+        }
         // Don't update any more
         return;
     }
     
     // Test if on ground (compute before x motion for smoother experience)
     var newY = p.y + yMotion;
-    var onGround = touchesLitBlock(p.x, newY, p.w, p.h, levelArray, "block");
+    var onGround = touchesLitBlock(p.x, newY, p.w, p.h, levelArray, "block", objs.grounded);
     
     // X motion
     var newX = p.x;
     var gap = (1 - p.w) / 2;
-    if (keys[LEFT] || keys.a && useWASD) { newX -= p.runSpeed; }
-    if (keys[RIGHT] || keys.d && useWASD) { newX += p.runSpeed; }
-    if (keys[DOWN] || keys.s && useWASD) { newX = Math.round(p.x - gap) + gap; }
+    if (keyLEFT) { newX -= p.runSpeed; }
+    if (keyRIGHT) { newX += p.runSpeed; }
+    if (keyDOWN) { newX = Math.round(p.x - gap) + gap; }
     // Limit x motion to the allowed speed
     newX = constrain(newX, p.x - p.runSpeed, p.x + p.runSpeed);
     // Particle half size (to help keep them entirely under the player)
@@ -2759,7 +2957,7 @@ function updatePlayer(levelArray, player, useWASD) {
         p.currentDir = newX < p.x? LEFT : RIGHT;
     }
     // X collisions
-    var touchX = touchesLitBlock(newX, p.y, p.w, p.h, levelArray, "block");
+    var touchX = touchesLitBlock(newX, p.y, p.w, p.h, levelArray, "block", objs.x);
     if (touchX) {
         if (p.x < touchX.x) {
             // Hit left side of block
@@ -2783,7 +2981,7 @@ function updatePlayer(levelArray, player, useWASD) {
     p.x = newX; // Update position
     
     // Y motion / collision
-    var touchY = touchesLitBlock(p.x, newY, p.w, p.h, levelArray, "block");
+    var touchY = touchesLitBlock(p.x, newY, p.w, p.h, levelArray, "block", objs.y);
     if (touchY) {
         if (p.y > touchY.y) {
             // Hit underside of block
@@ -2794,31 +2992,43 @@ function updatePlayer(levelArray, player, useWASD) {
             // Stop the player
             newY = touchY.y + 1;
             newYVelocity = 0;
+            // Sound
+            runSound("hit1");
         } else if (p.y <= touchY.y) {
             // Hit top of block
             var numParticles = Math.floor(Math.abs(newYVelocity*70));
+            var hitSpeed = newYVelocity;
             // Stop the player
             newY = touchY.y - p.h;
             newYVelocity = 0;
             // Jump
-            if (keys[UP] || keys.w && useWASD || keys[" "]) {
+            if (keyUP) {
                 newYVelocity = -p.jumpSpeed;
                 numParticles += Math.floor(Math.abs(newYVelocity*70));
+                // Sound
+                runSound("jump1");
             }
             // Particles
             if (numParticles > 0) {
                 spawnSplash(numParticles, 0, p.h/2-particleSize);
             }
+            // Thud sound when player hits ground hard
+            // Without the gate, it plays constantly:
+            // (the player is always hitting the ground gently when resting)
+            if (Math.abs(hitSpeed*10) > 0.5) {
+                runSound("hit1");
+            }
         }
     }
     p.y = newY; // Update position
     p.yVelocity = newYVelocity;
-    
-    // Light from flashlight
-    if (storage().playerFlashlightTime % 3 === 1) {
-        var particleXPos = p.currentDir === LEFT? p.x : p.x + p.w;
-        // addParticle(playerParticles, particleXPos, p.y + p.h*0.7, true);
-    }
+}
+
+// Tiny helper
+function updatePlayerLight() {
+    player.light.position.x = (player.x + player.w/2) * blockSize;
+    player.light.position.y = (player.y + player.h/2) * blockSize;
+    player.light.delta = player.lightDelta;
 }
 
 // Drawing functions for the player, portal, and jewels
@@ -2858,7 +3068,7 @@ function drawJewel(x, y, i, s, fpMode) {
     var jewelPulse = decreaseLag? 0 : Math.cos((jewelTimer + i*2) * 0.05) * 0.09;
     var jewelX = x;
     var jewelY = y + jewelBounce * s;
-    var jewelColor = jewels.colors[i];
+    var jewelColor = jewels.current[i].color;
     var jewelLabel = "jewel_" + jewelColor;
     var jewelHex = lightColorsByLetter[jewelColor].hex;
     var drawRing = (jewelHex & lightHex) !== 0;
@@ -2878,7 +3088,7 @@ function drawJewel(x, y, i, s, fpMode) {
         image(cachedImages[jewelLabel], jewelX, jewelY, s*2, s*2);
     } else {
         var js = s, x = jewelX, y = jewelY;
-        var hexColor = lightColorsByLetter[jewels.colors[i]].hex;
+        var hexColor = lightColorsByLetter[jewels.current[i].color].hex;
         var jewelColor = toKAColor2(hexColor, jewels.normalDarken);
         stroke(jewels.strokeColor);
         strokeWeight(js*0.05);
@@ -2921,9 +3131,9 @@ function drawJewel(x, y, i, s, fpMode) {
 
 function drawJewels() {
     // Only draw jewel *ring* if light color matches jewel color
-    for (var i = 0; i < jewels.x.length; i++) {
-        var jewelX = getScreenX(jewels.x[i] + 0.5, player);
-        var jewelY = getScreenY(jewels.y[i] + 0.5, player);
+    for (var i = 0; i < jewels.current.length; i++) {
+        var jewelX = getScreenX(jewels.current[i].x + 0.5, player);
+        var jewelY = getScreenY(jewels.current[i].y + 0.5, player);
         var margin = blockSize * 3;
         var onScreen = jewelX > -margin && jewelX < width + margin &&
             jewelY > -margin && jewelY < height + margin;
@@ -3015,7 +3225,9 @@ function drawPlayer(x, y, w, h) {
 
 function drawStuck(a) {
     // Draw "You're stuck!" text
-    fill(255, 255, 255, a || 100);
+    fill(255, 255, 255, 70);
+    rect(0, 0, width, height);
+    fill(255, 255, 255, a || 120);
     textSize(width*0.15);
     textAlign(CENTER, CENTER);
     text("You're stuck!", width*0.5, height*0.3);
@@ -3023,11 +3235,7 @@ function drawStuck(a) {
     text("Change colors\nto free yourself.", width*0.5, height*0.68);
 }
 
-function drawColorlessObjects(player) {
-    if (!player) {
-        error("player is undefined. (at drawPlayer)");
-    }
-    
+function drawColorlessObjects() {
     // Determine if the player is stuck
     var p = player;
     
@@ -3045,8 +3253,11 @@ function drawColorlessObjects(player) {
     
     // Draw the portal(s) and their particles
     var portalCurrentlyDark = !canEnterPortal();
-    if (!portalCurrentlyDark) {
+    if (!portalCurrentlyDark && !decreaseLag) {
+        pushMatrix();
+        translate(getScreenX(0, player), getScreenY(0, player));
         drawParticles(portalParticles);
+        popMatrix();
     }
     for (var i = 0; i < portals.x.length; i++) {
         var x = getScreenX(portals.x[i] + 0.5, player);
@@ -3055,7 +3266,12 @@ function drawColorlessObjects(player) {
     }
     
     // Draw the jewels and their particles
-    drawParticles(jewelParticles);
+    if (!decreaseLag) {
+        pushMatrix();
+        translate(getScreenX(0, player), getScreenY(0, player));
+        drawParticles(jewelParticles);
+        popMatrix();
+    }
     drawJewels();
 }
 
@@ -3177,6 +3393,25 @@ function getJewelImg(jewelColorLetter) {
     }
 }
 
+// Draws the stat bar in lower left (level number and jewel count)
+function drawStats() {
+    // The messages to display
+    var lvlMsg = "Level " + (currentLevelNumber + 1) + " / " + levels.length;
+    var jewelsCollected = jewels.all.length - jewels.current.length;
+    var jewelMsg = "" + jewelsCollected + " / " + jewels.all.length + " jewels";
+    // Background for the text
+    textSize(width*0.031);
+    var bgWidth = Math.max(textWidth(lvlMsg), textWidth(jewelMsg)) + width*0.02;
+    fill(0, 0, 0, 100);
+    noStroke();
+    myRect(0, height*0.848, bgWidth, height*0.09, 0, width*0.01, width*0.01, 0);
+    // The text
+    fill(230, 230, 230);
+    textAlign(LEFT, BOTTOM);
+    text(lvlMsg, width*0.008, height*0.931);
+    text(jewelMsg, width*0.008, height*0.893);
+}
+
 // Adds portal particles
 function runPortals() {
     var p = portalParticles;
@@ -3191,10 +3426,12 @@ function runPortals() {
 
 // Adds particles and updates bounce timer, and collision checks jewels
 function runJewels() {
-    for (var i = 0; i < jewels.x.length; i++) {
-        var x = jewels.x[i] + 0.5;
-        var y = jewels.y[i] + 0.5;
-        addParticle(jewelParticles, x, y);
+    if (!isLightType("internal")) {
+        for (var i = 0; i < jewels.current.length; i++) {
+            var x = jewels.current[i].x + 0.5;
+            var y = jewels.current[i].y + 0.5;
+            addParticle(jewelParticles, x, y);
+        }
     }
     // Update the particles
     updateParticles(jewelParticles);
@@ -3205,10 +3442,11 @@ function runJewels() {
     var lightHex = lightColorsByLetter[currentLightColor].hex;
     var px = player.x, py = player.y, pw = player.w, ph = player.h;
     // Iterate backward to handle removal correctly
-    for (var i = jewels.x.length; i-- > 0;) {
-        var x = jewels.x[i];
-        var y = jewels.y[i];
-        var jewelHex = lightColorsByLetter[jewels.colors[i]].hex;
+    for (var i = jewels.current.length; i-- > 0;) {
+        var x = jewels.current[i].x;
+        var y = jewels.current[i].y;
+        var jewelColorObj = lightColorsByLetter[jewels.current[i].color];
+        var jewelHex = jewelColorObj && jewelColorObj.hex || 0;
         var illuminated = (jewelHex & lightHex) !== 0;
         var hit = boxHitBox(px, py, pw, ph, x, y, 1, 1);
         if (hit && illuminated) {
@@ -3216,9 +3454,16 @@ function runJewels() {
             removeJewel(i);
             // Spawn particle burst
             x += 0.5; y += 0.5;
+            if (isLightType("internal")) {
+                // Instead spawn particles in lower-left, at the jewel counter
+                x = width*0.02 / blockSize;
+                y = height*0.87 / blockSize;
+            }
             for (var cnt = 0; cnt < 50; cnt++) {
                 addParticle(jewelParticles, x, y);
             }
+            // Play sound
+            runSound("coin");
         }
     }
 }
@@ -3234,8 +3479,13 @@ function clearAllParticles() {
 function clearLevelData() {
     // Clear portals and jewels
     portals.x.length = portals.y.length = 0;
-    jewels.x.length = jewels.y.length = jewels.colors.length = 0;
-    jewels.allX.length = jewels.allY.length = jewels.allColors.length = 0;
+    for (var i = 0; i < jewels.current.length; i++) {
+        jewels.current[i].free();
+    }
+    for (var i = 0; i < jewels.all.length; i++) {
+        jewels.all[i].free();
+    }
+    jewels.current.length = jewels.all.length = 0;
     // Clean up raycasting and level arrays and level messages
     var arrays = currentLevelArrays;
     for (var i = 0; i < lightColorsArray.length; i++) {
@@ -3309,6 +3559,8 @@ function onLose() {
     if (deathTimer <= 0) {
         deathTimer = deathLength;
         initParticles(deathParticles, player.x + player.w/2, player.y + player.h/2);
+        // Start sound
+        runSound("boom2");
     } else if (deathTimer > 1) {
         deathTimer--;
     } else {
@@ -3319,19 +3571,17 @@ function onLose() {
         player.y = player.firstY;
         player.yVelocity = 0;
         // Reset jewels
-        for (var i = 0; i < jewels.allX.length; i++) {
-            jewels.x[i] = jewels.allX[i];
-            jewels.y[i] = jewels.allY[i];
-            jewels.colors[i] = jewels.allColors[i];
+        for (var i = 0; i < jewels.all.length; i++) {
+            jewels.current[i] = jewels.all[i];
         }
     }
 }
 
 function checkWinLose() {
-    var p = player;
-    var touchingPortal = touchesLitBlock(p.x, p.y, p.w, p.h, getLvlArray(), "portal");
+    var p = player, objs = collisionObjects, lvlArray = getLvlArray();
+    var touchingPortal = touchesLitBlock(p.x, p.y, p.w, p.h, lvlArray, "portal", objs.won);
     var won = canEnterPortal() && touchingPortal;
-    var lost = touchesLitBlock(p.x, p.y, p.w, p.h, getLvlArray(), "spike");
+    var lost = touchesLitBlock(p.x, p.y, p.w, p.h, lvlArray, "spike", objs.lost);
     lost = lost || p.y > p.maxFall;
     if (won) {
         nextLevel();
@@ -3342,6 +3592,9 @@ function checkWinLose() {
 
 // Helper to draw messages on the screen
 function drawMessages(messages) {
+    if (!messages) {
+        error("messages is undefined (in drawMessages)");
+    }
     textAlign(CENTER, CENTER);
     for (var iMessage = 0; iMessage < messages.length; iMessage++) {
         var message = messages[iMessage];
@@ -3366,95 +3619,6 @@ function drawMessages(messages) {
     }
 }
 
-// Raycast
-function drawRaycastColorblindLetters(walls, levelArray) {
-    textSize(blockSize * 0.7);
-    fill(163, 163, 163);
-    textAlign(CENTER, CENTER);
-    
-    // ChatGPT suggested using a map (object), I thought it was a good idea
-    var blockPos = {}, keyMult = 10000;
-    var s = blockSize;
-    function savePt(x, y) {
-        var bx = Math.ceil(x / s);
-        var by = Math.ceil(y / s);
-        var key = String(bx * keyMult + by);
-        if (!blockPos[key]) {
-            blockPos[key] = true;
-        }
-    }
-    for (var i = 0; i < walls.length; i++) {
-        var wall = walls[i];
-        // Save all the blocks it touches
-        savePt(wall.vertices[0].x, wall.vertices[0].y);
-        savePt(wall.vertices[0].x - s, wall.vertices[0].y);
-        savePt(wall.vertices[0].x - s, wall.vertices[0].y - s);
-        savePt(wall.vertices[0].x, wall.vertices[0].y - s);
-        
-        savePt(wall.vertices[1].x, wall.vertices[1].y);
-        savePt(wall.vertices[1].x - s, wall.vertices[1].y);
-        savePt(wall.vertices[1].x - s, wall.vertices[1].y - s);
-        savePt(wall.vertices[1].x, wall.vertices[1].y - s);
-    }
-    for (var key in blockPos) {
-        var numKey = Number(key);
-        var x = Math.floor(numKey / keyMult);
-        var y = numKey - x * keyMult;
-        var c = getBlockAt(levelArray, x, y, "empty");
-        if (c !== "empty") {
-            text(c[0], (x + 0.5) * s, (y + 0.5) * s);
-        }
-        delete blockPos[key]; // Free up memory
-    }
-}
-
-function drawRaycast(levelSegments, levelArray) {
-    if (player.light) {
-        // Set the light position and delta
-        var lightScreenX = (player.x + player.w/2) * blockSize;
-        var lightScreenY = (player.y + player.h/2) * blockSize;
-        player.light.position.x = lightScreenX;
-        player.light.position.y = lightScreenY;
-        player.light.delta = player.lightDelta;
-        // Translate the visual
-        pushMatrix();
-        translate(-lightScreenX + width/2, -lightScreenY + height/2);
-        // Run the raycast
-        var walls = player.light.trace(levelSegments, player.walls);
-        player.walls = walls;
-        var lightColor = lightColorsByLetter[currentLightColor].hex;
-        var rayColor = color(toKAColor2(lightColor, 204), 100);
-        if (walls) {
-            if (!decreaseLag) {
-                // Visual "echo" effect, technically called parallax
-                pushMatrix();
-                translate(lightScreenX, lightScreenY);
-                var scale1 = 1 - parallaxIntensity * 2;
-                scale(scale1);
-                translate(-lightScreenX, -lightScreenY);
-                player.light.drawWalls(walls, lightColor, rayColor);
-                
-                translate(lightScreenX, lightScreenY);
-                var scale2 = 1 - parallaxIntensity;
-                scale(scale2 / scale1);
-                translate(-lightScreenX, -lightScreenY);
-                player.light.drawWalls(walls, lightColor, rayColor);
-                popMatrix();
-            }
-            player.light.drawWalls(walls, lightColor, rayColor);
-            if (colorblindMode) {
-                drawRaycastColorblindLetters(walls, levelArray);
-            }
-        }
-        // Level messages
-        drawMessages(currentLevelMessages[currentLightColor]);
-        // Pop
-        popMatrix();
-    } else {
-        error("Failed to use light (player.light is falsy in drawRaycast)");
-    }
-}
-
 // Full
 function drawPlainLevel(levelArray, transparency) {
     // Colored background
@@ -3463,8 +3627,8 @@ function drawPlainLevel(levelArray, transparency) {
     fill(rayColor);
     var margin = Math.max(player.maxFall, player.jumpHeight) * blockSize + 
         Math.max(width, height);
-    rect(-margin, -margin, 
-        levelArray[0].length*blockSize + margin * 2, 
+    var levelWidth = levelArray[0] && levelArray[0].length || 0;
+    rect(-margin, -margin, levelWidth*blockSize + margin * 2, 
         levelArray.length*blockSize + margin * 2);
     
     // Blocks
@@ -3557,8 +3721,139 @@ function drawFull(levelArray) {
     var playerScreenY = (player.y + player.h/2) * blockSize;
     pushMatrix();
     translate(-playerScreenX+width/2, -playerScreenY+height/2);
-    drawMessages(currentLevelMessages[currentLightColor]);
+    if (currentLevelMessages[currentLightColor]) {
+        drawMessages(currentLevelMessages[currentLightColor]);
+    }
     popMatrix();
+}
+
+// Raycast
+function drawRaycastColorblindLetters(walls, levelArray) {
+    textSize(blockSize * 0.7);
+    fill(163, 163, 163);
+    textAlign(CENTER, CENTER);
+    
+    // ChatGPT suggested using a map (object), I thought it was a good idea
+    var blockPos = {}, keyMult = 10000;
+    var s = blockSize;
+    function savePt(x, y) {
+        var bx = Math.ceil(x / s);
+        var by = Math.ceil(y / s);
+        var key = String(bx * keyMult + by);
+        if (!blockPos[key]) {
+            blockPos[key] = true;
+        }
+    }
+    for (var i = 0; i < walls.length; i++) {
+        var wall = walls[i];
+        // Save all the blocks it touches
+        savePt(wall.vertices[0].x, wall.vertices[0].y);
+        savePt(wall.vertices[0].x - s, wall.vertices[0].y);
+        savePt(wall.vertices[0].x - s, wall.vertices[0].y - s);
+        savePt(wall.vertices[0].x, wall.vertices[0].y - s);
+        
+        savePt(wall.vertices[1].x, wall.vertices[1].y);
+        savePt(wall.vertices[1].x - s, wall.vertices[1].y);
+        savePt(wall.vertices[1].x - s, wall.vertices[1].y - s);
+        savePt(wall.vertices[1].x, wall.vertices[1].y - s);
+    }
+    for (var key in blockPos) {
+        var numKey = Number(key);
+        var x = Math.floor(numKey / keyMult);
+        var y = numKey - x * keyMult;
+        var c = getBlockAt(levelArray, x, y, "empty");
+        if (c !== "empty") {
+            text(c[0], (x + 0.5) * s, (y + 0.5) * s);
+        }
+        delete blockPos[key]; // Free up memory
+    }
+}
+
+function drawRaycast(levelSegments, levelArray) {
+    var lightScreenX = (player.x + player.w/2) * blockSize;
+    var lightScreenY = (player.y + player.h/2) * blockSize;
+    var xadd = -lightScreenX + width/2, yadd = -lightScreenY + height/2;
+    var margin = blockSize*5;
+    function filterFunc(el) {
+        return el.vertices[0].x+xadd > -margin && el.vertices[0].x+xadd < width+margin &&
+            el.vertices[0].y+yadd > -margin && el.vertices[0].y+yadd < height+margin ||
+            el.vertices[1].x+xadd > -margin && el.vertices[1].x+xadd < width+margin &&
+            el.vertices[1].y+yadd > -margin && el.vertices[1].y+yadd < height+margin || 
+            el.color === 0;
+    }
+    function rnd4(num) {
+        return Math.round(num*1000)/1000;
+    }
+    if (player.light) {
+        // Compute the light position
+        var lightScreenX = (player.x + player.w/2) * blockSize;
+        var lightScreenY = (player.y + player.h/2) * blockSize;
+        // Translate the visual
+        pushMatrix();
+        translate(-lightScreenX + width/2, -lightScreenY + height/2);
+        // Prune if recording
+        if (recording && permitRecording) {
+            levelSegments = levelSegments.filter(filterFunc);
+        }
+        // Run the raycast
+        var walls = player.light.trace(levelSegments, player.walls);
+        player.walls = walls;
+        var lightColor = lightColorsByLetter[currentLightColor].hex;
+        var rayColor = color(toKAColor2(lightColor, 204), 100);
+        if (walls) {
+            if (!decreaseLag) {
+                // Visual "echo" effect, technically called parallax
+                pushMatrix();
+                translate(lightScreenX, lightScreenY);
+                var scale1 = 1 - parallaxIntensity * 2;
+                scale(scale1);
+                translate(-lightScreenX, -lightScreenY);
+                player.light.drawWalls(walls, lightColor, rayColor);
+                
+                translate(lightScreenX, lightScreenY);
+                var scale2 = 1 - parallaxIntensity;
+                scale(scale2 / scale1);
+                translate(-lightScreenX, -lightScreenY);
+                player.light.drawWalls(walls, lightColor, rayColor);
+                popMatrix();
+            }
+            player.light.drawWalls(walls, lightColor, rayColor);
+            if (colorblindMode) {
+                drawRaycastColorblindLetters(walls, levelArray);
+            }
+            // Record
+            if (recording && permitRecording) {
+                var strs = [];
+                for (var i = 0; i < walls.length; i++) {
+                    var seg = walls[i], segHex = seg.color;
+                    var obj = lightColorsByHex[segHex & 0xFFFFFF];
+                    var letter = obj ? "'" + obj.letter + "'" : "0";
+                    var segStr = "["+rnd4(seg.vertices[0].x)+","+rnd4(seg.vertices[0].y)+
+                        ","+rnd4(seg.vertices[1].x)+","+rnd4(seg.vertices[1].y)+
+                        ","+letter+"]";
+                    strs.push(segStr);
+                }
+                Jewel.prototype.toString = function() {
+                    return "[" + this.x + "," + this.y + ",'" + this.color + "']";
+                };
+                recordedData.push("{lightColor:"+rayColor+",playerX:" + 
+                    rnd4(player.x) + ",playerY:"+
+                    rnd4(player.y)+",playerDir:"+player.currentDir+
+                    ",playerBob:" + storage().playerBob + ",jewels:["+
+                    jewels.current.join(",") + "],portalXs:[" + portals.x.join(",") + 
+                    "],portalYs:[" + portals.y.join(",") + 
+                    "],walls:[" + strs.join(",")+"]}");
+            }
+        }
+        // Level messages
+        if (currentLevelMessages[currentLightColor]) {
+            drawMessages(currentLevelMessages[currentLightColor]);
+        }
+        // Pop
+        popMatrix();
+    } else {
+        error("Failed to use light (player.light is falsy in drawRaycast)");
+    }
 }
 
 // Circular
@@ -3584,6 +3879,10 @@ function getCircularImg() {
 }
 
 function drawCircular(levelArray) {
+    // For recording
+    function rnd4(num) {
+        return Math.round(num*1000)/1000;
+    }
     // Objects
     drawParallaxLevel(levelArray);
     // Colorblind mode
@@ -3591,9 +3890,11 @@ function drawCircular(levelArray) {
         drawFullColorblindLetters(levelArray);
     }
     // Overlay
+    var margin = blockSize;
     if (!decreaseLag && cachedImages.circularOverlay) {
         imageMode(CORNER);
-        image(cachedImages.circularOverlay, 0, 0, width, height);
+        image(cachedImages.circularOverlay, 
+            -margin, -margin, width + margin*2, height + margin*2);
     } else {
         // Simple overlay
         var w = width, h = height;
@@ -3625,8 +3926,48 @@ function drawCircular(levelArray) {
     var playerScreenY = (player.y + player.h/2) * blockSize;
     pushMatrix();
     translate(-playerScreenX+width/2, -playerScreenY+height/2);
-    drawMessages(currentLevelMessages[currentLightColor]);
+    if (currentLevelMessages[currentLightColor]) {
+        drawMessages(currentLevelMessages[currentLightColor]);
+    }
     popMatrix();
+    
+    // Record
+    if (recording && permitRecording) {
+        var lightColor = lightColorsByLetter[currentLightColor].hex;
+        var rayColor = color(toKAColor2(lightColor, 204), 255);
+        var strs = [];
+        var lvlArray = currentLevelArrays.w;
+        for (var r = 0; r < lvlArray.length; r++) {
+            var str = '"';
+            for (var c = 0; c < lvlArray[r].length; c++) {
+                var block = lvlArray[r][c];
+                var char = null;
+                if (block.includes("empty")) {
+                    char = "-";
+                } else if (block.includes("spike")) {
+                    char = block[0].toUpperCase();
+                } else if (block.includes("block")) {
+                    char = block[0].toLowerCase();
+                } else {
+                    char = "-";
+                }
+                str += char;
+            }
+            str += '"';
+            strs.push(str);
+        }
+        Jewel.prototype.toString = function() {
+            return "[" + this.x + "," + this.y + ",'" + this.color + "']";
+        };
+        recordedData[0] = "[" + strs.join(",") +"]";
+        recordedData.push("{lightColor:"+rayColor+",playerX:" + 
+            rnd4(player.x) + ",playerY:"+
+            rnd4(player.y)+",playerDir:"+player.currentDir+
+            ",playerBob:" + storage().playerBob + ",jewels:["+
+            jewels.current.join(",") + "],portalXs:[" + portals.x.join(",") + 
+            "],portalYs:[" + portals.y.join(",") + 
+            "]}");
+    }
 }
 
 // "Flashlight" mode (not that cool)
@@ -3673,7 +4014,7 @@ function runFlashlightMode() {
     if (keys.s || keys.d || keys[RIGHT]) {
         vars.lightTheta += vars.camThetaSpeed;
     }
-    updatePlayer(getLvlArray(), player, false);
+    updatePlayer(getLvlArray(), player, "noWASD");
 }
 
 // Internal (uses raycasting)
@@ -3875,30 +4216,15 @@ var internalModeFunctions = (function() {
             } while (swapped);
         }
         
-        // Sort the jewels back to front (just like for portals, a simple bubble sort)
-        if (jewels.x.length > 1) {
-            var swapped = false;
-            do {
-                swapped = false;
-                var xs = jewels.x, ys = jewels.y, clrs = jewels.colors, len = xs.length;
-                for (var i = 0; i < len - 1; i++) {
-                    var nextI = i + 1;
-                    var doSwap = compareDistances(xs[i], ys[i], xs[nextI], ys[nextI]) < 0;
-                    if (doSwap) {
-                        // Swap!
-                        swapped = true;
-                        var temp = xs[i];
-                        xs[i] = xs[nextI];
-                        xs[nextI] = temp;
-                        temp = ys[i];
-                        ys[i] = ys[nextI];
-                        ys[nextI] = temp;
-                        temp = clrs[i];
-                        clrs[i] = clrs[nextI];
-                        clrs[nextI] = temp;
-                    }
-                }
-            } while (swapped);
+        // Sort the jewels back to front
+        function compareDistancesObjects(a, b) {
+            var x1 = a.x, y1 = a.y, x2 = b.x, y2 = b.y;
+            var xDist1 = x1*blockSize - playerX, yDist1 = y1*blockSize - playerY;
+            var xDist2 = x2*blockSize - playerX, yDist2 = y2*blockSize - playerY;
+            return (xDist2*xDist2 + yDist2*yDist2) - (xDist1*xDist1 + yDist1*yDist1);
+        }
+        if (jewels.current.length > 1) {
+            jewels.current.sort(compareDistancesObjects);
         }
         
         // Start by rotating all the points to be directly in front of the player
@@ -3929,7 +4255,8 @@ var internalModeFunctions = (function() {
         var jewelSize = blockSize*2;
         var jewelX = w*0.5;
         // The loop!
-        var wallLen = walls.length, portalLen = portals.x.length, jewelLen = jewels.x.length;
+        var wallLen = walls.length, portalLen = portals.x.length, 
+            jewelLen = jewels.current.length;
         var iWall = 0, iPortal = 0, iJewel = 0, iters = 0;
         if (wallLen + portalLen + jewelLen >= 10000) {
             // Let the user know something is off
@@ -3946,7 +4273,6 @@ var internalModeFunctions = (function() {
             var seg = walls[iWall] && walls[iWall].parentSeg;
             // Compare the current wall to the current portal to see which one gets to be drawn
             var verts = seg && seg.vertices;
-            var hasDrawnObject = false;
             var wallDistSq = NaN, portalDistSq = NaN, jewelDistSq = NaN;
             // Compute portal distance
             if (iPortal < portalLen) {
@@ -3959,8 +4285,8 @@ var internalModeFunctions = (function() {
             // Compute jewel distance
             if (iJewel < jewelLen) {
                 // Jewel dist
-                var rawJewelX = jewels.x[iJewel] * blockSize;
-                var rawJewelY = jewels.y[iJewel] * blockSize;
+                var rawJewelX = (jewels.current[iJewel].x + 0.5) * blockSize;
+                var rawJewelY = (jewels.current[iJewel].y + 0.5) * blockSize;
                 var jewelDistX = rawJewelX - playerX, jewelDistY = rawJewelY - playerY;
                 jewelDistSq = jewelDistX*jewelDistX + jewelDistY*jewelDistY;
             }
@@ -4021,15 +4347,15 @@ var internalModeFunctions = (function() {
                     drawPortal(portalX, portalY, isDark, portalWidth);
                 }
                 // }
-                iPortal++;
-                hasDrawnObject = true;
             }
             // Draw the jewel?
-            if (jewelDistSq && (Number.isNaN(wallDistSq) || jewelDistSq > wallDistSq)) {
+            var drawTheJewel = jewelDistSq && 
+                (Number.isNaN(wallDistSq) || jewelDistSq > wallDistSq);
+            if (drawTheJewel) {
                 // Draw the jewel {
                 // Rotate
-                var rawJewelX = jewels.x[iJewel] * blockSize;
-                var rawJewelY = jewels.y[iJewel] * blockSize;
+                var rawJewelX = (jewels.current[iJewel].x + 0.5) * blockSize;
+                var rawJewelY = (jewels.current[iJewel].y + 0.5) * blockSize;
                 var rotationCenterX = playerX, rotationCenterY = playerY;
                 var originalX = rawJewelX - rotationCenterX;
                 var originalY = rawJewelY - rotationCenterY;
@@ -4055,14 +4381,10 @@ var internalModeFunctions = (function() {
                     drawJewel(jewelX, jewelY, iJewel, jewelWidth*0.5, true);
                 }
                 // }
-                iJewel++;
-                hasDrawnObject = true;
             }
             // Draw the wall if nothing else drawn
-            if (!hasDrawnObject) {
-                iWall++; // Next wall
-            }
-            if (seg && !hasDrawnObject) {
+            var drawWall = !drawThePortal && !drawTheJewel;
+            if (seg && drawWall) {
                 // Draw the wall {
                 var v1 = verts[0], v2 = verts[1];
                 var baseWallColor = seg.color;
@@ -4122,11 +4444,22 @@ var internalModeFunctions = (function() {
                 // }
                 // }
             }
+            // Increment indices (Gemini suggested doing it all at once to avoid confusion)
+            if (drawThePortal) {
+                iPortal++;
+            } else if (drawTheJewel) {
+                iJewel++;
+            } else {
+                iWall++;
+            }
         }
     }
     
     function drawInternal(levelSegments) {
         // Draw it
+        function rnd4(num) { // for recording only
+            return Math.round(num*1000)/1000;
+        }
         var vars = internalModeVars;
         if (player.light) {
             // Set the light position
@@ -4154,83 +4487,35 @@ var internalModeFunctions = (function() {
                 rect(0, 0, width, height);
                 drawStuck(200);
             }
+            
+            // Record
+            if (recording && permitRecording) {
+                var strs = [];
+                for (var i = 0; i < walls.length; i++) {
+                    var seg = walls[i].parentSeg, segHex = seg.color;
+                    // var hex = (segHex&0xF00000)>>>12 | (segHex&0xF000)>>>8 | segHex&0xF;
+                    var obj = lightColorsByHex[segHex & 0xFFFFFF];
+                    var letter = obj ? "'" + obj.letter + "'" : "0";
+                    // var hexString = segHex === 0? "0" : "0x" + hex.toString(16);
+                    var segStr = "["+rnd4(seg.vertices[0].x)+","+rnd4(seg.vertices[0].y)+
+                        ","+rnd4(seg.vertices[1].x)+","+rnd4(seg.vertices[1].y)+
+                        ","+letter+"]";
+                    strs.push(segStr);
+                }
+                Jewel.prototype.toString = function() {
+                    return "[" + this.x + "," + this.y + ",'" + this.color + "']";
+                };
+                recordedData.push("{lightColor:"+rayColor+",playerX:" + 
+                    rnd4(player.x) + ",playerY:"+
+                    rnd4(player.y)+",playerDir:"+player.currentDir+
+                    ",playerBob:" + storage().playerBob + ",jewels:["+
+                    jewels.current.join(",") + "],portalXs:[" + portals.x.join(",") + 
+                    "],portalYs:[" + portals.y.join(",") + 
+                    "],walls:[" + strs.join(",")+"]}");
+            }
         } else {
             error("Failed to use light (player.light is falsy in drawInternal)");
         }
-    }
-    
-    function updatePlayerInternal(levelArray, player) {
-        // For easier access
-        var p = player, vars = internalModeVars;
-        p.isStuck = false; // Clears this every frame
-        
-        // Compute jumpSpeed
-        p.jumpSpeed = Math.sqrt(2 * p.gravity * p.jumpHeight);
-        
-        // Compute updated variables
-        var yMotion = constrain(p.yVelocity + 0.5 * p.gravity, -1, 1);
-        var newYVelocity = p.yVelocity + p.gravity;
-        
-        // Test if stuck
-        var isStuck = touchesLitBlock(p.x, p.y, p.w, p.h, levelArray, "block");
-        if (isStuck) {
-            // Player freezes until light color changes again
-            p.yVelocity = 0;
-            p.isStuck = true;
-            // Don't update any more
-            return;
-        }
-        
-        // Test if on ground (compute before x motion for smoother experience)
-        var newY = p.y + yMotion;
-        var onGround = touchesLitBlock(p.x, newY, p.w, p.h, levelArray, "block");
-        
-        // X motion
-        var newX = p.x;
-        var gap = (1 - p.w) / 2;
-        if (vars.isMirrored) {
-            if (keys.w || keys[UP]) { newX -= p.runSpeed; }
-            if (keys.s || keys[DOWN]) { newX += p.runSpeed; }
-        } else {
-            if (keys.s || keys[DOWN]) { newX -= p.runSpeed; }
-            if (keys.w || keys[UP]) { newX += p.runSpeed; }
-        }
-        // Limit x motion to the allowed speed
-        newX = constrain(newX, p.x - p.runSpeed, p.x + p.runSpeed);
-        // X collisions
-        var touchX = touchesLitBlock(newX, p.y, p.w, p.h, levelArray, "block");
-        if (touchX) {
-            if (p.x < touchX.x) {
-                // Hit left side of block
-                newX = touchX.x - p.w;
-            } else {
-                // Hit right side of block
-                newX = touchX.x + 1; // 1 = block width
-            }
-        }
-        p.x = newX; // Update position
-        
-        // Y motion / collision
-        var touchY = touchesLitBlock(p.x, newY, p.w, p.h, levelArray, "block");
-        if (touchY) {
-            if (p.y > touchY.y) {
-                // Hit underside of block
-                // Stop the player
-                newY = touchY.y + 1;
-                newYVelocity = 0;
-            } else if (p.y <= touchY.y) {
-                // Hit top of block
-                // Stop the player
-                newY = touchY.y - p.h;
-                newYVelocity = 0;
-                if (keys[" "]) {
-                    // Jump
-                    newYVelocity = -p.jumpSpeed;
-                }
-            }
-        }
-        p.y = newY; // Update position
-        p.yVelocity = newYVelocity;
     }
     
     function runInternal() {
@@ -4247,7 +4532,7 @@ var internalModeFunctions = (function() {
         var mirror = lightT > 90 - hlightD && lightT < 270 - hlightD;
         vars.isMirrored = mirror;
         // Update player
-        updatePlayerInternal(getLvlArray(), player);
+        updatePlayer(getLvlArray(), player, "internal");
     }
     
     return { runInternal: runInternal, 
@@ -4294,7 +4579,7 @@ function loadGame() {
         segs[toLoad] = getEmptyArray();
         currentLevelMessages[toLoad] = getEmptyArray();
         // It's always safe to load jewels again if there aren't any
-        var isFirstLightColor = portals.x.length <= 0? jewels.x.length <= 0 : false;
+        var isFirstLightColor = portals.x.length <= 0? jewels.current.length <= 0 : false;
         currentLevelArrays[toLoad] = loadLevel(
             levels[currentLevelNumber], 
             segs[toLoad],
@@ -4302,10 +4587,17 @@ function loadGame() {
             toLoad, 
             isFirstLightColor
         );
+        // Update player.light to prevent startup bugs
+        updatePlayerLight();
     }
 }
 
 function runGame() {
+    // Clear particles if a light type shift occurred
+    var lastType = storage().lastLightType;
+    if (storage().lastLightType !== currentLightType) {
+        clearAllParticles();
+    }
     // Call at beginning to avoid error in rendering function
     // Also guard to avoid errors in this function
     if (currentLevelArrays) {
@@ -4327,19 +4619,22 @@ function runGame() {
     // Run the game
     if (deathTimer <= 0) {
         if (isLightType("internal")) {
-            runInternal();
+            runInternal(); // Updates player
         } else if (isLightType("flashlight")) {
             runFlashlightMode();
         } else {
-            updatePlayer(getLvlArray(), player, true);
+            updatePlayer(getLvlArray(), player, "normal");
         }
     }
+    // Update player.light
+    updatePlayerLight();
+    // Save the last used light type (the current light type)
+    storage().lastLightType = currentLightType;
 }
 
 function drawGame() {
     // Init portal graphics
     getPortalImg();
-
     // Shake effect
     pushMatrix();
     if (deathTimer > 0) {
@@ -4348,7 +4643,6 @@ function drawGame() {
         var offsetY = Math.cos(deathTimer * 2 + 1) * intensity;
         translate(offsetX, offsetY);
     }
-    
     // Draw the level
     if (isLightType("raycast")) {
         var segs = currentLevelSegments[currentLightColor];
@@ -4374,45 +4668,37 @@ function drawGame() {
     } else if (isLightType("full")) {
         drawFull(getLvlArray());
     }
-    
+    // Draw particles
     if (!isLightType("internal")) {
+        // Translate the particles
+        pushMatrix();
+        translate(getScreenX(0, player), getScreenY(0, player));
+        
         // Particles
         drawParticles(playerParticles);
         drawParticles(deathParticles);
         
+        // Untransform
+        popMatrix();
+        
         // Player and portal(s) and jewel(s)
-        drawColorlessObjects(player, getLvlArray());
+        drawColorlessObjects();
+    } else {
+        drawParticles(jewelParticles); // These handle internal mode
     }
-    
     // Death fade
     if (deathTimer > 0) {
-        // Fade + whiteness
+        // Fade + whiteness (how do I make my comments not sound like AI?)
         noStroke();
         fill(255, 255, 255, 100);
         rect(0, 0, width, height);
         fill(0, 0, 0, map(deathTimer, 1, deathLength, 255, 0));
         rect(0, 0, width, height);
     }
-    
     // Untransform
     popMatrix();
-    
     // Level number and jewel count
-    // The messages to display here
-    var lvlMsg = "Level " + (currentLevelNumber + 1) + " / " + levels.length;
-    var jewelsCollected = jewels.allX.length - jewels.x.length;
-    var jewelMsg = "" + jewelsCollected + " / " + jewels.allX.length + " jewels";
-    // Background for the text
-    textSize(width*0.031);
-    var bgWidth = Math.max(textWidth(lvlMsg), textWidth(jewelMsg)) + width*0.02;
-    fill(0, 0, 0, 100);
-    noStroke();
-    myRect(0, height*0.848, bgWidth, height*0.09, 0, width*0.01, width*0.01, 0);
-    // The text
-    fill(230, 230, 230);
-    textAlign(LEFT, BOTTOM);
-    text(lvlMsg, width*0.008, height*0.931);
-    text(jewelMsg, width*0.008, height*0.893);
+    drawStats();
 }
 
 // Transition functions
@@ -4458,7 +4744,6 @@ function drawBoxedFadeTransition() {
     }
     // Draw it
     noStroke();
-    var colors = lightColorsArray;
     for (var r = 0; r < chunkCount; r++) {
         for (var c = 0; c < chunkCount; c++) {
             var a = fadeAlpha + (r * 3 + c * 4) * inc * chunkADiff / 5;
@@ -4517,7 +4802,7 @@ function drawHomeScene() {
     // Buttons and button fade in
     var startTime = 164;
     if (intro > startTime) {
-        Button.drawForScene("home", mouseX, mouseY);
+        Button.runForScene("home");
         // Fade in overlay for buttons
         if (255 > (intro - startTime) * 3) {
             noStroke();
@@ -4557,8 +4842,8 @@ function drawHomeScene() {
         var msg = titleText, len = msg.length, msgWidth = textWidth(msg);
         for (var i = 0; i < len; i++) {
             var xOffset = textWidth(msg.slice(0, i));
-            var textColor = lightColorsOnly[i % lightColorsOnly.length];
-            fill(toKAColor(textColor), textAlpha);
+            var textColor = lightColorsArray[i % lightColorsArray.length].KAColor;
+            fill(textColor, textAlpha);
             text(msg[i], -msgWidth/2 + xOffset, textOffsetY);
         }
         // }
@@ -4593,9 +4878,9 @@ function drawPlayScene() {
     
     drawGame();
     
-    Button.drawForScene("play", mouseX, mouseY);
+    Button.runForScene("play");
     if (mobileMode) {
-        Button.drawForScene(mobileButtons.play, undefined, undefined); 
+        Button.runForScene(mobileButtons.play); 
     }
 }
 
@@ -4624,7 +4909,7 @@ function drawInfoScene() {
     }
     
     // Buttons
-    Button.drawForScene("info", mouseX, mouseY);
+    Button.runForScene("info");
 }
 
 // Color wheel scene
@@ -4773,7 +5058,7 @@ function drawColorwheelScene() {
         text(msg, width*0.5, height*0.75);
     }
     // Buttons
-    Button.drawForScene("colorwheel", mouseX, mouseY);
+    Button.runForScene("colorwheel");
 }
 
 // Options scene
@@ -4791,17 +5076,18 @@ function drawOptionsScene() {
     text(txt, width/2, height*0.15);
     
     // Buttons
-    Button.drawForScene("options", mouseX, mouseY);
+    Button.runForScene("options");
 }
 
 // End scene
-function runEndScene() {}
+function runEndScene() {
+    storage().angle += Math.PI * 0.001;
+}
 function drawEndScene() {
     background(0, 0, 0);
     
     // The stars
     var angle = storage().angle;
-    storage().angle += Math.PI * 0.001;
     drawStar(width/2, height/2, 13, width/2, width*0.282, 
         color(184, 120, 0), -angle);
     drawStar(width/2, height/2, 17, width/2, width*0.282, 
@@ -4819,10 +5105,15 @@ function drawEndScene() {
     text(youWinText, width/2, height*4/9);
     
     // Buttons
-    Button.drawForScene("end", mouseX, mouseY);
+    Button.runForScene("end");
 }
 
 // Sub scene
+function loadSubScene() {
+    if (!cachedImages.robotLogo) {
+        cachedImages.robotLogo = getImage("avatars/robot_male_3");
+    }
+}
 function runSubScene() {
     // Print url
     if (!storage().printed) {
@@ -4830,6 +5121,8 @@ function runSubScene() {
         println("https://www.khanacademy.org/computer-programming/elijakens-subpage/6220424138768384");
         storage().printed = true;
     }
+    // Rotate star
+    storage().angle += Math.PI * 0.001;
 }
 function drawSubScene() {
     background(0, 0, 0);
@@ -4839,9 +5132,15 @@ function drawSubScene() {
     
     // Add a cool star
     var angle = storage().angle;
-    storage().angle += Math.PI * 0.001;
     drawStar(width/2, height/2, 9, width/2, width*0.282, 
         color(0, 217, 255), angle);
+    // Robot (me)
+    loadSubScene();
+    imageMode(CENTER);
+    image(cachedImages.robotLogo, width*0.5, height*0.45, width/3, height/3);
+    // Another star to fade it
+    drawStar(width/2, height/2, 9, width/2, width*0.282, 
+        color(0, 217, 255, 130), angle);
     
     // Draw the text
     fill(0, 0, 0);
@@ -4850,7 +5149,7 @@ function drawSubScene() {
     text(txt, width/2, height/2);
     
     // Buttons
-    Button.drawForScene("sub", mouseX, mouseY);
+    Button.runForScene("sub");
 }
 
 // Restart ('are you sure?') scene
@@ -4870,7 +5169,7 @@ function drawRestartScene() {
     text(txt2, width/2, height*0.5);
     
     // Buttons
-    Button.drawForScene("restart", mouseX, mouseY);
+    Button.runForScene("restart");
 }
 
 // Frame rate function
@@ -4889,13 +5188,13 @@ function displayMyName() {
     text("By ElijaKen", width*0.99, height*0.99);
 }
 
-// Draw my name in the lower right function
+// Draw an indicator of time warp mode, if active
 function showTimeWarp() {
     if (timeWarpMode) {
         fill(255, 255, 255);
         textSize(width*0.033);
         textAlign(CENTER, BOTTOM);
-        text("Time warp active!", width*0.5, height*0.99);
+        text("Time warp active! (release t to stop)", width*0.5, height*0.99);
     }
 }
 
@@ -4907,8 +5206,10 @@ function attemptReboot() {
     currentLevelMessages = {};
     // Get rid of any that is left
     clearLevelData();
-    // In case this got corrupted
+    // In case these got corrupted (perhaps most common)
     emptyArrays.length = 0;
+    Particle.clearCache();
+    Jewel.clearCache();
 }
 
 /** Defining the buttons for each scene **/
@@ -4964,7 +5265,8 @@ buttonsByScene = {
             keys: "h",
             message: "Home (h)",
             color: color(153, 153, 153, 0),
-            hoverColor: color(135, 135, 135, 100),
+            hoverColor: color(135, 135, 135, 180),
+            pressColor: color(135, 135, 135, 220),
             textColor: color(255, 255, 255),
             strokeWeight: 0,
             textSize: width*0.032,
@@ -4979,7 +5281,8 @@ buttonsByScene = {
             keys: "i",
             message: "Restart level (i)",
             color: color(140, 140, 140, 0),
-            hoverColor: color(135, 135, 135, 100),
+            hoverColor: color(135, 135, 135, 180),
+            pressColor: color(135, 135, 135, 220),
             textColor: color(255, 255, 255),
             strokeWeight: 0,
             textSize: width*0.032,
@@ -4994,7 +5297,8 @@ buttonsByScene = {
             keys: "p",
             message: "Restart game (p)",
             color: color(140, 140, 140, 0),
-            hoverColor: color(255, 0, 0, 100),
+            hoverColor: color(200, 50, 50, 180),
+            pressColor: color(200, 50, 50, 220),
             textColor: color(255, 255, 255),
             strokeWeight: 0,
             textSize: width*0.032,
@@ -5009,7 +5313,8 @@ buttonsByScene = {
             keys: "",
             message: "Mobile mode",
             color: color(140, 140, 140, 0),
-            hoverColor: color(135, 135, 135, 100),
+            hoverColor: color(135, 135, 135, 180),
+            pressColor: color(135, 135, 135, 220),
             selectedColor: color(135, 135, 135, 100),
             textColor: color(255, 255, 255),
             strokeWeight: 0,
@@ -5069,8 +5374,8 @@ buttonsByScene = {
                         cy + Math.sin(theta + delta)*h*0.5);
                 }
             },
-            color: color(153, 153, 153, 0),
-            hoverColor: color(153, 153, 153, 0),
+            color: color(1, 1, 1, 0),
+            hoverColor: color(1, 1, 1, 0),
             strokeWeight: 0,
             textSize: width*0.032,
             onClick: changeSceneWrapped("colorwheel")
@@ -5250,28 +5555,10 @@ buttonsByScene = {
             selectedStroke: color(217, 217, 217),
             isSelected: isLightType.bind(null, "circular"),
         },
-        "flashlight": {
-            x: width*0.29,
-            y: height*0.535,
-            w: width*0.42,
-            h: height*0.12,
-            keys: "",
-            message: "Flashlight",
-            color: color(200, 200, 150),
-            stroke: color(0, 0, 0),
-            strokeWeight: width * 0.01,
-            textSize: width*0.078,
-            onClick: function () {
-                setLightType("flashlight");
-            },
-            selectedColor: color(200, 200, 150),
-            selectedStroke: color(217, 217, 217),
-            isSelected: isLightType.bind(null, "flashlight"),
-        },
         "first person": {
-            x: width*0.25,
-            y: height*0.67,
-            w: width*0.5,
+            x: width*0.265,
+            y: height*0.535,
+            w: width*0.47,
             h: height*0.12,
             keys: "fi",
             message: "First-person",
@@ -5285,6 +5572,27 @@ buttonsByScene = {
             selectedColor: color(220, 220, 90),
             selectedStroke: color(217, 217, 217),
             isSelected: isLightType.bind(null, "internal"),
+        },
+        "sounds": {
+            x: width*0.3,
+            y: height*0.67,
+            w: width*0.4,
+            h: height*0.12,
+            keys: "s",
+            message: "Sounds on/off",
+            color: color(97, 97, 97),
+            textColor: color(255, 255, 255),
+            stroke: color(0, 0, 0),
+            strokeWeight: width * 0.01,
+            textSize: width*0.055,
+            onClick: function () {
+                useSounds = !useSounds;
+            },
+            selectedColor: color(161, 161, 161),
+            selectedStroke: color(255, 255, 79),
+            isSelected: function() {
+                return useSounds && !decreaseLag;
+            },
         },
         "colorblind_mode": {
             x: width*0.01,
@@ -5321,6 +5629,7 @@ buttonsByScene = {
             textSize: width*0.045,
             onClick: function () {
                 decreaseLag = !decreaseLag;
+                useTransitions = !decreaseLag;
             },
             selectedColor: color(161, 161, 161),
             selectedStroke: color(255, 255, 79),
@@ -5572,6 +5881,7 @@ gameSceneDraw = {
 };
 var gameSceneLoad = {
     "play": loadPlayScene,
+    "sub": loadSubScene,
 };
 
 // Button init
@@ -5596,6 +5906,9 @@ for (var scene in mobileButtons) {
 changeScene(currentScene, true);
 setTransitionState("done");
 
+// Run this test
+verifySoundVolumesFormat();
+
 // Set frame rate and activate draw if needed (precaution)
 frameRate(targetFrameRate);
 loop();
@@ -5606,8 +5919,11 @@ strokeJoin(ROUND);
 // Init player raycasting light
 player.light = Light.safeNew();
 
-// Env functions (and time logging)
+/** Env functions (and time logging) **/
 function logT(msg) {
+    if (decreaseLag) {
+        return;
+    }
     var now = millis(), time = now - lastT;
     // println(msg + " took " + time + "ms");
     if (!logcachemax[msg] || logcachemax[msg] < time) { logcachemax[msg] = time; }
@@ -5638,13 +5954,32 @@ function clearTimeLogs() {
 draw = function() {
     startT = lastT = millis();
     try {
+        // Halt if in error state
+        if (hitError) {
+            return;
+        }
+        
+        // Check scene names
         logT("start");
         if (!sceneNames.includes(currentScene)) {
             error("Error: Invalid scene name: " + currentScene);
+            return; // In case strict mode is false
+        }
+        if (!lightTypes.includes(currentLightType)) {
+            error("Error: Invalid light type: " + currentLightType);
+            return; // In case strict mode is false
         }
         // Debug helper
         if (keys["?"]) {
             dbgr();
+        }
+        // A must-have helper to 'keys' that uses accurate keyIsPressed readings
+        // to turn off all keys if the canvas is deselected
+        // This deliberately doesn't turn off time warp mode
+        if (!keyIsPressed) {
+            for (var key in keys) {
+                delete keys[key];
+            }
         }
         logT("first checks");
         
@@ -5669,6 +6004,7 @@ draw = function() {
         } else if (isTransitionState("out")){
             // Show old scene image
             if (transition.oldSceneImage) {
+                imageMode(CORNER);
                 image(transition.oldSceneImage, 0, 0);
             }
             runTransition();
@@ -5714,6 +6050,9 @@ draw = function() {
 
 mouseClicked = function() {
     try {
+        if (hitError) {
+            return;
+        }
         Button.clickForScene(currentScene, mouseX, mouseY);
     } catch (err) {
         reportError(err);
@@ -5723,6 +6062,9 @@ mouseClicked = function() {
 // For mobile
 mousePressed = function() {
     try {
+        if (hitError) {
+            return;
+        }
         var btns = mobileButtons[currentScene];
         if (mobileMode && btns) {
             Button.pressForScene(btns, mouseX, mouseY);
@@ -5734,6 +6076,9 @@ mousePressed = function() {
 
 mouseReleased = function() {
     try {
+        if (hitError) {
+            return;
+        }
         var btns = mobileButtons[currentScene];
         if (mobileMode && btns) {
             Button.releaseForScene(btns, mouseX, mouseY);
@@ -5751,15 +6096,21 @@ keyPressed = function() {
         if (key.toString() === "o") {
             attemptReboot();
             loop();
+            hitError = false;
         }
-        if (key.toString() === "x" ) {
+        // Stop if hit error, but make sure to do the above to release the program
+        if (hitError) {
+            return;
+        }
+        if (key.toString() === "x") {
             printTimeLogs();
         }
-        if (key.toString() === "z" ) {
+        if (key.toString() === "z" && permitRecording) {
             clearTimeLogs();
+            recording = true;
         }
-        if (key.toString().toLowerCase() === "t" ) {
-            frameRate(120);
+        if (key.toString().toLowerCase() === "t") {
+            frameRate(warpFrameRate);
             timeWarpMode = true;
         }
         Button.keyPressedForScene(currentScene, keys);
@@ -5772,10 +6123,19 @@ keyReleased = function() {
     try {
         keys[keyCode] = false;
         keys[key.toString()] = false;
-        if (key.toString().toLowerCase() === "t" ) {
-            timeWarpMode = false;
-            frameRate(60);
+        if (hitError) {
+            return; // Halt if in error state
         }
+        if (key.toString().toLowerCase() === "t") {
+            timeWarpMode = false;
+            frameRate(baseFrameRate);
+        }
+        if (key.toString() === "z" && permitRecording) {
+            recording = false;
+            debug("["+recordedData.join(",")+"]");
+            recordedData.length = 0;
+        }
+        // Note: the draw function also turns off keys when canvas is deselected
     } catch (err) {
         reportError(err);
     }

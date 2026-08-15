@@ -46,7 +46,7 @@ const MapCompressor = (function () {
     const chars = "!#$%&'()*+¶-./:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª¯°±µ¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯʰʱʲʳʴʵʶʷʸʹʺʻʼʽˀˁ˂˃˄˅˪˫˭ˮ˵˶˸˹˺˻˼˽˾ͱͲͳʹ͵ͶͷͻͼͽͿ΄΅Ά·ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяѐёђѓєѕіїјљњћќѝўџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱѲѳѴѵѶѷѸѹѺѻѼѽѾѿҀҁ҂ҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӁӂӃӄӅӆӇӈӉӊӋӌӍӎӏӐӑӒӓӔӕӖӗӘәӚӛӜӝӞӟӠӡӢӣӤӥӦӧӨөӪӫӬӭӮӯӰӱӲӳӴӵӶӷӸӹӺӻӼӽӾӿԀԁԂԃԄԅԆԇԈԉԊԋԌԍԎԏԐԑԒԓ";
     const RLErow = /[\dabcdeo.$]{0,69}[abcdeo.$!]/gi;
     const startRLE = /x ?= ?\d+, ?y ?= ?\d+(, ?rule ?= ?[^ \n]+)? *\r?\n?\r?/i;
-    const extras = /([^]*x ?= ?\d+, ?y ?= ?\d+(, ?rule ?= ?[^ \n]+)?)?\r?\n?\r?| |![^]*/gi;
+    const extras = /![^]*|([^]*x ?= ?\d+, ?y ?= ?\d+(, ?rule ?= ?[^ \n]+)?)?\r?\n?\r?| /gi;
     const RLEpiece = /(\d+)([abcdeo.$])/gi;
     const emptyRows = /\${2,}/gi;
     const liveCells = "aceo";
@@ -406,24 +406,25 @@ function drawBoard() {
     }
 
     cx.fillStyle = "#308aff";
-    for (let x = 0; x < numW; x++) {
-        for (let y = 0; y < numH; y++) {
-            let newX = x + xOff, newY = y + yOff;
-            let drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
-            if (drawPlacingBoard ? placingBoard.has(`${newX} ${newY}`) : boxes.has(`${x} ${y}`)) {
-                cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
-            }
-        }
-    }
-    // boxes.forEach(({ x, y }) => {
-    //     let newX = x + xOff, newY = y + yOff, drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
-    //     if (!drawPlacingBoard && boxes.has(`${newX} ${newY}`)) {
-    //         cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+    // for (let x = 0; x < numW; x++) {
+    //     for (let y = 0; y < numH; y++) {
+    //         let newX = x + xOff, newY = y + yOff;
+    //         let drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
+    //         if (drawPlacingBoard ? placingBoard.has(`${newX} ${newY}`) : boxes.has(`${x} ${y}`)) {
+    //             cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+    //         }
     //     }
-    // });
-    // placingBoard && placingBoard.forEach(({ x, y }) => {
-    //     cx.fillRect((x - xOff) * boxSize, (y - yOff) * boxSize, boxSize, boxSize);
-    // });
+    // }
+    boxes.forEach(({ x, y }) => {
+        let newX = x + xOff, newY = y + yOff, drawPlacingBoard = placingBoard && newX >= minX && newY >= minY && newX <= maxX && newY <= maxY;
+        let onScreen = x >= 0 && y >= 0 && x < numW && y < numH;
+        if (!drawPlacingBoard && onScreen) {
+            cx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+        }
+    });
+    placingBoard && placingBoard.forEach(({ x, y }) => {
+        cx.fillRect((x - xOff) * boxSize, (y - yOff) * boxSize, boxSize, boxSize);
+    });
 
     cx.fillStyle = "#333";
     for (let y = 0; y <= numH; y++) {
